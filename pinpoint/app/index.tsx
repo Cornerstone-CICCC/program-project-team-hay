@@ -11,7 +11,7 @@ export default function Index() {
       }}
     >
       <Text
-      className="font-LexendBold text-xl">Edit app/index.tsx to edit this screen.</Text>
+      className="text-xl">Edit app/index.tsx to edit this screen.</Text>
     </View>
   );
 }

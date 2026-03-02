@@ -29,14 +29,18 @@ export default function RootLayout() {
 
   return (
   <Stack>
-      {/* <Stack.Screen
+      <Stack.Screen
       name="(screen)"
       options={{headerShown:false}}
       />
       <Stack.Screen
+      name="event/[id]"
+      options={{headerShown:false}}
+      />
+      {/* <Stack.Screen
       name="(auth)"
       options={{headerShown:false}}
-      />*/}
+      /> */}
       <Stack.Screen
       name="index"
       options={{headerShown:false}}

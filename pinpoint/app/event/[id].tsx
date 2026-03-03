@@ -4,14 +4,34 @@ import { fetchEventBgImage } from '@/libs/eventImgHandler'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useLocalSearchParams } from 'expo-router';
+import DetailCard from '@/components/event-detail/DetailCard';
 const EventDetail = () => {
     const {id} = useLocalSearchParams()
-    const event = {
-        id:"1",
-        name:"Coffee Meetup",
-        "date_time":new Date(),
-        address:"Starbuck"
-    }
+
+ const event = {
+  id: "1",
+  name: "Coffee Meetup",
+  date: "2026-03-14T16:00",
+ placeName: "Starbucks",
+    address: "36 Guild Street",
+  members: [
+    {
+      id: "user-1",
+      name: "Emma Watson",
+      avatar: "/avatars/emma.jpg",
+    },
+    {
+      id: "user-2",
+      name: "Chris Evans",
+      avatar: "/avatars/chris.jpg",
+    },
+    {
+      id: "user-3",
+      name: "Tom Holland",
+      avatar: "/avatars/tom.jpg",
+    },
+  ],
+};
 
     const bgImage = fetchEventBgImage(event.name)
   return (
@@ -42,6 +62,9 @@ const EventDetail = () => {
 
             </View>
         </View>
+
+        {/* Information card */}
+        <DetailCard event={event}/>
     </ScrollView>
     </View>
   )

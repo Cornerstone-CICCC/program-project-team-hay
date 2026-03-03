@@ -2,7 +2,7 @@ import { images } from "@/constants"
 
 const cafe = ['coffee','sweet','cake','cafe','dessert', 'afternoon','latte','tea']
 const activity = ['fun','activity','sports','run','play', 'walk','camp','mountain','trail','park']
-const birthday = ['birthday','celebrate','wedding','congrats','graduation', 'happy','party']
+const birthday = ['year','birthday','celebrate','wedding','congrats','graduation', 'happy','party']
 const dinner = ['dinner','night','restaurant','drink','chill']
 const lunch = ['lunch','brunch','noon','food','morning']
 

@@ -2,6 +2,7 @@ import { Image, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { EventDetail } from '@/app/(root)/event/[id]';
 
 interface Event{
     id:string,
@@ -15,7 +16,7 @@ interface Event{
         avatar:string
     }[]
 }
-const DetailCard = ({event}:{event:Event}) => {
+const DetailCard = ({event}:{event:EventDetail}) => {
     const dateTime = new Date(event.date)
     const day = dateTime.getDate();
     const month = dateTime.toLocaleString("en-CA", { month: "long" });
@@ -42,7 +43,7 @@ const DetailCard = ({event}:{event:Event}) => {
         </View>
         {/* data and time */}
       <View
-      className='flex gap-20 flex-row'>
+      className='flex gap-8 flex-row items-center'>
         <View
         className='w-[50px] h-[50px] justify-center items-center rounded-xl bg-[rgba(9,37,104,0.1)]'>
             <Ionicons name="calendar" size={30} color="#092568" />
@@ -51,7 +52,7 @@ const DetailCard = ({event}:{event:Event}) => {
         <View
         className='flex gap-1'>
             <Text
-            className='font-LexendMedium text-2xl'>{day} {month}, {year}</Text>
+            className='font-LexendMedium text-[20px]'>{day} {month}, {year}</Text>
             <Text
             className='text-[#747688] text-lg'>
                 {wod}, {hour<10?`0${hour}`:hour}:{mins<10?`0${mins}`:mins}
@@ -62,7 +63,7 @@ const DetailCard = ({event}:{event:Event}) => {
 
       {/* Location */}
       <View
-      className='flex gap-20 flex-row'>
+      className='flex gap-8 flex-row items-center'>
         <View
         className='w-[50px] h-[50px] justify-center items-center rounded-xl bg-[rgba(9,37,104,0.1)]'>
             <FontAwesome6 name="location-dot" size={30} color="#092568" />
@@ -70,10 +71,11 @@ const DetailCard = ({event}:{event:Event}) => {
         <View
         className='flex gap-1'>
             <Text
-            className='font-LexendMedium text-2xl'>{event.placeName}</Text>
+            className='font-LexendMedium text-[20px] w-[90%]'>
+                {event.place.place_name}</Text>
             <Text
-            className='text-[#747688] text-lg'>
-                {event.address}
+            className='text-[#747688] text-lg w-[90%] text-wrap'>
+                {event.place.address}
             </Text>
         </View>
       </View>
@@ -82,7 +84,7 @@ const DetailCard = ({event}:{event:Event}) => {
       <View
       className='py-3'>
         <Text
-        className='font-MontserratMedium text-2xl pb-6'>Members</Text>
+        className='font-MontserratSemiBold text-[20px] pb-6'>Members</Text>
         <View
          className=' flex flex-row gap-14 items-center'>
             <View

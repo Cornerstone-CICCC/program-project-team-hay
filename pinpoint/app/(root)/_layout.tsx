@@ -5,6 +5,8 @@ export default function Layout() {
     <>
     <Stack>
       <Stack.Screen name="(tabs)" options={{headerShown:false}} />
+      <Stack.Screen name="event/[id]" options={{headerShown:false}} />
+      <Stack.Screen name="event/create-event" options={{headerShown:false}} />
     </Stack>
     </>
   )

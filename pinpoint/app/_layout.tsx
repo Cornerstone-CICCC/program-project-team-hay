@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import { Text, TextInput } from 'react-native';
 
     (Text as any).defaultProps = (Text as any).defaultProps||{};
-    (Text as any). defaultProps.style = {fontFamily:'Lexend-Regular'};
+    (Text as any).defaultProps.style = {fontFamily:'Lexend-Regular'};
 
     (TextInput as any).defaultProps = (TextInput as any).defaultProps ||{};
     (TextInput as any).defaultProps.style = {fontFamily:'Lexend-Regular'}

@@ -1,6 +1,6 @@
 import CurrentFriendCard from "@/components/CurrentFriendCard"
 import HangoutCard from "@/components/HangoutCard"
-import { FlatList, Image, ScrollView, StyleSheet, Text, View } from "react-native"
+import { ScrollView, StyleSheet, Text, View } from "react-native"
 
 const Home = () => {
   const hangoutList = [
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   container: {
     paddingInline: 20,
     paddingTop: 80,
-    backgroundColor: '#ffff'
+    backgroundColor: '#fff'
   },
   ttl: {
     fontFamily: 'Montserrat-Bold',

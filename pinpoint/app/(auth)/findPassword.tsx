@@ -1,0 +1,62 @@
+import { useRouter } from "expo-router";
+import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+export default function FindPassword() {
+  const router = useRouter();
+
+  return (
+    <SafeAreaView edges={["top", "bottom"]} className="px-5">
+      <View className="flex items-center mt-2 mb-10">
+        <Text className="font-MontserratBold text-2xl"> Forgot Password</Text>
+      </View>
+
+      <View className="flex items-center justify-center mb-10 gap-5">
+        <Image
+          source={require("../../assets/images/icon-auth/lock_icon.png")}
+          className="mb-5"
+        ></Image>
+        <Text className="font-MontserratBold text-3xl">
+          Forgot your password?
+        </Text>
+        <Text className="font-Lexend text-center max-w-80">
+          Enter your registered email below to receive password rest instruction
+        </Text>
+      </View>
+
+      <View>
+        <View className="flex mb-5">
+          <Text className="text-lg font-Lexend">Email address</Text>
+          <TextInput
+            placeholder="Input email address"
+            placeholderTextColor={"#BCBCBC"}
+            keyboardType="email-address"
+            autoComplete="email"
+            autoCapitalize="none"
+            className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+          ></TextInput>
+        </View>
+
+        <TouchableOpacity className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6">
+          <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
+            Send
+          </Text>
+        </TouchableOpacity>
+
+        <View
+          style={{ height: 260, backgroundColor: "transparent", width: "100%" }}
+        ></View>
+
+        <TouchableOpacity
+          className="flex items-center"
+          onPress={() => router.push("/(auth)/login")}
+        >
+          <Text className="font-LexendSemiBold text-lg">
+            You remember your password?{" "}
+            <Text className="font-LexendBold text-[#5669FF]">Sign In</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}

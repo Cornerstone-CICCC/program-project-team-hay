@@ -1,8 +1,10 @@
 import EvilIcons from '@expo/vector-icons/EvilIcons';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
-import React from 'react'
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'expo-router';
+import { getGoogleImgUrl } from '@/constants';
+
 
 const PlaceCard = ({place}:{place:{
         place_name:string,
@@ -10,8 +12,16 @@ const PlaceCard = ({place}:{place:{
         latitude:number,
         longitude:number
         url?:string
+        imgKey?:string
 }}) => {
+    const [googleImgUrl, setGoogleImgUrl] = useState<string>("")
 
+    useEffect(()=>{
+        if(!place.imgKey) return
+        const url = getGoogleImgUrl(place.imgKey)
+        setGoogleImgUrl(url)
+
+    },[place])
     return (
     <View
     className='px-10 py-4'>
@@ -23,11 +33,23 @@ const PlaceCard = ({place}:{place:{
       href={place.url as any}
       >
         <View
-        className='py-6 flex flex-row gap-4'>
-            <View
-            className='w-[90px] aspect-square bg-slate-500'>
-                {/* Image */}
-            </View>
+        className='pt-6 pb-2 flex flex-row gap-4'>
+            {place.imgKey?
+            // <View
+            // className='w-[80px] aspect-square'>
+                <Image
+                source={{
+                    uri:googleImgUrl
+                }}
+                width={100}
+                height={100}
+                resizeMode='cover'
+                className='rounded-2xl'
+                />
+            // </View>
+            :<View
+            className='w-[90px] aspect-square bg-slate-500'/>
+            }
             <View
             className='flex flex-col justify-center gap-3 w-[220px] '>
                 <Text
@@ -51,8 +73,9 @@ const PlaceCard = ({place}:{place:{
       className='py-4 w-full h-[180px] rounded-xl'
     //   pointerEvents='none'
       >
+            {Platform.OS !== 'web'&&
             <MapView
-            provider={PROVIDER_DEFAULT}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
             className='w-full h-full rounded-2xl'
             scrollEnabled={true}
             tintColor='black'
@@ -77,7 +100,7 @@ const PlaceCard = ({place}:{place:{
                     longitude:place.longitude
                 }}
                 />
-            </MapView>
+            </MapView>}
       </View>
     </View>
   )

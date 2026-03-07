@@ -7,6 +7,7 @@ import { formatDateTime } from '@/libs/format';
 import { useLocationStore } from '@/store/location.store';
 import GoogleTextInput from '../GoogleTextInput';
 import { Link } from 'expo-router';
+import DateTimeInput from '../shared/DateTimeInput';
 
 export type PollQuestion = "place" | "date"
 
@@ -21,12 +22,34 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
   const [showDatePicker, setShowDatePicker] = useState(true);
   const [msg, setMsg] = useState<string>("")
 
-  const onChange = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
-    if (event.type === 'set' && selected) {
-      setDate(selected);
-    }
-  };
+//   const onChange = (event: DateTimePickerEvent, selected?: Date) => {
+//     if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
+//     if (event.type === 'set' && selected) {
+//       setDate(selected);
+//     }
+//   };
+
+    const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
+
+    // if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
+        if (event.type === 'set' && selected) {
+            const updated = date?new Date(date):new Date()
+            updated.setFullYear(selected.getFullYear())
+            updated.setMonth(selected.getMonth())
+            updated.setDate(selected.getDate())
+
+            setDate(updated)
+        }
+    };
+  
+      const onTimeChange = (event: DateTimePickerEvent, selected?: Date)=>{
+          if (event.type === 'set' && selected) {
+              const updated = date?new Date(date):new Date()
+              updated.setHours(selected.getHours())
+              updated.setMinutes(selected.getMinutes())
+              setDate(updated)
+          }
+      }
 
   const optionSaveHandler=()=>{
     const today = new Date()
@@ -49,21 +72,24 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
     style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     {Platform.OS === 'android' && (
         <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <Text>{date.toLocaleString()}</Text>
         </TouchableOpacity>
       )}
       
-      <View style={{ margin: 20 }}>
-        {showDatePicker && (
-          <DateTimePicker
-            testID="startDatePicker"
-            value={date}
-            mode="datetime"
-            display="default"
-            minimumDate={new Date()}
-            onChange={onChange}
-          />
-        )}
+      <View>
+        {/* {showDatePicker && (
+                <DateTimePicker
+                    testID="startDatePicker"
+                    value={date}
+                    mode="datetime"
+                    display="default"
+                    minimumDate={new Date()}
+                    onChange={onChange}
+                />
+        )} */}
+        <DateTimeInput
+        onDateChange={onDateChange}
+        onTimeChange={onTimeChange}
+        type='poll'/>
         {msg&&
             <Text
             className='pt-2 text-red-700'>
@@ -91,7 +117,15 @@ const PlaceOptionInputs =({addOptions, setIsInputShown}:
   }
 
     return(
-        <GoogleTextInput onSaveHandler={optionSaveHandler}/>
+        <View
+        className='w-[90%] mx-auto'
+        style={{
+            overflow:'visible',
+            zIndex:999
+        }}>
+            <GoogleTextInput onSaveHandler={optionSaveHandler} type='poll'/>
+        </View>
+
     )
 }
 
@@ -125,7 +159,8 @@ const OptionLists =<T extends PollQuestion>({type, setQuestionDisable}:{
 
     return (
         <View
-        className='flex flex-col gap-4'>
+        className='flex flex-col gap-4'
+        style={{overflow:'visible', zIndex:999}}>
             {options.length>0&&(
                 options.map((option,i)=>(
                     <View

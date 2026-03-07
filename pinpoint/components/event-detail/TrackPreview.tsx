@@ -1,6 +1,6 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps'
+import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 import { EventDetail } from '@/app/(root)/event/[id]'
 import { router } from 'expo-router'
 
@@ -18,8 +18,9 @@ const AvailablePreviewMap =({latitude, longitude}:{
             <TouchableOpacity
             // onPress={router.push()}
             >
-              <MapView
-              provider={PROVIDER_DEFAULT}
+              {Platform.OS !== 'web'&&
+                <MapView
+              provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
               className='w-full h-full rounded-2xl'
               scrollEnabled={false}
               tintColor='black'
@@ -41,7 +42,7 @@ const AvailablePreviewMap =({latitude, longitude}:{
                       longitude
                   }}
                   />
-              </MapView>
+              </MapView>}
             </TouchableOpacity>
       </View>
   )
@@ -57,8 +58,9 @@ const UnavailablePreviewMap =({latitude, longitude}:{
             className='py-4 w-full h-[180px] rounded-xl realtive'
             pointerEvents='none'
             >
-            <MapView
-            provider={PROVIDER_DEFAULT}
+            {Platform.OS !== 'web'&&
+              <MapView
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
             className='w-full h-full rounded-2xl'
             scrollEnabled={false}
             tintColor='black'
@@ -80,7 +82,7 @@ const UnavailablePreviewMap =({latitude, longitude}:{
                     longitude
                 }}
                 />
-            </MapView>
+            </MapView>}
           <View
         className='absolute rounded-2xl top-4 w-full h-full bg-black/70 z-10 items-center justify-center'>
           <Text
@@ -117,8 +119,10 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
 
      {/* Preview available 1 hr before start time */}
       {isTrackAvailable?
-        <View>
-        </View>:
+        <AvailablePreviewMap
+        longitude={event.place.longitude} 
+        latitude={event.place.latitude}
+        />:
         <UnavailablePreviewMap 
         longitude={event.place.longitude} 
         latitude={event.place.latitude}/>

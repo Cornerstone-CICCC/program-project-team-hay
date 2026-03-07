@@ -72,6 +72,13 @@ const Layout = () => {
           headerShown:false,
         }}
         />
+        <Tabs.Screen
+        name="events"
+        options={{
+          title:'Event',
+          headerShown:false,
+        }}
+        />
     </Tabs>
   )
 }

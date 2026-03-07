@@ -1,4 +1,4 @@
-import { FlatList, Image, ScrollView, Text, View } from 'react-native'
+import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import * as Location from 'expo-location'
 import React, { useEffect, useState } from 'react'
 import { fetchEventBgImage } from '@/libs/eventImgHandler'
@@ -22,7 +22,8 @@ export interface EventDetail {
         address:string,
         latitude:number,
         longitude:number
-        url?:string
+        url?:string,
+        imgKey?:string,
       }
       members:{
         id:string,
@@ -37,7 +38,7 @@ const EventDetail = () => {
     const [hasPermission, setHasPermission] = useState(false)
     const [eventDetail,setEventDetail] = useState<null|EventDetail>()
 
-    const event = {
+    const event:EventDetail = {
       id: "1",
       name: "Coffee Meetup",
       date: "2026-03-14T16:00",
@@ -47,6 +48,7 @@ const EventDetail = () => {
         latitude:49.28463,
         longitude:-123.1151,
         url:"https://maps.google.com/?cid=1502409917068404389",
+        imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
       },
       members: [
         {
@@ -131,10 +133,12 @@ const EventDetail = () => {
             />
             <View
             className='absolute top-[4rem] flex flex-row justify-between items-center w-full px-4 py-3'>
+              <TouchableOpacity>
                 <AntDesign 
                 name="arrow-left"
                  size={30} 
                  color="black" />
+              </TouchableOpacity>
                  <Text className='justify-self-center text-3xl font-LexendBold'>
                     Hangout Details
                  </Text>

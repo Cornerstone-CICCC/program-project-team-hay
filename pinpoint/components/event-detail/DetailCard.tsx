@@ -4,18 +4,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { EventDetail } from '@/app/(root)/event/[id]';
 
-interface Event{
-    id:string,
-    name:string,
-    date:string,
-    placeName:string,
-    address:string
-    members:{
-        id:string,
-        name:string,
-        avatar:string
-    }[]
-}
 const DetailCard = ({event}:{event:EventDetail}) => {
     const dateTime = new Date(event.date)
     const day = dateTime.getDate();

@@ -1,12 +1,11 @@
-import { Text, TouchableOpacity, View,StyleSheet, TextInput, Platform, KeyboardAvoidingView } from 'react-native'
+import { formatDateTime } from '@/libs/format';
 import { Accordion } from '@animatereactnative/accordion';
 import Entypo from '@expo/vector-icons/Entypo';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
-import { formatDateTime } from '@/libs/format';
-import { useLocationStore } from '@/store/location.store';
-import GoogleTextInput from '../GoogleTextInput';
+import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Link } from 'expo-router';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from '../shared/DateTimeInput';
 
 export type PollQuestion = "place" | "date"
@@ -22,16 +21,16 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
   const [showDatePicker, setShowDatePicker] = useState(true);
   const [msg, setMsg] = useState<string>("")
 
-//   const onChange = (event: DateTimePickerEvent, selected?: Date) => {
-//     if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
-//     if (event.type === 'set' && selected) {
-//       setDate(selected);
-//     }
-//   };
+  const onChange = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
+    if (event.type === 'set' && selected) {
+      setDate(selected);
+    }
+  };
 
     const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
 
-    // if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
+    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
         if (event.type === 'set' && selected) {
             const updated = date?new Date(date):new Date()
             updated.setFullYear(selected.getFullYear())
@@ -42,14 +41,15 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
         }
     };
   
-      const onTimeChange = (event: DateTimePickerEvent, selected?: Date)=>{
-          if (event.type === 'set' && selected) {
-              const updated = date?new Date(date):new Date()
-              updated.setHours(selected.getHours())
-              updated.setMinutes(selected.getMinutes())
-              setDate(updated)
-          }
-      }
+    const onTimeChange = (event: DateTimePickerEvent, selected?: Date)=>{
+    if (Platform.OS === 'android') setShowDatePicker(false);
+        if (event.type === 'set' && selected) {
+            const updated = date?new Date(date):new Date()
+            updated.setHours(selected.getHours())
+            updated.setMinutes(selected.getMinutes())
+            setDate(updated)
+        }
+    }
 
   const optionSaveHandler=()=>{
     const today = new Date()
@@ -86,10 +86,10 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
                     onChange={onChange}
                 />
         )} */}
-        <DateTimeInput
+        {showDatePicker &&<DateTimeInput
         onDateChange={onDateChange}
         onTimeChange={onTimeChange}
-        type='poll'/>
+        type='poll'/>}
         {msg&&
             <Text
             className='pt-2 text-red-700'>

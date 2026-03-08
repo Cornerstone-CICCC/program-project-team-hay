@@ -1,9 +1,9 @@
+import { EventDetail } from '@/app/(root)/event/[id]';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { EventDetail } from '@/app/(root)/event/[id]'
+import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from './DateTimeInput';
 
@@ -177,11 +177,11 @@ const EventForm = (props:Prop) => {
             style={styles.headText}>
                 Time
             </Text>
+                <DateTimeInput
+                eventForm={eventForm}
+                onDateChange={onDateChange}
+                onTimeChange={onTimeChange}/>
 
-            <DateTimeInput
-            eventForm={eventForm}
-            onDateChange={onDateChange}
-            onTimeChange={onTimeChange}/>
 
         </View>
         {/* Friends  */}

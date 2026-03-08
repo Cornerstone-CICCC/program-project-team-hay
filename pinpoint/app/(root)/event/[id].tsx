@@ -1,16 +1,15 @@
-import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import * as Location from 'expo-location'
-import React, { useEffect, useState } from 'react'
-import { fetchEventBgImage } from '@/libs/eventImgHandler'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import AntDesign from '@expo/vector-icons/AntDesign';
-import { useLocalSearchParams } from 'expo-router';
-import DetailCard from '@/components/event-detail/DetailCard';
-import { images } from '@/constants';
-import { useLocationStore } from '@/store/location.store'
-import PollForm from '@/components/event-detail/PollForm'
+import DetailCard from '@/components/event-detail/DetailCard'
 import PlaceCard from '@/components/event-detail/PlaceCard'
+import PollForm from '@/components/event-detail/PollForm'
 import TrackPreview from '@/components/event-detail/TrackPreview'
+import { images } from '@/constants'
+import { fetchEventBgImage } from '@/libs/eventImgHandler'
+import { useLocationStore } from '@/store/location.store'
+import AntDesign from '@expo/vector-icons/AntDesign'
+import * as Location from 'expo-location'
+import { useLocalSearchParams } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 
 // Disirable returning type for event
 export interface EventDetail {

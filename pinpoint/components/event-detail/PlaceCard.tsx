@@ -1,9 +1,9 @@
-import EvilIcons from '@expo/vector-icons/EvilIcons';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
-import React, { useEffect, useState } from 'react'
-import { Link } from 'expo-router';
 import { getGoogleImgUrl } from '@/constants';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
+import { Link } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Image, Platform, StyleSheet, Text, View } from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 
 
 const PlaceCard = ({place}:{place:{
@@ -71,6 +71,9 @@ const PlaceCard = ({place}:{place:{
       {/* Map preview */}
       <View
       className='py-4 w-full h-[180px] rounded-xl'
+      style={{
+        borderRadius:25
+      }}
     //   pointerEvents='none'
       >
             {Platform.OS !== 'web'&&
@@ -80,7 +83,7 @@ const PlaceCard = ({place}:{place:{
             scrollEnabled={true}
             tintColor='black'
             style={styles.map}
-            mapType='mutedStandard'
+            mapType='standard'
             showsPointsOfInterest={false}
             zoomEnabled={true}
             pitchEnabled={true}
@@ -88,9 +91,9 @@ const PlaceCard = ({place}:{place:{
             initialRegion={{ 
                 latitude: place.latitude, 
                 longitude: place.longitude, 
-                latitudeDelta: 0.0922, 
-                longitudeDelta: 0.0421 }}
-            showsUserLocation={true}
+                latitudeDelta: 0.005, 
+                longitudeDelta: 0.005 }}
+            showsUserLocation={false}
             userInterfaceStyle='light'
             >
                 <Marker

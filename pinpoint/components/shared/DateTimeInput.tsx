@@ -106,7 +106,6 @@ const DateTimeInput = ({
                         onChange={(e,date)=>{
                             if(!date) return
                             setShowTimePicker(false)
-                            console.log(date.toLocaleString())
                             setDateAndroid(date)
                             onTimeChange(e, date)
                         }}

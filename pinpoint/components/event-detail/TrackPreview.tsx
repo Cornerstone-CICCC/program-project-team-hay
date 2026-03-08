@@ -1,8 +1,7 @@
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 import { EventDetail } from '@/app/(root)/event/[id]'
-import { router } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 
 
 
@@ -25,7 +24,7 @@ const AvailablePreviewMap =({latitude, longitude}:{
               scrollEnabled={false}
               tintColor='black'
               style={styles.map}
-              mapType='mutedStandard'
+              mapType='standard'
               showsPointsOfInterest={false}
               initialRegion={{ 
                   latitude, 
@@ -55,7 +54,10 @@ const UnavailablePreviewMap =({latitude, longitude}:{
 })=>{
   return (
           <View
-            className='py-4 w-full h-[180px] rounded-xl realtive'
+          className={`py-4 w-full h-[180px] rounded-xl realtive`}
+            style={{
+              borderRadius:25
+            }}
             pointerEvents='none'
             >
             {Platform.OS !== 'web'&&
@@ -65,7 +67,7 @@ const UnavailablePreviewMap =({latitude, longitude}:{
             scrollEnabled={false}
             tintColor='black'
             style={styles.map}
-            mapType='mutedStandard'
+            mapType='standard'
             showsPointsOfInterest={false}
             initialRegion={{ 
                 latitude, 
@@ -84,7 +86,7 @@ const UnavailablePreviewMap =({latitude, longitude}:{
                 />
             </MapView>}
           <View
-        className='absolute rounded-2xl top-4 w-full h-full bg-black/70 z-10 items-center justify-center'>
+        className={`absolute top-4 w-full h-full bg-black/70 z-10 items-center justify-center ${Platform.OS !== "android" &&"rounded-2xl"}`}>
           <Text
           className='text-white text-center'>
             Tracking is available 1 hr before meetup time

@@ -1,8 +1,8 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
-import Ionicons from '@expo/vector-icons/Ionicons';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { EventDetail } from '@/app/(root)/event/[id]';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 const DetailCard = ({event}:{event:EventDetail}) => {
     const dateTime = new Date(event.date)
@@ -31,7 +31,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         </View>
         {/* data and time */}
       <View
-      className='flex gap-8 flex-row items-center'>
+      className='flex gap-8 flex-row items-center px-6'>
         <View
         className='w-[50px] h-[50px] justify-center items-center rounded-xl bg-[rgba(9,37,104,0.1)]'>
             <Ionicons name="calendar" size={30} color="#092568" />
@@ -51,7 +51,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
 
       {/* Location */}
       <View
-      className='flex gap-8 flex-row items-center'>
+      className='flex gap-8 flex-row items-center px-6'>
         <View
         className='w-[50px] h-[50px] justify-center items-center rounded-xl bg-[rgba(9,37,104,0.1)]'>
             <FontAwesome6 name="location-dot" size={30} color="#092568" />

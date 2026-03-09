@@ -5,10 +5,6 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
 
-export const options = {
-  headerShown: false
-}
-
 const Chat = () => {
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')

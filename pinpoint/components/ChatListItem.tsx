@@ -22,7 +22,7 @@ const ChatListItem = ({ data }: Props) => {
   return (
     <TouchableOpacity onPress={goToChatRoom}>
       <View style={styles.chatItem}>
-        <Image source={data.image} style={styles.chatImg} />
+        <Image source={data.image} style={styles.chatImg} resizeMode="cover" />
         <View>
           <Text style={styles.chatName}>{data.name}</Text>
           <Text style={styles.chatMsg}>{data.latestMsg}</Text>
@@ -54,8 +54,7 @@ const styles = StyleSheet.create({
   chatImg: {
     width: 56,
     height: 56,
-    objectFit: 'cover',
-    borderRadius: '50%',
+    borderRadius: 56 / 2,
     overflow: 'hidden'
   },
   chatName: {
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    borderRadius: '50%',
+    borderRadius: 12,
     width: 24,
     height: 24,
   },

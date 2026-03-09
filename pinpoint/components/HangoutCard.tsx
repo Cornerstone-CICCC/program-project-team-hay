@@ -28,7 +28,7 @@ const HangoutCard = ({ data }: Props) => {
     <TouchableOpacity onPress={goToEventDetail}>
       <View style={styles.cardItem}>
         <View style={styles.cardImgWrap}>
-          <Image source={data.image} style={styles.cardImg} />
+          <Image source={data.image} style={styles.cardImg} resizeMode="cover" />
           <View style={styles.cardImgTxtWrap}>
             <Text style={styles.cardImgTxt}>{month}</Text>
             <Text style={styles.cardImgTxt}>{day}</Text>
@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardImg: {
-    objectFit: 'cover',
     width: '100%',
     height: '100%',
   },

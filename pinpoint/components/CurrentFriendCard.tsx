@@ -19,7 +19,7 @@ const CurrentFriendCard = ({ data }: Props) => {
 
   return (
     <TouchableOpacity onPress={goToChatRoom}>
-      <Image source={data.image} style={styles.friendImg} />
+      <Image source={data.image} style={styles.friendImg} resizeMode="cover" />
     </TouchableOpacity>
   )
 }
@@ -28,10 +28,9 @@ export default CurrentFriendCard
 
 const styles = StyleSheet.create({
   friendImg: {
-    borderRadius: '50%',
+    borderRadius: 35,
     overflow: 'hidden',
     width: 70,
     height: 70,
-    objectFit: 'cover',
   }
 })

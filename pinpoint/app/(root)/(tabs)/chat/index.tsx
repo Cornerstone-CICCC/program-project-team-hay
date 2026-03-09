@@ -12,13 +12,13 @@ export const options = {
 const Chat = () => {
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')
-  const [chatList, setChatList] = useState<[]>([])
+  const [chats, setChats] = useState<[]>([])
   const chatLists = [
     { id: 'b01', image: require('../../../../assets/images/dummy02.png'), name: 'John', latestMsg: 'Hello!', latestTime: '4:50', unread: 2 },
     { id: 'b02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith', latestMsg: 'Can we have lunch today?', latestTime: '7:50', unread: 9 },
     { id: 'b03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry', latestMsg: 'What do you want to eat?', latestTime: '8:19', unread: 3 },
   ]
-  const filteredList = chatLists.filter(item => 
+  const filteredChats = chatLists.filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
   
@@ -34,7 +34,7 @@ const Chat = () => {
         </View>
       </View>
       <View style={styles.chatList}>
-        {filteredList.map((item) => (
+        {filteredChats.map((item) => (
           <ChatListItem key={item.id} data={item} />
         ))}
       </View>
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   chatCreate: {
     backgroundColor: '#FF7600',
-    borderRadius: '50%',
+    borderRadius: 20,
     width: 40,
     height: 40,
     display: 'flex',

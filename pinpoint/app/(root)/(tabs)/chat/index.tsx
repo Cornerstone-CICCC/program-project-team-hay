@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 4px 0 rgba(51, 51, 51, .25)',
+    boxShadow: '0 4px 8px #3333334c',
   },
   chatList: {
     marginBottom: 30,

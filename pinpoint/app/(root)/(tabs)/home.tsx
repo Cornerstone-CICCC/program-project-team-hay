@@ -44,14 +44,14 @@ const styles = StyleSheet.create({
   ttl: {
     fontFamily: 'Montserrat-Bold',
     color: '#FF7600',
-    fontSize: 30,
-    marginBottom: 28,
+    fontSize: 32,
+    marginBottom: 32,
   },
   subttl: {
     fontFamily: 'Montserrat-Bold',
     color: '#333',
     fontSize: 22,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   cardList: {
     marginBottom: 50,
@@ -59,6 +59,6 @@ const styles = StyleSheet.create({
   friendList: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 50,
+    marginBottom: 150,
   }
 })

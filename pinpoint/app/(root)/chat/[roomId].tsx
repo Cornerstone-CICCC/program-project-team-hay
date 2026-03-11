@@ -15,18 +15,22 @@ type Message = {
   isMine: boolean
 }
 
+export const options = {
+  headerShown: false
+}
+
 const Chatroom = () => {
   const router = useRouter()
   const goToChat = () => {
     router.push('/chat')
   }
-  const { roomId } = useSearchParams()
+  // const { roomId } = useSearchParams()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'c01',
       senderId: 'c101',
       senderName: 'John',
-      senderImage: require('../../../../assets/images/dummy02.png'),
+      senderImage: require('../../../assets/images/dummy02.png'),
       text: 'Hello!',
       createdAt: '2026-03-06T10:49:00Z',
       isMine: false
@@ -35,7 +39,7 @@ const Chatroom = () => {
       id: 'c02',
       senderId: 'c102',
       senderName: 'Harry',
-      senderImage: require('../../../../assets/images/dummy02.png'),
+      senderImage: require('../../../assets/images/dummy02.png'),
       text: 'Hey! How are you?',
       createdAt: '2026-03-06T11:03:00Z',
       isMine: true
@@ -44,7 +48,7 @@ const Chatroom = () => {
       id: 'c03',
       senderId: 'c101',
       senderName: 'John',
-      senderImage: require('../../../../assets/images/dummy02.png'),
+      senderImage: require('../../../assets/images/dummy02.png'),
       text: 'Good. Are you free tomorrow?',
       createdAt: '2026-03-06T11:05:00Z',
       isMine: false
@@ -53,7 +57,7 @@ const Chatroom = () => {
       id: 'c04',
       senderId: 'c102',
       senderName: 'Harry',
-      senderImage: require('../../../../assets/images/dummy02.png'),
+      senderImage: require('../../../assets/images/dummy02.png'),
       text: 'Yep! What are you planning?',
       createdAt: '2026-03-06T11:08:00Z',
       isMine: true
@@ -62,7 +66,7 @@ const Chatroom = () => {
       id: 'c05',
       senderId: 'c101',
       senderName: 'John',
-      senderImage: require('../../../../assets/images/dummy02.png'),
+      senderImage: require('../../../assets/images/dummy02.png'),
       text: 'I found so nice reataurant! So if you have free time, do you want to go there?',
       createdAt: '2026-03-06T11:05:00Z',
       isMine: false
@@ -71,7 +75,7 @@ const Chatroom = () => {
       id: 'c06',
       senderId: 'c102',
       senderName: 'Harry',
-      senderImage: require('../../../../assets/images/dummy02.png'),
+      senderImage: require('../../../assets/images/dummy02.png'),
       text: 'Awesome!',
       createdAt: '2026-03-06T11:08:00Z',
       isMine: true
@@ -80,7 +84,7 @@ const Chatroom = () => {
   const [message, setMessage] = useState<string>('')
   const sendMsg = () => {
     if(!message.trim()) return
-    const currentUser = { id: 'c102', name: 'Harry', image: require('../../../../assets/images/dummy02.png') }
+    const currentUser = { id: 'c102', name: 'Harry', image: require('../../../assets/images/dummy02.png') }
     const newMsg: Message = {
       id: `c${messages.length + 1}`,
       senderId: currentUser.id,

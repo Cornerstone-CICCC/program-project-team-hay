@@ -5,9 +5,8 @@ import Feather from '@expo/vector-icons/Feather';
 const TabIcon =({ name, focused, label, roundBg = false }: { name: string, focused: boolean, label: string, roundBg?: boolean }) => {
 
   return (
-    <View className='pb-3' style={{ minWidth: 46 }}>
+    <View className='pb-4' style={{ minWidth: 54 }}>
       <View
-        className={`items-center justify-center`}
         style={{
           width: roundBg ? 44 : undefined,
           height: roundBg ? 44 : undefined,
@@ -15,7 +14,9 @@ const TabIcon =({ name, focused, label, roundBg = false }: { name: string, focus
           boxShadow: roundBg ? '0 4px 8px #3333334c' : undefined,
           backgroundColor: roundBg ? '#FFA900' : 'transparent',
           marginBottom: roundBg ? 36 : 0,
-          paddingTop: roundBg ? 14 : 0
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginInline: 'auto',
         }}
       >
         <Feather
@@ -23,7 +24,7 @@ const TabIcon =({ name, focused, label, roundBg = false }: { name: string, focus
           size={22}
           color={roundBg ? '#fff' : focused ? '#FF7600' : '#333'}
         />
-        <Text style={{ color: focused ? '#FF7600' : '#333', fontFamily: 'Lexend-Medium', fontSize: 12, marginTop: 3 }}>{label}</Text>
+        {label.trim() && <Text style={{ color: focused ? '#FF7600' : '#333', fontFamily: 'Lexend-Medium', fontSize: 12, marginTop: 3 }}>{label}</Text>}
       </View>
     </View>
   )

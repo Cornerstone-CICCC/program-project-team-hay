@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-export default function ChatLayout() {
+export default function HangoutLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{headerShown:false}} />

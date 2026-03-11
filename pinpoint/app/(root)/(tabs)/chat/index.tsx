@@ -64,9 +64,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 'auto',
     gap: 7,
-    flex: 1
+    flex: 1,
   },
   inputSearch: {
+    fontFamily: 'Lexend-Regular',
     width: '100%',
   },
   chatCreate: {

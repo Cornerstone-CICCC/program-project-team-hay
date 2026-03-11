@@ -10,14 +10,16 @@ type Friend = {
   image: ImageSourcePropType
 }
 
-const Createroom = () => {
+const InviteExist = () => {
   const router = useRouter()
-  const goToChat = () => {
-    router.push('/chat')
+  const goToAddFriend = () => {
+    router.push('/hangout/detail/inviteNew')
   }
-  const goToRoom = (id: string) => {
-    router.push(`/chat/${id}`)
+  const isInvited = false
+  const toggleInvite = () => {
+    isInvited
   }
+
   const [keyword, setKeyword] = useState<string>('')
   const [friends, setFriends] = useState<Friend[]>([])
   const friendLists: Friend[] = [
@@ -30,61 +32,66 @@ const Createroom = () => {
   )
 
   return (
-    <View style={styles.bg} className="pt-14">
+    <View style={styles.bg} className="pt-[76px]">
       <View style={styles.roomHead}>
-        <TouchableOpacity onPress={goToChat}>
-          <AntDesign name="arrow-left" size={20} color="#fff" className="px-2 py-1.5" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <AntDesign name="arrow-left" size={20} color="#333" className="px-2 py-1.5" />
         </TouchableOpacity>
-        <Text style={styles.roomName}>Creating new chat</Text>
+        <Text style={styles.roomName}>Choose Friends</Text>
+        <TouchableOpacity onPress={goToAddFriend}>
+          <Feather name="user-plus" size={24} color="#333" />
+        </TouchableOpacity>
       </View>
       <View style={styles.roomMain}>
         <View style={styles.searchWrap}>
           <Feather name="search" size={16} color="#7C7C7C" />
-          <TextInput placeholder="Search..." value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
+          <TextInput placeholder="Search friends by username" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
         </View>
         <FlatList style={styles.chatList} data = {filteredFriends} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) => 
-          <TouchableOpacity onPress={() => goToRoom(item.id)} style={styles.chatItem}>
+          <View style={styles.chatItem}>
             <Image source={item.image} style={styles.chatImg} resizeMode="cover" />
             <Text style={styles.chatName}>{item.name}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => toggleInvite()} style={styles.btnToggle}>
+              <Text style={styles.btntext}>Invite</Text>
+            </TouchableOpacity>
+          </View>
         } />
       </View>
     </View>
   )
 }
 
-export default Createroom
+export default InviteExist
 
 const styles = StyleSheet.create({
   bg: {
-    backgroundColor: '#FF7600',
+    backgroundColor: '#F8F8F8',
     flex: 1,
   },
   roomHead: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    justifyContent: 'space-between',
     paddingBlock: 18,
-    paddingInline: 14,
+    paddingInline: 20,
+    width: '90%',
+    backgroundColor: '#fff'
   },
   roomName: {
     fontFamily: 'Montserrat-Bold',
     fontSize: 22,
-    color: '#fff'
+    color: '#333'
   },
   roomMain: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingInline: 20,
-    paddingBlock: 20,
+    backgroundColor: '#F8F8F8',
+    padding: 20,
     gap: 18,
     flex: 1
   },
   searchWrap: {
-    backgroundColor: '#F3F3F3',
-    borderRadius: 24,
+    backgroundColor: '#fff',
+    borderRadius: 10,
     padding: 12,
     display: 'flex',
     flexDirection: 'row',
@@ -93,6 +100,7 @@ const styles = StyleSheet.create({
   },
   inputSearch: {
     flex: 1,
+    fontFamily: 'Lexend-Regular',
   },
   chatList: {
     marginBottom: 30,
@@ -102,11 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 14,
-    paddingBottom: 12,
-    borderStyle: 'solid',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F3F3',
-    marginBottom: 12,
+    paddingBlock: 7,
   },
   chatImg: {
     width: 56,
@@ -117,6 +121,18 @@ const styles = StyleSheet.create({
   chatName: {
     fontFamily: 'Lexend-SemiBold',
     fontSize: 18,
-    marginBottom: 4
   },
+  btnToggle: {
+    marginLeft: 'auto',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#7c7c7c',
+    padding: 10,
+    width: 100,
+  },
+  btntext: {
+    textAlign: 'center',
+    color: '#7c7c7c'
+  }
 })

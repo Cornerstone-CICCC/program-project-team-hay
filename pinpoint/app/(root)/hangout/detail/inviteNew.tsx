@@ -4,10 +4,12 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
 
-type Friend = {
+type User = {
   id: string,
   name: string,
-  image: ImageSourcePropType
+  image: ImageSourcePropType,
+  email: string,
+  public_code: string,
 }
 
 const InviteNew = () => {
@@ -19,14 +21,14 @@ const InviteNew = () => {
   }
 
   const [keyword, setKeyword] = useState<string>('')
-  const [friends, setFriends] = useState<Friend[]>([])
-  const friendLists: Friend[] = [
-    { id: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John' },
-    { id: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith' },
-    { id: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry' },
+  const [users, setUsers] = useState<User[]>([])
+  const userLists: User[] = [
+    { id: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John', email: 'test01@gmail.com', public_code: '3e4r5t' },
+    { id: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith', email: 'test02@gmail.com', public_code: '2e4r5t' },
+    { id: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry', email: 'test03@gmail.com', public_code: '1e4r5t' },
   ]
-  const filteredFriends = friendLists.filter(item => 
-    item.name.toLowerCase().includes(keyword.toLowerCase())
+  const foundUser = userLists.find(item => 
+    item.email === keyword || item.public_code === keyword
   )
 
   return (
@@ -43,15 +45,19 @@ const InviteNew = () => {
           <Feather name="search" size={16} color="#7C7C7C" />
           <TextInput placeholder="Search friend by email or public code" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
         </View>
-        <FlatList style={styles.chatList} data = {filteredFriends} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) => 
-          <View style={styles.chatItem}>
-            <Image source={item.image} style={styles.chatImg} resizeMode="cover" />
-            <Text style={styles.chatName}>{item.name}</Text>
-            <TouchableOpacity onPress={() => toggleInvite()} style={styles.btnToggle}>
-              <Text style={styles.btntext}>Invite</Text>
-            </TouchableOpacity>
+        {keyword === '' ? null : foundUser ? 
+          <View style={styles.chatList}>
+            <View style={styles.chatItem}>
+              <Image source={foundUser.image} style={styles.chatImg} resizeMode="cover" />
+              <Text style={styles.chatName}>{foundUser.name}</Text>
+              <TouchableOpacity onPress={() => toggleInvite()} style={styles.btnToggle}>
+                <Text style={styles.btntext}>Invite</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        } />
+          : 
+          <Text style={styles.resultTxt}>User not found.</Text>
+        }
       </View>
     </View>
   )
@@ -134,5 +140,9 @@ const styles = StyleSheet.create({
   btntext: {
     textAlign: 'center',
     color: '#7c7c7c'
-  }
+  },
+  resultTxt: {
+    fontFamily: 'Lexend-Regular',
+    marginTop: 6,
+  },
 })

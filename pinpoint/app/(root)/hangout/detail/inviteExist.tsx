@@ -15,9 +15,15 @@ const InviteExist = () => {
   const goToAddFriend = () => {
     router.push('/hangout/detail/inviteNew')
   }
-  const isInvited = false
-  const toggleInvite = () => {
-    isInvited
+
+  const [groupMember, setGroupMember] = useState<string[]>([])
+
+  const toggleInvite = (id: string) => {
+    setGroupMember(prev => 
+      prev.includes(id)
+      ? prev.filter(userId => userId !== id)
+      : [...prev, id]
+    )
   }
 
   const [keyword, setKeyword] = useState<string>('')
@@ -51,9 +57,15 @@ const InviteExist = () => {
           <View style={styles.chatItem}>
             <Image source={item.image} style={styles.chatImg} resizeMode="cover" />
             <Text style={styles.chatName}>{item.name}</Text>
-            <TouchableOpacity onPress={() => toggleInvite()} style={styles.btnToggle}>
-              <Text style={styles.btntext}>Invite</Text>
-            </TouchableOpacity>
+            {groupMember.includes(item.id) ? 
+              <TouchableOpacity onPress={() => toggleInvite(item.id)} style={styles.btnInvited}>
+                <Text style={styles.txtInvited}>Remove</Text>
+              </TouchableOpacity>
+              : 
+              <TouchableOpacity onPress={() => toggleInvite(item.id)} style={styles.btnDefault}>
+                <Text style={styles.txtDefault}>Invite</Text>
+              </TouchableOpacity>
+              }
           </View>
         } />
       </View>
@@ -122,7 +134,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Lexend-SemiBold',
     fontSize: 18,
   },
-  btnToggle: {
+  btnDefault: {
     marginLeft: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,
@@ -131,8 +143,22 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 100,
   },
-  btntext: {
+  btnInvited: {
+    marginLeft: 'auto',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#092568',
+    backgroundColor: '#0925681a',
+    padding: 10,
+    width: 100,
+  },
+  txtDefault: {
     textAlign: 'center',
     color: '#7c7c7c'
-  }
+  },
+  txtInvited: {
+    textAlign: 'center',
+    color: '#092568',
+  },
 })

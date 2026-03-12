@@ -246,7 +246,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputMsg: {
-    flex: 1
+    flex: 1,
+    fontSize: 16,
   },
   sendIcon: {
     backgroundColor: '#FFA900',

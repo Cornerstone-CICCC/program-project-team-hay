@@ -15,9 +15,13 @@ type User = {
 const InviteNew = () => {
   const router = useRouter()
 
-  const isInvited = false
-  const toggleInvite = () => {
-    isInvited
+  const [groupMember, setGroupMember] = useState<string[]>([])
+  const toggleInvite = (id: string) => {
+    setGroupMember(prev => 
+      prev.includes(id)
+      ? prev.filter(userId => userId !== id)
+      : [...prev, id]
+    )
   }
 
   const [keyword, setKeyword] = useState<string>('')
@@ -50,9 +54,15 @@ const InviteNew = () => {
             <View style={styles.chatItem}>
               <Image source={foundUser.image} style={styles.chatImg} resizeMode="cover" />
               <Text style={styles.chatName}>{foundUser.name}</Text>
-              <TouchableOpacity onPress={() => toggleInvite()} style={styles.btnToggle}>
-                <Text style={styles.btntext}>Invite</Text>
-              </TouchableOpacity>
+              {groupMember.includes(foundUser.id) ? 
+                <TouchableOpacity onPress={() => toggleInvite(foundUser.id)} style={styles.btnInvited}>
+                  <Text style={styles.txtInvited}>Remove</Text>
+                </TouchableOpacity>
+                : 
+                <TouchableOpacity onPress={() => toggleInvite(foundUser.id)} style={styles.btnDefault}>
+                  <Text style={styles.txtDefault}>Invite</Text>
+                </TouchableOpacity>
+                }
             </View>
           </View>
           : 
@@ -128,7 +138,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Lexend-SemiBold',
     fontSize: 18,
   },
-  btnToggle: {
+  btnDefault: {
     marginLeft: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,
@@ -137,9 +147,23 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 100,
   },
-  btntext: {
+  btnInvited: {
+    marginLeft: 'auto',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#092568',
+    backgroundColor: '#0925681a',
+    padding: 10,
+    width: 100,
+  },
+  txtDefault: {
     textAlign: 'center',
     color: '#7c7c7c'
+  },
+  txtInvited: {
+    textAlign: 'center',
+    color: '#092568',
   },
   resultTxt: {
     fontFamily: 'Lexend-Regular',

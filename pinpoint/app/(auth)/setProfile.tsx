@@ -1,23 +1,64 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
-  Image,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Image } from "expo-image";
+import { uploadProfileImage } from "../../libs/supabase/storage";
+import { useAuthStore } from "../../store/auth.store";
 
 export default function SetProfile() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
-
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
+
+  const handleComplete = async () => {
+    setIsLoading(true);
+    try {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Upload profile img
+      let profileImageUrl: string | undefined;
+      if (profileImage) {
+        try {
+          profileImageUrl = await uploadProfileImage(user.id, profileImage);
+        } catch (err) {
+          console.error("Error uploading profile image", err);
+          Alert.alert(
+            "Warning",
+            "Failed to upload profile image. Continuing without image",
+          );
+        }
+      }
+
+      // Update profile
+      await updateUser({
+        profileImage: profileImageUrl,
+        onboardingCompleted: true,
+      });
+      router.replace("/(auth)/accountSetting");
+    } catch (err) {
+      Alert.alert(
+        "Error",
+        "Failed to complete the onboarding. Please try again",
+      );
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const pickPhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -84,12 +125,24 @@ export default function SetProfile() {
         </Text>
 
         <TouchableOpacity onPress={showPhotoPicker} className="relative">
-          <FontAwesome
-            name="photo"
-            size={80}
-            color="#7C7C7C"
-            className="mb-12"
-          />
+          {profileImage ? (
+            <Image
+              source={{ uri: profileImage }}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                backgroundColor: "white",
+              }}
+            />
+          ) : (
+            <FontAwesome
+              name="photo"
+              size={80}
+              color="#7C7C7C"
+              className="mb-12"
+            />
+          )}
           <Text className="absolute bottom-10 right-0 bg-[#333333] text-[#F3F3F3] text-2xl px-2 rounded-xl">
             +
           </Text>
@@ -125,10 +178,17 @@ export default function SetProfile() {
         </View>
       </View>
       <View className="mt-5">
-        <TouchableOpacity className="bg-[#FF7600] py-4 rounded-md flex items-center mb-10">
-          <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
-            Complete Setup
-          </Text>
+        <TouchableOpacity
+          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-10"
+          onPress={handleComplete}
+        >
+          {isLoading ? (
+            <ActivityIndicator size={24} color="#fff" />
+          ) : (
+            <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
+              Complete Setup
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity

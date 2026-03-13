@@ -1,10 +1,42 @@
+import { useAuthStore } from "../../store/auth.store";
 import { useRouter } from "expo-router";
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const router = useRouter();
 
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const signIn = useAuthStore((s) => s.signIn);
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields.");
+    }
+
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+      router.push("/");
+    } catch (err) {
+      Alert.alert("Error", "Failed to sign In. Please try again");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <SafeAreaView edges={["top", "bottom"]} className="px-5">
       <View className="flex items-center mt-2 mb-10">
@@ -21,6 +53,8 @@ export default function LoginScreen() {
             autoComplete="email"
             autoCapitalize="none"
             className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            value={email}
+            onChangeText={setEmail}
           ></TextInput>
         </View>
 
@@ -32,13 +66,22 @@ export default function LoginScreen() {
             autoComplete="password"
             secureTextEntry
             className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            value={password}
+            onChangeText={setPassword}
           ></TextInput>
         </View>
 
-        <TouchableOpacity className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6">
-          <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
-            Sign In
-          </Text>
+        <TouchableOpacity
+          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6"
+          onPress={handleSignIn}
+        >
+          {isLoading ? (
+            <ActivityIndicator size={24} color="#fff"></ActivityIndicator>
+          ) : (
+            <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
+              Sign In
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity

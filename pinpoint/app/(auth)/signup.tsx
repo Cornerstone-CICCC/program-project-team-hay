@@ -1,10 +1,48 @@
+import { useAuthStore } from "../../store/auth.store";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignupScreen() {
   const router = useRouter();
+
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPwd, setConfirmPwd] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const signUp = useAuthStore((s) => s.signUp);
+
+  const handleSignUp = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields.");
+    }
+
+    if (password.length < 3) {
+      Alert.alert("Error", "Password must be at least 3 charactors");
+    }
+
+    setIsLoading(true);
+    try {
+      await signUp(email, password, name);
+      router.push("/(auth)/setProfile");
+    } catch (err) {
+      Alert.alert("Error", "Failed to sign up. Please try again");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView edges={["top", "bottom"]} className="px-5">
@@ -19,6 +57,8 @@ export default function SignupScreen() {
             placeholder="Input your name"
             placeholderTextColor={"#BCBCBC"}
             className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa] "
+            value={name}
+            onChangeText={setName}
           ></TextInput>
         </View>
 
@@ -31,6 +71,8 @@ export default function SignupScreen() {
             autoComplete="email"
             autoCapitalize="none"
             className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            value={email}
+            onChangeText={setEmail}
           ></TextInput>
         </View>
 
@@ -42,6 +84,8 @@ export default function SignupScreen() {
             autoComplete="password"
             secureTextEntry
             className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            value={password}
+            onChangeText={setPassword}
           ></TextInput>
         </View>
 
@@ -53,16 +97,22 @@ export default function SignupScreen() {
             autoComplete="password"
             secureTextEntry
             className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            value={confirmPwd}
+            onChangeText={setConfirmPwd}
           ></TextInput>
         </View>
 
         <TouchableOpacity
           className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6"
-          onPress={() => router.push("/(auth)/setProfile")}
+          onPress={handleSignUp}
         >
-          <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
-            Sign Up
-          </Text>
+          {isLoading ? (
+            <ActivityIndicator size={24} color="#fff" />
+          ) : (
+            <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
+              Sign Up
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View className="flex flex-row items-center justify-center gap-3 mb-7 ">

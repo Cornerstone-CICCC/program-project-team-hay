@@ -2,28 +2,36 @@ import { EventDetail } from '@/app/(root)/event/[id]';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Props={
     eventForm?:Omit<EventDetail,'id'>,
+    dateValue?:Date,
     onDateChange:(event: DateTimePickerEvent, selected?: Date)=>void
     onTimeChange:(event: DateTimePickerEvent, selected?: Date)=>void
-    type?:"poll"|"new"
+    type?:"poll"|"new" |"edit"
 }
 
 const DateTimeInput = ({
     eventForm,
     onDateChange,
     onTimeChange,
-    type
+    type,
 }:Props) => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [dateAndroid, setDateAndroid] = useState<Date | null>(new Date())
+
+    useEffect(()=>{
+        console.log(eventForm?.date)
+        if(!eventForm) return
+        setDateAndroid(new Date(eventForm.date))
+
+    },[])
   return (
             <View 
-        className={`flex flex-row items-center w-full ${(type&&type==="poll")?"gap-2":"px-2 gap-8"}`}
+        className={`flex flex-row items-center w-full ${(type&&type!=="poll")&&"px-2 gap-8"}`}
         style={{
             flexBasis:'auto'
         }}>
@@ -56,11 +64,12 @@ const DateTimeInput = ({
                         )}
                     </View>
                           
-                    {showDatePicker&&<DateTimePicker
+                    {(showDatePicker||Platform.OS!=="android")&&
+                    <DateTimePicker
                         value={new Date(eventForm?.date ?? new Date())}
                         mode="date"
                         display="default"
-                        minimumDate={new Date()}
+                        minimumDate={new Date(eventForm?.date ?? new Date())}
                         onChange={(e, date)=>{
                             if(!date) return
                             setShowDatePicker(false)
@@ -86,23 +95,23 @@ const DateTimeInput = ({
                         <TouchableOpacity onPress={() => setShowTimePicker(true)}>
                             {dateAndroid?
                             <Text
-                            className='w-[100px] text-[#ACACAC]'>
-                                {dateAndroid.getHours()>12?dateAndroid.getHours()-12:dateAndroid.getHours()} : {dateAndroid.getMinutes()} {dateAndroid.getHours()>12?"PM":"AM"}
+                            className={`${Platform.OS==="android"&&"w-[80px]"} w-[100px] text-[#ACACAC]`}>
+                                {dateAndroid.getHours()>12?dateAndroid.getHours()-12:dateAndroid.getHours()} : {dateAndroid.getMinutes()<10?`0${dateAndroid.getMinutes()}`:dateAndroid.getMinutes()} {dateAndroid.getHours()>12?"PM":"AM"}
                             </Text>
                             
                             :<Text
-                            className='w-[100px] text-[#ACACAC]'>
+                            className={`${Platform.OS==="android"&&"w-[80px]"} w-[100px] text-[#ACACAC]`}>
                                 HH : MM 
                             </Text>}
                         </TouchableOpacity>
                         )}
                     </View>
-                    {showTimePicker&&
+                    {(showDatePicker||Platform.OS!=="android")&&
                     <DateTimePicker
                         value={new Date(eventForm?.date ?? new Date())}
                         mode="time"
                         display="default"
-                        minimumDate={new Date()}
+                        minimumDate={new Date(eventForm?.date ?? new Date())}
                         onChange={(e,date)=>{
                             if(!date) return
                             setShowTimePicker(false)

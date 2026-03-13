@@ -1,3 +1,5 @@
+import { MarkerData } from "@/app/(root)/track/[id]";
+
 const directionsAPI = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 
 export const calculateRegion = ({
@@ -46,4 +48,33 @@ export const calculateRegion = ({
         latitudeDelta,
         longitudeDelta,
     };
+};
+
+export const generateMarkersFromData = 
+({
+    data,
+    userLatitude,
+    userLongitude,
+}: {
+    //NEED TO UPDATE 
+    data: {
+        id:string,
+        name:string,
+        image:string
+    }[];
+    userLatitude: number;
+    userLongitude: number;
+}): MarkerData[] => {
+    return data.map((member) => {
+        const latOffset = (Math.random() - 0.5) * 0.01; // Random offset between -0.005 and 0.005
+        const lngOffset = (Math.random() - 0.5) * 0.01; // Random offset between -0.005 and 0.005
+
+        return {
+            latitude: userLatitude + latOffset,
+            longitude: userLongitude + lngOffset,
+            name: member.name,
+            userId: member.id,
+            image:member.image
+        };
+    });
 };

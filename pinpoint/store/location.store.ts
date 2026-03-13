@@ -1,30 +1,32 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-
+import { createJSONStorage, persist } from 'zustand/middleware';
 export interface LocationStore {
     userLatitude: number | null;
     userLongitude: number | null;
-    userAddress: string | null;
     setUserLocation: ({
                           latitude,
                           longitude,
-                          address,
                       }: {
         latitude: number;
         longitude: number;
-        address: string;
     }) => void;
 }
 
-export const useLocationStore = create<LocationStore>((set)=>({
-    userAddress: null,
+export const useLocationStore = create<LocationStore>()(
+    persist(
+    ((set)=>({
     userLongitude: null,
     userLatitude: null,
-    setUserLocation:({ latitude, longitude, address }:{latitude:number; longitude:number, address:string}) =>{
+    setUserLocation:({ latitude, longitude }:{latitude:number; longitude:number}) =>{
         set({
             userLatitude:latitude,
-            userLongitude:longitude,
-            userAddress:address
+            userLongitude:longitude
         })
     }
-
-}))
+})
+    ),{
+    name:'userLocation-storage',
+    storage:createJSONStorage (()=>AsyncStorage) 
+})
+)

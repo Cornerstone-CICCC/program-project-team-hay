@@ -1,10 +1,14 @@
 import { EventDetail } from '@/app/(root)/event/[id]';
+import { useEventStore } from '@/store/event.store';
+import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Link, router } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 
 const DetailCard = ({event}:{event:EventDetail}) => {
+    const {setSelectedEvent} = useEventStore()
     const dateTime = new Date(event.date)
     const day = dateTime.getDate();
     const month = dateTime.toLocaleString("en-CA", { month: "long" });
@@ -23,15 +27,26 @@ const DetailCard = ({event}:{event:EventDetail}) => {
   return (
     <View
     className='px-9 py-6 flex gap-8'>
+        <View
+        className='w-full flex flex-row justify-end'>
+            <TouchableOpacity
+            onPress={()=>{
+                setSelectedEvent(event)
+                router.push('/event/edit-event')}
+            }
+            >
+                <Feather name="edit" size={18} color="black" />
+            </TouchableOpacity>
+        </View>
         {/* Event Name */}
         <View
-        className='py-4'>
+        className='pb-4'>
             <Text
             className='text-4xl font-MontserratMedium text-center'>{event.name}</Text>
         </View>
         {/* data and time */}
       <View
-      className='flex gap-8 flex-row items-center px-6'>
+      className={`flex gap-8 flex-row items-center ${Platform.OS==="android"&&"px-6"}`}>
         <View
         className='w-[50px] h-[50px] justify-center items-center rounded-xl bg-[rgba(9,37,104,0.1)]'>
             <Ionicons name="calendar" size={30} color="#092568" />
@@ -51,7 +66,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
 
       {/* Location */}
       <View
-      className='flex gap-8 flex-row items-center px-6'>
+      className={`flex gap-8 flex-row items-center ${Platform.OS==="android"&&"px-6"}`}>
         <View
         className='w-[50px] h-[50px] justify-center items-center rounded-xl bg-[rgba(9,37,104,0.1)]'>
             <FontAwesome6 name="location-dot" size={30} color="#092568" />
@@ -90,12 +105,23 @@ const DetailCard = ({event}:{event:EventDetail}) => {
             ))}
             </View>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
             onPress={addFriendHandler}>
                 <FontAwesome6 name="add" size={40} color="#092568" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+            <Link
+            href={`/members/${event.id}`}>
+                <Text>See More</Text>
+            </Link>
         </View>
       </View>
+
+      {/* <Link> */}
+      <Text
+      className='text-lg text-center font-LexendSemiBold'>
+        Message memebres
+      </Text>
+      {/* </Link> */}
     </View>
   )
 }

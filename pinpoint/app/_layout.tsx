@@ -2,7 +2,7 @@ import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from 'react';
 import { Text, TextInput } from 'react-native';
-import '../global.css'
+import '../global.css';
 
     (Text as any).defaultProps = (Text as any).defaultProps||{};
     (Text as any). defaultProps.style = {fontFamily:'Lexend-Regular'};
@@ -39,6 +39,10 @@ export default function RootLayout() {
   return (
   <Stack>
       <Stack.Screen
+      name="index"
+      options={{headerShown:false}}
+      /> 
+      <Stack.Screen
       name="(root)"
       options={{headerShown:false}}
       />
@@ -50,9 +54,5 @@ export default function RootLayout() {
       name="(auth)"
       options={{headerShown:false}}
       /> */}
-      <Stack.Screen
-      name="index"
-      options={{headerShown:false}}
-      /> 
   </Stack>);
 }

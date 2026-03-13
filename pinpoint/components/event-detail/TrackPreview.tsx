@@ -1,6 +1,7 @@
 import { EventDetail } from '@/app/(root)/event/[id]'
+import { Link } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 
 
@@ -14,8 +15,8 @@ const AvailablePreviewMap =({latitude, longitude}:{
             className='py-4 w-full h-[180px] rounded-xl realtive'
             pointerEvents='none'
             >
-            <TouchableOpacity
-            // onPress={router.push()}
+            <Link
+            href="/(root)/track/[id]"
             >
               {Platform.OS !== 'web'&&
                 <MapView
@@ -42,7 +43,7 @@ const AvailablePreviewMap =({latitude, longitude}:{
                   }}
                   />
               </MapView>}
-            </TouchableOpacity>
+            </Link>
       </View>
   )
 }
@@ -120,7 +121,11 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
       </Text>
 
      {/* Preview available 1 hr before start time */}
-      {isTrackAvailable?
+      {Platform.OS==="web"?
+      <Text>
+        This service is only available on mobile
+      </Text>:
+      isTrackAvailable?
         <AvailablePreviewMap
         longitude={event.place.longitude} 
         latitude={event.place.latitude}

@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useLocationStore } from "@/store/location.store";
+import * as Location from 'expo-location';
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { PlaceOption } from "./event-detail/PollForm";
 import { Place } from "./shared/EventForm";
@@ -9,20 +11,50 @@ const googlePlacesApiKey = process.env.EXPO_PUBLIC_GOOGLE_API_KEY!
 type Props={
     onSaveHandler?:(place:PlaceOption)=>void,
     setNewLocation?:(place:Place)=>void,
-    type?:"new"|"poll"
+    place?:{
+        place_name:string,
+        address:string,
+        latitude:number,
+        longitude:number,
+        }
+    type?:"new"|"poll"|"edit"
 }
-const GoogleTextInput =({onSaveHandler,setNewLocation, type}:
+const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
     Props)=>{
+    const {setUserLocation,userLatitude,userLongitude} = useLocationStore()
     const [placeInfo, setPlaceInfo]=useState<Place|null>(null)
+    const [editLocaton, setEditLocation] = useState<boolean>(false)
 
 
-    //TODO:: use locationStore and show result around me
+    useEffect(()=>{
+
+        if(!place){
+            setEditLocation(true)
+        }else{
+            setEditLocation(false)
+        }
+    },[place])
+
+    useEffect(() => {
+    (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync()
+        if (status !== 'granted') return
+        
+        const location = await Location.getCurrentPositionAsync({})
+        setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+        })
+    })()
+    }, [])
 
 
     return (
     <View
     className="mb-15">
-        <GooglePlacesAutocomplete
+        {/* Type is not edit */}
+        {editLocaton&&
+            <GooglePlacesAutocomplete
         fetchDetails={true}
         placeholder="Location"
         debounce={200}
@@ -81,10 +113,25 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type}:
         }}
         query={{
             key:googlePlacesApiKey,
-            language:'en'
+            language:'en',
+            ...(userLatitude&&userLongitude&&{
+                location:`${userLatitude}, ${userLongitude}`,
+                radius:10000
+            })
         }}
-        />
-        {type!=="new"&&
+        />}
+        {
+            (type==="edit"&& place)&&(
+                !editLocaton&&
+                (<TouchableOpacity
+                className="py-2 ps-4"
+                onPress={()=>setEditLocation(true)}>
+                    <Text>
+                        {place.place_name}, {place.address}</Text>
+                </TouchableOpacity>)
+            )       
+        }
+        {(type!=="new"&&type!=="edit")&&
         <TouchableOpacity
         className="pt-4"
         onPress={()=>{

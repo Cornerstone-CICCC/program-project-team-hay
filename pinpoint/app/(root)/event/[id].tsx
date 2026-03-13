@@ -1,5 +1,7 @@
+import ActivePoll from '@/components/event-detail/ActivePoll'
 import DetailCard from '@/components/event-detail/DetailCard'
-import PlaceCard from '@/components/event-detail/PlaceCard'
+import PlaceCard from '@/components/event-detail/PlaceCard.native'
+
 import PollForm from '@/components/event-detail/PollForm'
 import TrackPreview from '@/components/event-detail/TrackPreview'
 import { images } from '@/constants'
@@ -27,46 +29,99 @@ export interface EventDetail {
       members:{
         id:string,
         name:string,
-        avatar:string
+        image:string
       }[]
+      activePoll?:ActivePoll[]
 }
+
+export interface ActivePoll{
+    id:string,
+    title:string,
+    is_active:boolean,
+    type:"date" |"place",
+    options:PollOption[]
+    
+}
+
+export interface PollOption {
+    option_id:string,
+    label:string,
+    latitude?:number,
+    longitude?:number,
+    address?:string,
+    url?:string
+    votes?:Vote[]
+}
+
+export interface Vote{
+  id:string,
+  option_id:string,
+  userId:string
+}
+
+export const event:EventDetail = {
+  id: "28",
+  name: "Coffee Meetup",
+  date: "2026-03-14T16:00",
+  place:{
+    place_name: "Startbucks Coffee Company",
+    address: "West Pender Street, Vancouver, BC, Canada",
+    latitude:49.28463,
+    longitude:-123.1151,
+    url:"https://maps.google.com/?cid=1502409917068404389",
+    imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
+  },
+  members: [
+    {
+      id: "user-1",
+      name: "Emma Watson",
+      image: "/avatars/emma.jpg",
+    },
+    {
+      id: "user-2",
+      name: "Chris Evans",
+      image: "/avatars/chris.jpg",
+    },
+    {
+      id: "user-3",
+      name: "Tom Holland",
+      image: "/avatars/tom.jpg",
+    },
+  ],
+  activePoll:[{
+    id:"123",
+    title:"What time we should meet?",
+    type:"date",
+    is_active:true,
+    options:[
+      {
+        option_id:"1",
+        label:"2026-03-14T15:00",
+        votes:[{
+          id:"22",
+          option_id:"1",
+          userId:"user-1",
+        },
+      {
+          id:"24",
+          option_id:"1",
+          userId:"user-2",
+        }]
+      },
+      {
+        option_id:"2",
+        label:"2026-03-14T18:00",
+      },
+    ]
+  }]
+};
+
 const EventDetail = () => {
     const {id} = useLocalSearchParams()
     const {setUserLocation} = useLocationStore()
     const [bgImg,setBgImg] = useState(images.defaultImg)
     const [hasPermission, setHasPermission] = useState(false)
     const [eventDetail,setEventDetail] = useState<null|EventDetail>()
-
-    const event:EventDetail = {
-      id: "1",
-      name: "Coffee Meetup",
-      date: "2026-03-14T16:00",
-      place:{
-        place_name: "Startbucks Coffee Company",
-        address: "West Pender Street, Vancouver, BC, Canada",
-        latitude:49.28463,
-        longitude:-123.1151,
-        url:"https://maps.google.com/?cid=1502409917068404389",
-        imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
-      },
-      members: [
-        {
-          id: "user-1",
-          name: "Emma Watson",
-          avatar: "/avatars/emma.jpg",
-        },
-        {
-          id: "user-2",
-          name: "Chris Evans",
-          avatar: "/avatars/chris.jpg",
-        },
-        {
-          id: "user-3",
-          name: "Tom Holland",
-          avatar: "/avatars/tom.jpg",
-        },
-      ],
-    };
 
     //fetching data
     useEffect(()=>{
@@ -86,16 +141,9 @@ const EventDetail = () => {
       }
 
       let location =await Location.getCurrentPositionAsync()
-
-      const address=await Location.reverseGeocodeAsync({
-        latitude:location.coords.latitude!,
-        longitude:location.coords.longitude!
-      })
-
       setUserLocation({
         latitude:location.coords.latitude,
         longitude:location.coords.longitude,
-        address: `${address[0].name}, ${address[0].region}`
       })
 
     }
@@ -145,9 +193,14 @@ const EventDetail = () => {
             </View>
           </View>
           <DetailCard event={eventDetail} />
+          {
+           eventDetail.activePoll&&
+           eventDetail.activePoll.map(p=>
+           <ActivePoll key={`active_poll_${p.id}`} poll={p} memberLen={event.members.length}/>)
+          }
           <PollForm />
           <PlaceCard place={eventDetail.place}/>
-          <TrackPreview event={eventDetail}/>
+            <TrackPreview event={eventDetail}/>
         </View>
       }
     />

@@ -1,7 +1,9 @@
 import { EventDetail } from '@/app/(root)/event/[id]';
+import { useEventStore } from '@/store/event.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
@@ -34,6 +36,7 @@ export interface EventForm{
 // reuse this form for create and edit
 
 const EventForm = (props:Prop) => {
+    const {clearSelectedEvent} = useEventStore()
     const [eventForm, setEventForm ] = useState<Omit<EventDetail,'id'>>({
         name:"",
         date:new Date().toString(),
@@ -48,7 +51,7 @@ const EventForm = (props:Prop) => {
         members:[{
             id:"1",
             name:"Joe",
-            avatar:""
+            image:""
         }]//add user (yourself initially)
         })
 
@@ -110,10 +113,17 @@ const EventForm = (props:Prop) => {
         })
     }
 
+    const updateEvent = async()=>{
+        clearSelectedEvent()
+    }
+
     useEffect(()=>{
         if(!props.eventDetail) return
 
         const event = props.eventDetail
+        console.log(event.place.address)
+
+        //userstore to set userself to be the first member
 
         setEventForm({
             name:event.name,
@@ -164,10 +174,16 @@ const EventForm = (props:Prop) => {
                 </View>
                 <View
                 className='w-[80%] pe-4'>
-                    <GoogleTextInput 
+                    {eventForm.place.address===""?
+                    <GoogleTextInput
                     type='new'
                     setNewLocation={locationSaveHandler}
-                    />
+                    />:
+                    <GoogleTextInput
+                    type='edit'
+                    place={eventForm.place}
+                    setNewLocation={locationSaveHandler}
+                    />}
                 </View>
             </View>
         </View>
@@ -194,7 +210,8 @@ const EventForm = (props:Prop) => {
             className='flex flex-row gap-4 items-center justify-between px-4'>
                 {
                     (eventForm && eventForm.members.length>0)&&
-                    <View>
+                    <View
+                    className='flex flex-row'>
                         {
                         eventForm.members.map(m=>(
                             <View
@@ -207,22 +224,30 @@ const EventForm = (props:Prop) => {
                         ))
                             
                         }
-                        
                     </View>
                 }
                 <TouchableOpacity
-                className='pe-16'>
+                className='pe-16'
+                onPress={()=>router.push('/hangout/detail/inviteExist' as any)}>
                     <AntDesign name="plus" size={30} color="#092568" />
                 </TouchableOpacity>
             </View>
         </View>
 
+        {props.eventDetail?
+        <TouchableOpacity
+        onPress={updateEvent}
+        className='py-4 bg-[#FF7600] rounded-2xl'>
+            <Text
+            className='text-white text-xl text-center font-LexendMedium'>Save</Text>
+        </TouchableOpacity>:
         <TouchableOpacity
         onPress={submitEventForm}
         className='py-4 bg-[#FF7600] rounded-2xl'>
             <Text
             className='text-white text-xl text-center font-LexendMedium'>Create</Text>
         </TouchableOpacity>
+        }
 
     </View>
   )

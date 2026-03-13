@@ -4,7 +4,7 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Link } from 'expo-router';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from '../shared/DateTimeInput';
 
@@ -164,35 +164,50 @@ const OptionLists =<T extends PollQuestion>({type, setQuestionDisable}:{
             {options.length>0&&(
                 options.map((option,i)=>(
                     <View
-                    className='px-4 flex flex-row py-4 gap-6 bg-[#FAFAF9] border border-[#E2DDD8] rounded-lg'
-                    key={`date-option-${i}`}>
+                    className='px-4 flex flex-row items-center justify-between py-4 gap-4 bg-[#FAFAF9] border border-[#E2DDD8] rounded-lg'
+                    key={`date-option-${i}`}> 
                         {/* radio use touchable opacity for radio buttom */}
+                        <View
+                        style={{
+                            borderStyle:"solid",
+                            borderColor:"#848484"
+                        }}
+                        className='w-[18px] aspect-square rounded-full border'/>
                         <View/>
                         {type==="date"?
                         <Text
-                        className='text-[1.4rem] font-Lexend'>
+                        className='text-[1.2rem] w-[150px] font-Lexend'>
                             {formatDateTime(option as Date)}
                         </Text>:
                         <View>
                             <View
-                            className='font-Lexend'>
+                            className='font-Lexend w-[150px]'>
                             <Text
-                            className='text-xl mb-2'>
+                            className='font-Lexend text-[1.2rem] mb-1'>
                                 {(option as PlaceOption).placeNeme.split(",")[0]}    
                             </Text>
-                            <Text
-                            className='font-LexendLight'
+                            {/* <Text
+                            className='font-LexendLight text-md'
                             >
                             {(option as PlaceOption).placeNeme.split(",").slice(1,-1).join(",").trim()}
-                            </Text>
+                            </Text> */}
                             </View>
                             {(option as PlaceOption).desc&&
                             <Link
-                            className='font-Lexend text-gray-400 pt-'
+                            className='font-Lexend text-gray-400'
                             href={(option as PlaceOption).desc as any}>
                                 See More
                             </Link>}
                         </View>}
+
+                        {/* remove btn */}
+                        <TouchableOpacity
+                        onPress={()=>{
+                            setOptions(prev=>prev.filter(p=>p!==option))
+                        }}>
+                            <Text
+                            className='text-red-800 font-Lexend'>Remove</Text>
+                        </TouchableOpacity>
                             
                         
                     </View>
@@ -299,6 +314,12 @@ const PollForm = () => {
                                 className={`${pollQuestion==="place"?'text-white':'text-[#B0AAA5]'} font-Lexend`}
                                 style={styles.questionBox}>Place</Text>
                             </TouchableOpacity>
+                        </View>
+
+                        <View>
+                            <TextInput
+                            placeholder='What time should we gather?'
+                            />
                         </View>
                     </View>
 

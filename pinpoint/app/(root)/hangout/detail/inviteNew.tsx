@@ -1,35 +1,44 @@
 import { useState } from "react"
-import { FlatList, Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
 
 type User = {
-  id: string,
+  userId: string,
   name: string,
   image: ImageSourcePropType,
   email: string,
   public_code: string,
 }
+type Member = {
+  userId: string,
+  name: string,
+  image: ImageSourcePropType,
+  dm_id?: string,
+}
 
 const InviteNew = () => {
   const router = useRouter()
 
-  const [groupMember, setGroupMember] = useState<string[]>([])
-  const toggleInvite = (id: string) => {
-    setGroupMember(prev => 
-      prev.includes(id)
-      ? prev.filter(userId => userId !== id)
-      : [...prev, id]
-    )
+  const [eventMember, setEventMember] = useState<Member[]>([])
+  const toggleInvite = (member: Member) => {
+    setEventMember(prev => {
+      const exists = prev.some(m => m.userId === member.userId)
+      if(exists){
+        return prev.filter(m => m.userId !== member.userId)
+      }
+      return [...prev, member]
+    })
   }
+  const isInvited = (userId: string) => eventMember.some(m => m.userId === userId)
 
   const [keyword, setKeyword] = useState<string>('')
   const [users, setUsers] = useState<User[]>([])
   const userLists: User[] = [
-    { id: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John', email: 'test01@gmail.com', public_code: '3e4r5t' },
-    { id: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith', email: 'test02@gmail.com', public_code: '2e4r5t' },
-    { id: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry', email: 'test03@gmail.com', public_code: '1e4r5t' },
+    { userId: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John', email: 'test01@gmail.com', public_code: '3e4r5t' },
+    { userId: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith', email: 'test02@gmail.com', public_code: '2e4r5t' },
+    { userId: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry', email: 'test03@gmail.com', public_code: '1e4r5t' },
   ]
   const foundUser = userLists.find(item => 
     item.email === keyword || item.public_code === keyword
@@ -54,12 +63,12 @@ const InviteNew = () => {
             <View style={styles.chatItem}>
               <Image source={foundUser.image} style={styles.chatImg} resizeMode="cover" />
               <Text style={styles.chatName}>{foundUser.name}</Text>
-              {groupMember.includes(foundUser.id) ? 
-                <TouchableOpacity onPress={() => toggleInvite(foundUser.id)} style={styles.btnInvited}>
+              {isInvited(foundUser.userId) ? 
+                <TouchableOpacity onPress={() => toggleInvite(foundUser)} style={styles.btnInvited}>
                   <Text style={styles.txtInvited}>Remove</Text>
                 </TouchableOpacity>
                 : 
-                <TouchableOpacity onPress={() => toggleInvite(foundUser.id)} style={styles.btnDefault}>
+                <TouchableOpacity onPress={() => toggleInvite(foundUser)} style={styles.btnDefault}>
                   <Text style={styles.txtDefault}>Invite</Text>
                 </TouchableOpacity>
                 }

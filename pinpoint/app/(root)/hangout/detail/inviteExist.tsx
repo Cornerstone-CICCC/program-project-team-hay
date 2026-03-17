@@ -4,10 +4,11 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
 
-type Friend = {
-  id: string,
+type Member = {
+  userId: string,
   name: string,
-  image: ImageSourcePropType
+  image: ImageSourcePropType,
+  dm_id?: string,
 }
 
 const InviteExist = () => {
@@ -16,22 +17,25 @@ const InviteExist = () => {
     router.push('/hangout/detail/inviteNew')
   }
 
-  const [groupMember, setGroupMember] = useState<string[]>([])
+  const [eventMember, setEventMember] = useState<Member[]>([])
 
-  const toggleInvite = (id: string) => {
-    setGroupMember(prev => 
-      prev.includes(id)
-      ? prev.filter(userId => userId !== id)
-      : [...prev, id]
-    )
+  const toggleInvite = (member: Member) => {
+    setEventMember(prev => {
+      const exists = prev.some(m => m.userId === member.userId)
+      if(exists){
+        return prev.filter(m => m.userId !== member.userId)
+      }
+      return [...prev, member]
+    })
   }
 
+  const isInvited = (userId: string) => eventMember.some(m => m.userId === userId)
+
   const [keyword, setKeyword] = useState<string>('')
-  const [friends, setFriends] = useState<Friend[]>([])
-  const friendLists: Friend[] = [
-    { id: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John' },
-    { id: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith' },
-    { id: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry' },
+  const friendLists: Member[] = [
+    { userId: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John' },
+    { userId: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith' },
+    { userId: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry' },
   ]
   const filteredFriends = friendLists.filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
@@ -53,16 +57,16 @@ const InviteExist = () => {
           <Feather name="search" size={16} color="#7C7C7C" />
           <TextInput placeholder="Search friends by username" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
         </View>
-        <FlatList style={styles.chatList} data = {filteredFriends} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) => 
+        <FlatList style={styles.chatList} data = {filteredFriends} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.userId} renderItem={({item}) => 
           <View style={styles.chatItem}>
             <Image source={item.image} style={styles.chatImg} resizeMode="cover" />
             <Text style={styles.chatName}>{item.name}</Text>
-            {groupMember.includes(item.id) ? 
-              <TouchableOpacity onPress={() => toggleInvite(item.id)} style={styles.btnInvited}>
+            {isInvited(item.userId) ? 
+              <TouchableOpacity onPress={() => toggleInvite(item)} style={styles.btnInvited}>
                 <Text style={styles.txtInvited}>Remove</Text>
               </TouchableOpacity>
               : 
-              <TouchableOpacity onPress={() => toggleInvite(item.id)} style={styles.btnDefault}>
+              <TouchableOpacity onPress={() => toggleInvite(item)} style={styles.btnDefault}>
                 <Text style={styles.txtDefault}>Invite</Text>
               </TouchableOpacity>
               }

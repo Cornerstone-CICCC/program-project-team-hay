@@ -41,9 +41,9 @@ const TrackingMAP = () => {
     const [event, setEvent] = useState<TrackEventDetail|null>(null)
     const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number } | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([])
-    const isTrackAvailable = event?.date?useIsTrackAvailable(event.date):false
+    const isTrackAvailable = useIsTrackAvailable(event?.date??null)
     const [selectedMember, setSelectedMember] = useState<MarkerData|null>(null)
-    const [stopTracking, setStopTracking] = useState(false)
+    const [available, setAvailable] = useState(false)
 
     const [region, setRegion] = useState<{
         latitude:number,
@@ -102,11 +102,12 @@ const TrackingMAP = () => {
         },
         }
 
-        // check if the time is track available if not redirect back
-        const isTrackAvailable = useIsTrackAvailable(data.date)
-        if(!isTrackAvailable){
-            router.back()
-        }
+        // // check if the time is track available if not redirect back
+        // const isTrackAvailable = useIsTrackAvailable(data.date)
+        // if(!isTrackAvailable){
+        //     console.log("Cannot track right now")
+        //     router.back()
+        // }
 
         // fetch location and set to setEvent
         setEvent(data)
@@ -135,7 +136,7 @@ const TrackingMAP = () => {
    //fetching all people's location every 30s after isTrackavailable until everyone arrives or user close
     useEffect(()=>{
 
-        if(!event || !isTrackAvailable) return
+        if(!event) return
 
         let subscriber: Location.LocationSubscription
         let interval:number
@@ -196,7 +197,7 @@ const TrackingMAP = () => {
 
             <TouchableOpacity
             className='bg-[#FF7600] rounded-md'
-            onPress={()=>setStopTracking(true)}>
+            onPress={()=>setAvailable(false)}>
                 <Text
                 className='text-white text-[18px] font-LexendSemiBold px-4 py-2'>
                     Stop Tracking</Text>

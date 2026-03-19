@@ -94,7 +94,7 @@ const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
                     className='pb-6'>
                         <View>
                             <Text
-                            className='text-[20px] font-LexendSemiBold text-[#6B6560]'>
+                            className='text-[18px] font-LexendSemiBold text-[#6B6560]'>
                                 {poll.title}
                             </Text>
                         </View>

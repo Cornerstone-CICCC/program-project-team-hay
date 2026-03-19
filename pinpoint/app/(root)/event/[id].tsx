@@ -1,6 +1,6 @@
 import ActivePoll from '@/components/event-detail/ActivePoll'
 import DetailCard from '@/components/event-detail/DetailCard'
-import PlaceCard from '@/components/event-detail/PlaceCard.native'
+import PlaceCard from '@/components/event-detail/PlaceCard'
 
 import PollForm from '@/components/event-detail/PollForm'
 import TrackPreview from '@/components/event-detail/TrackPreview'
@@ -59,15 +59,15 @@ export interface Vote{
 export const event:EventDetail = {
   id: "28",
   name: "Coffee Meetup",
-  // date: "2026-03-20T16:00",
-  // place:{
-  //   place_name: "Startbucks Coffee Company",
-  //   address: "West Pender Street, Vancouver, BC, Canada",
-  //   latitude:49.28463,
-  //   longitude:-123.1151,
-  //   url:"https://maps.google.com/?cid=1502409917068404389",
-  //   imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
-  // },
+  date: "2026-03-19T11:00",
+  place:{
+    place_name: "Startbucks Coffee Company",
+    address: "West Pender Street, Vancouver, BC, Canada",
+    latitude:49.28463,
+    longitude:-123.1151,
+    url:"https://maps.google.com/?cid=1502409917068404389",
+    imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
+  },
   members: [
     {
       userId: "user-1",

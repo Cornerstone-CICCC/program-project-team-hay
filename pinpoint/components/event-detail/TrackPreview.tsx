@@ -14,10 +14,9 @@ const AvailablePreviewMap =({latitude, longitude}:{
   return(
         <View
             className='py-4 w-full h-[180px] rounded-xl realtive'
-            pointerEvents='none'
             >
             <Link
-            href="/(root)/track/[id]"
+            href="/(root)/track/1"
             >
               {Platform.OS !== 'web'&&
                 <MapView
@@ -123,6 +122,7 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
     )
   }
   const isTrackAvailable = useIsTrackAvailable(event.date)
+  console.log(isTrackAvailable)
 
   // //check if it is a hour before start time every minute
   // useEffect(()=>{

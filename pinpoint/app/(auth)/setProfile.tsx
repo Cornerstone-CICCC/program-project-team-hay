@@ -9,10 +9,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Image } from "expo-image";
 import { uploadProfileImage } from "../../libs/supabase/storage";
 import { useAuthStore } from "../../store/auth.store";
+import Feather from "@react-native-vector-icons/feather";
+import { MaterialIcons } from "@react-native-vector-icons/material-icons";
 
 export default function SetProfile() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function SetProfile() {
         profileImage: profileImageUrl,
         onboardingCompleted: true,
       });
-      router.replace("/(auth)/accountSetting");
+      router.replace("/(auth)/login");
     } catch (err) {
       Alert.alert(
         "Error",
@@ -136,14 +137,14 @@ export default function SetProfile() {
               }}
             />
           ) : (
-            <FontAwesome
-              name="photo"
-              size={80}
-              color="#7C7C7C"
-              className="mb-12"
-            />
+            <View
+              className="bg-[#CCCCCC] rounded-full flex items-center justify-center"
+              style={{ width: 100, height: 100 }}
+            >
+              <MaterialIcons name="add-a-photo" size={42} color="#353535" />
+            </View>
           )}
-          <Text className="absolute bottom-10 right-0 bg-[#333333] text-[#F3F3F3] text-2xl px-2 rounded-xl">
+          <Text className="absolute bottom-2 right-0 bg-[#333333] text-[#F3F3F3] text-xl px-2 rounded-full">
             +
           </Text>
         </TouchableOpacity>
@@ -154,9 +155,11 @@ export default function SetProfile() {
           <Text className="font-Lexend text-xl mb-1 text-[#333333] px-2">
             Name
           </Text>
-          <Text className="border-2 font-LexendLight text-xl px-2 py-2 rounded-xl border-[#FF7600] text-[#333333]">
-            James Smith
-          </Text>
+          <View className="border-2 flex flex-row justify-between items-center rounded-xl border-[#FF7600]">
+            <Text className=" font-LexendLight text-xl px-2 py-2  text-[#333333]">
+              {user?.name}
+            </Text>
+          </View>
         </View>
 
         <View>
@@ -164,7 +167,7 @@ export default function SetProfile() {
             Email
           </Text>
           <Text className="border-2 font-LexendLight text-xl px-2 py-2 rounded-xl border-[#FF7600] text-[#333333]">
-            James@gmail.com
+            {user?.email}
           </Text>
         </View>
 
@@ -173,7 +176,7 @@ export default function SetProfile() {
             Public Code
           </Text>
           <Text className="border-2 font-LexendLight text-xl px-2 py-2 rounded-xl border-[#FF7600] text-[#333333]">
-            xofj218xd
+            {user?.public_code}
           </Text>
         </View>
       </View>
@@ -189,16 +192,6 @@ export default function SetProfile() {
               Complete Setup
             </Text>
           )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="flex items-center"
-          onPress={() => router.push("/(auth)/login")}
-        >
-          <Text className="font-LexendSemiBold text-lg">
-            You don&apos;t have an account?{" "}
-            <Text className="font-LexendBold text-[#5669FF]">Sign In</Text>
-          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

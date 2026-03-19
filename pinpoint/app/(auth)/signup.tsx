@@ -1,6 +1,6 @@
 import { useAuthStore } from "../../store/auth.store";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -19,17 +19,48 @@ export default function SignupScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPwd, setConfirmPwd] = useState<string>("");
+  const [pwdError, setPwdError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   const signUp = useAuthStore((s) => s.signUp);
 
+  useEffect(() => {
+    if (!confirmPwd) {
+      setPwdError("");
+      return;
+    }
+
+    if (confirmPwd !== password) {
+      setPwdError("Passwords do not match");
+    } else {
+      setPwdError("");
+    }
+  }, [password, confirmPwd]);
+
+  const handleConfirmPwd = (text: string) => {
+    setConfirmPwd(text);
+
+    if (password && text !== password) {
+      setPwdError("Password do not match");
+    } else {
+      setPwdError("");
+    }
+  };
+
   const handleSignUp = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields.");
+      return;
     }
 
     if (password.length < 3) {
       Alert.alert("Error", "Password must be at least 3 charactors");
+      return;
+    }
+
+    if (password !== confirmPwd) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
     }
 
     setIsLoading(true);
@@ -96,10 +127,15 @@ export default function SignupScreen() {
             placeholderTextColor={"#BCBCBC"}
             autoComplete="password"
             secureTextEntry
-            className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            className={`border border-solid rounded-md text-base font-Lexend py-4 ps-3 mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]`}
             value={confirmPwd}
-            onChangeText={setConfirmPwd}
+            onChangeText={handleConfirmPwd}
           ></TextInput>
+          {pwdError ? (
+            <Text className="text-red-500 mt-1 text-sm font-Lexend">
+              {pwdError}
+            </Text>
+          ) : null}
         </View>
 
         <TouchableOpacity

@@ -29,7 +29,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await signIn(email, password);
-      router.push("/");
+      router.push("/(auth)/accountSetting");
     } catch (err) {
       Alert.alert("Error", "Failed to sign In. Please try again");
       console.error(err);
@@ -86,7 +86,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           className="flex items-center mb-12"
-          onPress={() => router.push("/(auth)/findPassword")}
+          onPress={() => router.push("/(auth)/changePassword")}
         >
           <Text className="font-LexendSemiBold text-[#5669FF] text-lg">
             Forget Password?

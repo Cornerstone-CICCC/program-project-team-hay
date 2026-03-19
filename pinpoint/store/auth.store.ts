@@ -5,6 +5,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  public_code: string;
+  login_type: string;
   profileImage?: string;
   onboardingCompleted?: boolean;
 }
@@ -18,6 +20,11 @@ type Action = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
+  changePassword: (
+    email: string,
+    oldPwd: string,
+    newPwd: string,
+  ) => Promise<void>;
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -51,6 +58,8 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         id: data.id,
         name: data.name,
         email: authUser.data.user.email || "",
+        public_code: data.public_code || "",
+        login_type: data.login_type || "email",
         profileImage: data.profile_image_url,
         onboardingCompleted: data.onboarding_completed,
       };
@@ -106,16 +115,35 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         .from("profiles")
         .update(updateData)
         .eq("id", user.id);
+
+      set({
+        user: {
+          ...user,
+          ...userData,
+        },
+      });
       if (error) throw error;
     } catch (err) {
       console.error("Error updating user", err);
       throw err;
     }
+  },
+  changePassword: async (email: string, oldPwd: string, newPwd: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password: oldPwd,
+      });
+      if (error) throw error;
 
-    // if (error) throw error;
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPwd,
+      });
 
-    // if (data.user) {
-    //   // console.log(user)
-    // }
+      if (updateError) throw updateError;
+    } catch (err) {
+      console.error("Error changing password", err);
+      throw err;
+    }
   },
 }));

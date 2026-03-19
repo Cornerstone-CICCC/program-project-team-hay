@@ -7,7 +7,7 @@ export interface Member{
     userId:string,
     image:string,
     name:string,
-    dm_id?:string 
+    friend_id?:string 
 }
 const memberList = ({event_id}:{event_id:string}) => {
     const [members, setMembers] = useState<Member[]>([])
@@ -26,7 +26,7 @@ const memberList = ({event_id}:{event_id:string}) => {
         userId: "user-1",
         name: "Emma Watson",
         image: "/avatars/emma.jpg",
-        dm_id:"123"
+        friend_id:"123"
       },
       {
         userId: "user-2",
@@ -44,18 +44,18 @@ const memberList = ({event_id}:{event_id:string}) => {
 
     // redirect to dm chat room, if dm_id not exist, then create a new dm row
     const handleRedirectToDMRoom = async(item:Member)=>{
-      let dm_room_id;
+      let friend_id;
 
-      if(!item.dm_id){
-        //create dm room
+      if(!item.friend_id){
+        //create friend
 
-        // set returning dm_id to dm_room_id
-        // dm_room_id=
+        // set returning friend_id
+        // friend_id=
       }else{
-        dm_room_id= item.dm_id
+        friend_id= item.friend_id
       }
 
-      router.push(`/chat/${dm_room_id}` as any)
+      router.push(`/chat/${friend_id}` as any)
     }
   return (
     <View

@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from './DateTimeInput';
+import { Member } from '@/app/(root)/members/[id]';
 
 type Prop={
     eventDetail?:EventDetail
@@ -22,16 +23,16 @@ export interface Place{
     imgKey?:string,
 }
 
-export interface EventForm{
-    name:string,
-    date:Date,
-    place:Place,
-    members:{
-    id:string,
-    name:string,
-    avatar:string
-    }[]
-} 
+// export interface EventForm{
+//     name:string,
+//     date:Date,
+//     place:Place,
+//     members:{
+//     id:string,
+//     name:string,
+//     image:string
+//     }[]
+// } 
 
 // reuse this form for create and edit
 
@@ -48,11 +49,7 @@ const EventForm = (props:Prop) => {
         url:"",
         imgKey:"",
         },
-        members:[{
-            id:"1",
-            name:"Joe",
-            image:""
-        }]//add user (yourself initially)
+        members:[]//add user (yourself initially)
         })
 
     const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
@@ -97,7 +94,7 @@ const EventForm = (props:Prop) => {
             console.log("Title is not entered or member is not added")
             return
         }
-        console.log(eventForm)
+        console.log("submit",eventForm)
         setEventForm({
         name:"",
         date:new Date().toString(),
@@ -118,17 +115,29 @@ const EventForm = (props:Prop) => {
     }
 
     useEffect(()=>{
-        if(!props.eventDetail) return
-
+        // rename props to event
         const event = props.eventDetail
-        console.log(event.place.address)
 
+        if(!event) {
         //userstore to set userself to be the first member
+        const myself:Member = {
+            userId:'',
+            name:'',
+            image:''
+        }
+
+        setEventForm(prev=>({
+            ...prev,
+            members:[...prev.members,myself]
+        })
+        )
+        return
+        }
 
         setEventForm({
             name:event.name,
-            date:event.date,
-            place:event.place,
+            date:event.date?? new Date().toString(),
+            place:event.place??undefined,
             members:event.members
         })
 
@@ -174,7 +183,7 @@ const EventForm = (props:Prop) => {
                 </View>
                 <View
                 className='w-[80%] pe-4'>
-                    {eventForm.place.address===""?
+                    {eventForm.place&&eventForm.place.address===""?
                     <GoogleTextInput
                     type='new'
                     setNewLocation={locationSaveHandler}
@@ -215,7 +224,7 @@ const EventForm = (props:Prop) => {
                         {
                         eventForm.members.map(m=>(
                             <View
-                            key={m.id}
+                            key={m.userId}
                             style={{
                                 borderRadius:"50%"
                             }}

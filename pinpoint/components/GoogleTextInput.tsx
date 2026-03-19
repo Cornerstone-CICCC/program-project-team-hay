@@ -135,10 +135,15 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
         <TouchableOpacity
         className="pt-4"
         onPress={()=>{
-            if(!placeInfo?.url ||!onSaveHandler) return
+            if(!placeInfo ||!onSaveHandler) return
+            
             const place:PlaceOption = {
-                placeNeme:placeInfo?.place_name,
-                desc:placeInfo?.url
+                placeNeme:placeInfo.place_name,
+                address:placeInfo.address,
+                latitude:placeInfo.latitude,
+                longitude:placeInfo.longitude,
+                imgKey:placeInfo.imgKey?? undefined,
+                url:placeInfo.url?? undefined
             }
             onSaveHandler(place)
         }}>

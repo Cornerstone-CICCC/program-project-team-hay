@@ -1,4 +1,5 @@
 import { EventDetail } from '@/app/(root)/event/[id]'
+import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
 import { Link } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Platform, StyleSheet, Text, View } from 'react-native'
@@ -96,21 +97,45 @@ const UnavailablePreviewMap =({latitude, longitude}:{
       </View>
   )
 }
+
 const TrackPreview = ({event}:{event:EventDetail}) => {
-  const [isTrackAvailable, setIsTrackAvailable] = useState(false)
 
-  //check if it is a hour before start time every minute
-  useEffect(()=>{
-    const check =()=>{
-      const oneHourBefore = new Date(event.date)
-      oneHourBefore.setHours(oneHourBefore.getHours()-1)
-      setIsTrackAvailable(new Date()>= oneHourBefore)
-    }
+  // if date-time and location is not defined then 
+  if(!event.date || !event.place){
+    return (
 
-    check()
-    const interval = setInterval(check, 60000)
-    return()=>clearInterval(interval)
-  },[event.date])
+    <View
+    className='px-10 py-6'>
+      <Text
+      className='font-MontserratSemiBold text-[20px]'>
+        Track Members
+      </Text>
+      <View
+      className='w-full h-[180px] flex justify-center items-center'>
+        <Text
+        className='font-Lexend'
+        style={styles.notProvidedText}>
+          Please provide date and location
+        </Text>
+
+      </View>
+    </View>
+    )
+  }
+  const isTrackAvailable = useIsTrackAvailable(event.date)
+
+  // //check if it is a hour before start time every minute
+  // useEffect(()=>{
+  //   const check =()=>{
+  //     const oneHourBefore = new Date(event.date)
+  //     oneHourBefore.setHours(oneHourBefore.getHours()-1)
+  //     setIsTrackAvailable(new Date()>= oneHourBefore)
+  //   }
+
+  //   check()
+  //   const interval = setInterval(check, 60000)
+  //   return()=>clearInterval(interval)
+  // },[event.date])
 
   return (
     <View
@@ -145,5 +170,10 @@ const styles = StyleSheet.create({
         width:'100%',
         height:'100%',
         borderRadius:20,
+    },
+    notProvidedText:{
+        color:"#9CA4AB",
+        textAlign:'center',
+        fontSize:18,
     }
 })

@@ -9,6 +9,7 @@ import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 import MapViewDirections from 'react-native-maps-directions'
 import { EventDetail } from '../event/[id]'
+import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
 
 export interface MarkerData{
     latitude: number,
@@ -16,16 +17,34 @@ export interface MarkerData{
     id?: string,
     userId:string,
     name:string
-    image:string
+    image:string,
+    friend_id?:string
+}
+
+export interface TrackEventDetail{
+    id: string //event id
+    name:string,
+    date:string,
+    place:{
+        place_name: string,
+        address: string,
+        latitude:number,
+        longitude:number,
+        url?:string,
+        imgKey?:string
+    },
 }
 
 const TrackingMAP = () => {
     const {id} = useLocalSearchParams()
     const {setUserLocation,userLatitude, userLongitude}= useLocationStore()
-    const [event, setEvent] = useState<EventDetail|null>(null)
+    const [event, setEvent] = useState<TrackEventDetail|null>(null)
     const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number } | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([])
+    const isTrackAvailable = event?.date?useIsTrackAvailable(event.date):false
     const [selectedMember, setSelectedMember] = useState<MarkerData|null>(null)
+    const [stopTracking, setStopTracking] = useState(false)
+
     const [region, setRegion] = useState<{
         latitude:number,
         longitude:number,
@@ -47,32 +66,10 @@ const TrackingMAP = () => {
     }
 
 
-
     //Geting destination latitude and logitude and set it to place and initial region
     //Setting markers on map 
     useEffect(()=>{
-
-        if(!id||!event || !event.members ||!userLatitude || !userLongitude) return
-
-        const initialRegion = calculateRegion({
-            userLatitude,
-            userLongitude,
-            destinationLatitude: event.place.latitude,
-            destinationLongitude: event.place.longitude
-        })
-
-        setRegion(initialRegion)
-        const newMembers = generateMarkersFromData({ //need to use fetchmember location later
-            data:event.members,
-            userLatitude,
-            userLongitude
-        })
-        setMarkers(newMembers)
-
-    },[id, event?.members, userLatitude, userLongitude])
-
-    //fetching all people's location every 30s
-    useEffect(()=>{
+        // make sure the user allow us to locate
         const requestLocation = async()=>{
             let {status} = await Location.requestForegroundPermissionsAsync()
             if(status!=='granted'){
@@ -84,14 +81,14 @@ const TrackingMAP = () => {
             latitude:location.coords.latitude,
             longitude:location.coords.longitude,
             })
-    
-        }
-        
-        
+        }      
         requestLocation()
 
-        setEvent(
-            {
+        if(!id||!userLatitude || !userLongitude) return
+
+        // Fetch event data with location
+        
+        const data ={
         id: "1",
         name: "Coffee Meetup",
         date: "2026-03-14T16:00",
@@ -103,50 +100,48 @@ const TrackingMAP = () => {
             url:"https://maps.google.com/?cid=1502409917068404389",
             imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
         },
-        members: [
-            {
-            id: "user-1",
-            name: "Emma Watson",
-            image: "/avatars/emma.jpg",
-            },
-            {
-            id: "user-2",
-            name: "Chris Evans",
-            image: "/avatars/chris.jpg",
-            },
-            {
-            id: "user-3",
-            name: "Tom Holland",
-            image: "/avatars/tom.jpg",
-            },
-        ],
-        activePoll:[{
-            id:"123",
-            title:"What time we should meet?",
-            type:"date",
-            is_active:true,
-            options:[
-            {
-                option_id:"1",
-                label:"2026-03-14T15:00",
-            },
-            {
-                option_id:"2",
-                label:"2026-03-14T18:00",
-            },
-            ]
-        }]
         }
-        )
-        const interval = setInterval(()=>{
 
+        // check if the time is track available if not redirect back
+        const isTrackAvailable = useIsTrackAvailable(data.date)
+        if(!isTrackAvailable){
+            router.back()
+        }
+
+        // fetch location and set to setEvent
+        setEvent(data)
+
+        // calculate initial Region for map
+        const initialRegion = calculateRegion({
+            userLatitude,
+            userLongitude,
+            destinationLatitude: data.place.latitude,
+            destinationLongitude: data.place.longitude
         })
-    },[])
 
+        setRegion(initialRegion)
+
+        // updating my location to backend
+
+        // const newMembers = generateMarkersFromData({ //need to use fetchmember location later
+        //     data:event.members,
+        //     userLatitude,
+        //     userLongitude
+        // })
+        // setMarkers(newMembers)
+
+    },[id, userLatitude, userLongitude])
+
+   //fetching all people's location every 30s after isTrackavailable until everyone arrives or user close
     useEffect(()=>{
-        let subscriber: Location.LocationSubscription
 
-        const startTracking = async()=>{
+        if(!event || !isTrackAvailable) return
+
+        let subscriber: Location.LocationSubscription
+        let interval:number
+
+        //start
+        const startTrackingMe = async()=>{
             subscriber = await Location.watchPositionAsync(
                 {
                     timeInterval:3000,
@@ -161,10 +156,30 @@ const TrackingMAP = () => {
             )
         }
 
-        startTracking()
-        return ()=>subscriber?.remove()
-    },[])
+        const startTrackingOthers = ()=>{
+            fetchMembersLocation()
+            interval = setInterval(fetchMembersLocation, 30000)
+        }
 
+        startTrackingMe()
+        startTrackingOthers()
+
+        return ()=>{
+            subscriber?.remove()
+            clearInterval(interval)
+        }
+    },[isTrackAvailable, event])
+
+
+    const handleMessage= async()=>{
+        
+        // if selected member does not have friend_id
+        if(!selectedMember?.friend_id){
+            // create friend by sending userId and friend_userId
+        }else{
+            router.push(`/chat/${selectedMember.friend_id}` as any)
+        }
+    }
 
   return (
     <View
@@ -180,9 +195,11 @@ const TrackingMAP = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-            className='bg-[#FF7600] rounded-md'>
+            className='bg-[#FF7600] rounded-md'
+            onPress={()=>setStopTracking(true)}>
                 <Text
-                className='text-white text-[18px] font-LexendSemiBold px-4 py-2'>Stop Tracking</Text>
+                className='text-white text-[18px] font-LexendSemiBold px-4 py-2'>
+                    Stop Tracking</Text>
             </TouchableOpacity>
         </View>
         <MapView
@@ -267,7 +284,8 @@ const TrackingMAP = () => {
                     <Text style={styles.etaDist}>{routeInfo.distance.toFixed(1)} km</Text>
                 </View>
 
-                <TouchableOpacity>
+                <TouchableOpacity
+                onPress={handleMessage}>
                     <Text>Message</Text>
                 </TouchableOpacity>
 

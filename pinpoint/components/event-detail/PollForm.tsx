@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDateTime } from '@/libs/format';
 import { Accordion } from '@animatereactnative/accordion';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -7,12 +8,17 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from '../shared/DateTimeInput';
+import { useEventStore } from '@/store/event.store';
 
 export type PollQuestion = "place" | "date"
 
 export type PlaceOption ={
     placeNeme:string,
-    desc?:string
+    address:string,
+    latitude:number,
+    longitude:number,
+    url?:string,
+    imgKey?:string
   }
 
 const DateOptionInputs =({addOptions, setIsInputShown}:
@@ -130,16 +136,19 @@ const PlaceOptionInputs =({addOptions, setIsInputShown}:
 }
 
 
-const OptionLists =<T extends PollQuestion>({type, setQuestionDisable}:{
+const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable}:{
     type:PollQuestion,
+    title:string,
     setQuestionDisable:Dispatch<SetStateAction<boolean>>
 })=>{
     type OptionLists = T extends "date" ?Date :PlaceOption
+    const {setToggleEventRender} = useEventStore()
     const [isInputShown, setIsInputShown] = useState<boolean>(false)
     const [options, setOptions] = useState<OptionLists[]>([])
 
+    // request backend to create a poll with options
     const createPollHandler = async()=>{
-        if(options.length<=1){
+        if(options.length<=1 && !title){
             return
         }
         console.log(options)
@@ -147,6 +156,9 @@ const OptionLists =<T extends PollQuestion>({type, setQuestionDisable}:{
 
         //clear the options
         setOptions([])
+
+        // toggle Event Render to triger rendering page
+        setToggleEventRender()
     }
 
     useEffect(()=>{
@@ -192,10 +204,10 @@ const OptionLists =<T extends PollQuestion>({type, setQuestionDisable}:{
                             {(option as PlaceOption).placeNeme.split(",").slice(1,-1).join(",").trim()}
                             </Text> */}
                             </View>
-                            {(option as PlaceOption).desc&&
+                            {(option as PlaceOption).url&&
                             <Link
                             className='font-Lexend text-gray-400'
-                            href={(option as PlaceOption).desc as any}>
+                            href={(option as PlaceOption).url as any}>
                                 See More
                             </Link>}
                         </View>}
@@ -253,16 +265,20 @@ const OptionLists =<T extends PollQuestion>({type, setQuestionDisable}:{
     )
 }
 
-type Props ={
-    dataset?:Date[]|string[]
-    type?:PollQuestion
-}
 const PollForm = () => {
     const [pollQuestion, setPollQuestion] = useState<PollQuestion|null>(null)
     const [questionDisable, setQuestionDisable] = useState<boolean>(false)
-    // const [isInputShown, setIsInputShown] = useState<boolean>(false)
-    // const [dateOptions, setDateOptions]= useState<Date[]>([])
-    // const [placeOptions, setPlaceOptions] = useState<string[]>([])
+    const [question, setQuestion] = useState<string>("")
+
+    const defaultText={
+            date:"What time should we meet?",
+            place:"Where should we meet?"
+        }
+
+    useEffect(()=>{
+        setQuestion(pollQuestion==="date"?defaultText.date:pollQuestion==="place"?defaultText.place:"")
+    },[pollQuestion])
+    
     
     return (
         <View
@@ -316,11 +332,19 @@ const PollForm = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <View>
+                        {/* question text input - showing if date or place has been chosen*/}
+                        {pollQuestion!==null&&
+                        <View
+                        className='mt-8 flex flex-row gap-2'
+                        style={styles.borderBox}>
+                            <Ionicons name="chatbubble-outline" size={20} color="#747688" />
                             <TextInput
-                            placeholder='What time should we gather?'
+                            value={question}
+                            placeholderTextColor="#ACACAC"
+                            onChangeText={setQuestion}
+                            style={styles.textInput}
                             />
-                        </View>
+                        </View>}
                     </View>
 
                     {/* poll options */}
@@ -333,10 +357,12 @@ const PollForm = () => {
                         {pollQuestion==="date"?
                         <OptionLists 
                         type='date'
+                        title={question}
                         setQuestionDisable={setQuestionDisable}/>:
                         pollQuestion==="place"&&
                         <OptionLists 
                         type='place'
+                        title={question}
                         setQuestionDisable={setQuestionDisable}/>
                         }
                     </View>
@@ -356,7 +382,20 @@ const styles = StyleSheet.create({
     questionBox:{
         fontSize: 22,
         lineHeight: 32,
-        paddingVertical:16,
-        paddingHorizontal:24,
-    }
+        paddingVertical:12,
+        paddingHorizontal:24
+    },
+    borderBox:{
+        borderStyle:'solid',
+        borderRadius:10,
+        borderColor:'rgba(130,130,130,0.7)',
+        borderWidth:2,
+        paddingHorizontal:15,
+        paddingVertical:15,
+    },
+    textInput:{
+        fontSize:18,
+        fontFamily:"Lexend",
+        color:'#747688'
+    },
 })

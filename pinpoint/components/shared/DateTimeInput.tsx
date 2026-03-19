@@ -24,16 +24,15 @@ const DateTimeInput = ({
     const [dateAndroid, setDateAndroid] = useState<Date | null>(new Date())
 
     useEffect(()=>{
-        console.log(eventForm?.date)
-        if(!eventForm) return
+        if(!eventForm?.date) return
         setDateAndroid(new Date(eventForm.date))
 
     },[])
   return (
             <View 
-        className={`flex flex-row items-center w-full ${(type&&type!=="poll")&&"px-2 gap-8"}`}
+        className={`flex flex-row items-center w-full ${(type&&type!=="poll")&&"px-2 gap-8"} ${Platform.OS ==="ios"&& "justify-between"}`}
         style={{
-            flexBasis:'auto'
+            flexBasis:'auto',
         }}>
             
             <View

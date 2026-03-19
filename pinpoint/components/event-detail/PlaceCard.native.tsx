@@ -5,16 +5,42 @@ import React, { useEffect, useState } from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 
-
-const PlaceCard = ({place}:{place:{
+type Props={
+    place?:{
         place_name:string,
         address:string,
         latitude:number,
         longitude:number
         url?:string
         imgKey?:string
-}}) => {
+    }
+}
+
+
+const PlaceCard = ({place}:Props) => {
     const [googleImgUrl, setGoogleImgUrl] = useState<string>("")
+
+    // if place is not sent, then return empty card
+    if(!place){
+        return(
+            <View
+            className='px-10 py-4'>
+                <Text
+                className='font-MontserratSemiBold text-[20px]'>
+                Place Information
+                </Text>
+                <View
+                className='h-[150px] w-full flex justify-center items-center'>
+                    <Text
+                    style={styles.notProvidedText}
+                    className='font-Lexend'>
+                        Nothing to show
+                    </Text>
+                </View>
+            </View>
+
+        )
+    }
 
     useEffect(()=>{
         if(!place.imgKey) return
@@ -117,5 +143,10 @@ const styles = StyleSheet.create({
         height:'100%',
         borderRadius:20
     
+    },
+    notProvidedText:{
+        color:"#9CA4AB",
+        textAlign:'center',
+        fontSize:18,
     }
 })

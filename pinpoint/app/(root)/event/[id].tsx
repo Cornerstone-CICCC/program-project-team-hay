@@ -6,19 +6,21 @@ import PollForm from '@/components/event-detail/PollForm'
 import TrackPreview from '@/components/event-detail/TrackPreview'
 import { images } from '@/constants'
 import { fetchEventBgImage } from '@/libs/eventImgHandler'
+import { useEventStore } from '@/store/event.store'
 import { useLocationStore } from '@/store/location.store'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import * as Location from 'expo-location'
 import { useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
+import { Member } from '../members/[id]'
 
 // Disirable returning type for event
 export interface EventDetail {
       id:string,
       name:string,
-      date:string,
-      place:{
+      date?:string,
+      place?:{
         place_name:string,
         address:string,
         latitude:number,
@@ -26,21 +28,15 @@ export interface EventDetail {
         url?:string,
         imgKey?:string,
       }
-      members:{
-        id:string,
-        name:string,
-        image:string
-      }[]
+      members:Member[]
       activePoll?:ActivePoll[]
 }
-
 export interface ActivePoll{
     id:string,
     title:string,
     is_active:boolean,
     type:"date" |"place",
     options:PollOption[]
-    
 }
 
 export interface PollOption {
@@ -50,6 +46,7 @@ export interface PollOption {
     longitude?:number,
     address?:string,
     url?:string
+    imgKey?:string,
     votes?:Vote[]
 }
 
@@ -62,28 +59,28 @@ export interface Vote{
 export const event:EventDetail = {
   id: "28",
   name: "Coffee Meetup",
-  date: "2026-03-14T16:00",
-  place:{
-    place_name: "Startbucks Coffee Company",
-    address: "West Pender Street, Vancouver, BC, Canada",
-    latitude:49.28463,
-    longitude:-123.1151,
-    url:"https://maps.google.com/?cid=1502409917068404389",
-    imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
-  },
+  // date: "2026-03-20T16:00",
+  // place:{
+  //   place_name: "Startbucks Coffee Company",
+  //   address: "West Pender Street, Vancouver, BC, Canada",
+  //   latitude:49.28463,
+  //   longitude:-123.1151,
+  //   url:"https://maps.google.com/?cid=1502409917068404389",
+  //   imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
+  // },
   members: [
     {
-      id: "user-1",
+      userId: "user-1",
       name: "Emma Watson",
       image: "/avatars/emma.jpg",
     },
     {
-      id: "user-2",
+      userId: "user-2",
       name: "Chris Evans",
       image: "/avatars/chris.jpg",
     },
     {
-      id: "user-3",
+      userId: "user-3",
       name: "Tom Holland",
       image: "/avatars/tom.jpg",
     },
@@ -117,6 +114,7 @@ export const event:EventDetail = {
 };
 
 const EventDetail = () => {
+  const {toggleEventRender} = useEventStore()
     const {id} = useLocalSearchParams()
     const {setUserLocation} = useLocationStore()
     const [bgImg,setBgImg] = useState(images.defaultImg)
@@ -130,7 +128,7 @@ const EventDetail = () => {
       setEventDetail(event)
       const bgImage = fetchEventBgImage(event.name)
       setBgImg(bgImage)
-    },[id])
+    },[id, toggleEventRender])
 
     useEffect(()=>{
     const requestLocation = async()=>{
@@ -193,14 +191,16 @@ const EventDetail = () => {
             </View>
           </View>
           <DetailCard event={eventDetail} />
+          {/* If the current date time is passed the event date -> not showing active poll and poll form */}
           {
-           eventDetail.activePoll&&
+           (eventDetail.activePoll&&eventDetail.date&&!(new Date(eventDetail.date)< new Date()))&&
            eventDetail.activePoll.map(p=>
            <ActivePoll key={`active_poll_${p.id}`} poll={p} memberLen={event.members.length}/>)
           }
-          <PollForm />
+          {!(eventDetail.date&&new Date()> new Date(eventDetail.date))&& // if current date is over, then not show the poll Form
+          <PollForm />}
           <PlaceCard place={eventDetail.place}/>
-            <TrackPreview event={eventDetail}/>
+          <TrackPreview event={eventDetail}/>
         </View>
       }
     />

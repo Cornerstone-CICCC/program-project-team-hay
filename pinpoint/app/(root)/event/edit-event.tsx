@@ -41,7 +41,8 @@ const EditEvent = () => {
             </Text>
             <View/>
         </View>
-         {data&&<EventForm eventDetail={data}/>}
+         {data&&
+         <EventForm eventDetail={data}/>}
         </View>
       }
     />

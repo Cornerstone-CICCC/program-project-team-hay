@@ -6,6 +6,8 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 
 export interface EventStore {
+    toggleEventRender:boolean,
+    setToggleEventRender:()=>void,
     selectedEvent: EventDetail | null;
     setSelectedEvent: (event:EventDetail) => void;
     clearSelectedEvent:()=>void;
@@ -16,6 +18,10 @@ export interface EventStore {
 export const useEventStore = create<EventStore>()(
     persist(
         (set)=>({
+    toggleEventRender:false,
+    setToggleEventRender:()=>{
+        set(state=>({toggleEventRender:!state.toggleEventRender}))
+    },
     selectedEvent: null,
     members:[],
     setSelectedEvent:(event:EventDetail) =>{

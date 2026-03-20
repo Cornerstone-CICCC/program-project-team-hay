@@ -94,7 +94,14 @@ const Layout = () => {
           headerShown:false,
           tabBarIcon: ({focused}) => <TabIcon focused={focused} name='user' label='Account' />
         }}
-      />
+        />
+        <Tabs.Screen
+        name="events"
+        options={{
+          title:'Event',
+          headerShown:false,
+        }}
+        />
     </Tabs>
   )
 }

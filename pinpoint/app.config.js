@@ -1,4 +1,4 @@
-{
+export default {
   "expo": {
     "name": "pinpoint",
     "slug": "pinpoint",
@@ -20,7 +20,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "apiKey"
+          "apiKey": process.env.EXPO_PUBLIC_GOOGLE_ANDROID_API_KEY
         }
       },
       "edgeToEdgeEnabled": false,
@@ -29,6 +29,7 @@
     },
     "web": {
       "bundler": "metro",
+      "exclude":["react-native-maps"],
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },

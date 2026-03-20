@@ -1,37 +1,103 @@
-import { useState } from "react"
-import { ScrollView, StyleSheet, TextInput, View } from "react-native"
+import { useEffect, useState } from "react"
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
+import { DummyChatList } from "@/dummy/ChatList";
+
+type ChatFilter = 'dm' | 'group' | 'archive'
+
+interface ChatRoom {
+  room_id: string,
+  type: ChatFilter,
+  name: string,
+  image?: string,
+  last_message?: string,
+  last_message_at?: string,
+  unread_count: number,
+  num_member: number,
+}
 
 const Chat = () => {
+  //
+  const USE_DUMMY = true
+  const userId = 'qwe123'
+  //
+  const tabs: { label: string, value: ChatFilter }[] = [
+    { label: 'DM', value: 'dm' },
+    { label: 'Group', value: 'group' },
+    { label: 'Archive', value: 'archive' },
+  ]
+
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')
-  const [chats, setChats] = useState<[]>([])
-  const chatLists = [
-    { id: 'b01', image: require('../../../../assets/images/dummy02.png'), name: 'John', latestMsg: 'Hello!', latestTime: '4:50', unread: 2 },
-    { id: 'b02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith', latestMsg: 'Can we have lunch today?', latestTime: '7:50', unread: 9 },
-    { id: 'b03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry', latestMsg: 'What do you want to eat?', latestTime: '8:19', unread: 3 },
-  ]
-  const filteredChats = chatLists.filter(item => 
+  const [chatList, setChatList] = useState<ChatRoom[]>([])
+  const [activeTab, setActiveTab] = useState<ChatFilter>('dm')
+
+  const fetchChats = async (tab: ChatFilter) => {
+    //
+    let data: ChatRoom[] = []
+    if(USE_DUMMY){
+      data = DummyChatList.filter(item => {
+        switch(tab) {
+          case 'dm':
+            return item.type === 'dm'
+          case 'group':
+            return item.type === 'group'
+          case 'archive':
+            return item.type === 'archive'
+          default:
+            return item.type === 'dm'
+        }
+      })
+    } else {
+      data = await getChatList(userId, tab)
+    }
+    //
+
+    // const data = await getChatList(userId, tab)
+    setChatList(data)
+  }
+
+  const handleTabChange = (tab: ChatFilter) => {
+    setActiveTab(tab)
+  }
+
+  useEffect(() => {
+    fetchChats(activeTab)
+  }, [activeTab])
+
+  const filteredChats = chatList.filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
   
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.chatTab}>
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.value
+          return(
+            <TouchableOpacity key={tab.value} onPress={() => handleTabChange(tab.value)} style={isActive ? styles.chatTabItemWrapCurrent : styles.chatTabItemWrap}>
+              <Text style={isActive ? styles.chatTabItemCurrent : styles.chatTabItem}>{tab.label}</Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
       <View style={styles.chatHead}>
         <View style={styles.searchWrap}>
           <Feather name="search" size={16} color="#7C7C7C" />
           <TextInput placeholder="Search..." placeholderTextColor='#7C7C7C' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
         </View>
-        <View style={styles.chatCreate} onTouchEnd={() => router.push('/chat/create')}>
-          <AntDesign name="plus" size={24} color="white" />
-        </View>
+        {activeTab === 'dm' && 
+          <View style={styles.chatCreate} onTouchEnd={() => router.push('/chat/create')}>
+            <AntDesign name="plus" size={24} color="white" />
+          </View>
+        }
       </View>
       <View style={styles.chatList}>
         {filteredChats.map((item) => (
-          <ChatListItem key={item.id} data={item} />
+          <ChatListItem key={item.room_id} data={item} />
         ))}
       </View>
     </ScrollView>
@@ -53,6 +119,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 10,
     gap: 34,
+    minHeight: 40,
   },
   searchWrap: {
     backgroundColor: '#F3F3F3',
@@ -79,6 +146,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 4px 8px #3333334c',
+  },
+  chatTab: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 18,
+  },
+  chatTabItemWrap: {
+    borderRadius: 24,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#7c7c7c',
+    paddingBlock: 8,
+    paddingInline: 16,
+  },
+  chatTabItem: {
+    fontFamily: 'Lexend-Medium',
+    fontSize: 16,
+    color: '#333'
+  },
+  chatTabItemWrapCurrent: {
+    borderRadius: 24,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#092568',
+    backgroundColor: '#092568',
+    paddingBlock: 8,
+    paddingInline: 16,
+  },
+  chatTabItemCurrent: {
+    fontFamily: 'Lexend-Medium',
+    fontSize: 16,
+    color: '#fff'
   },
   chatList: {
     marginBottom: 30,

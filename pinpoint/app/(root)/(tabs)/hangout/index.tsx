@@ -1,40 +1,130 @@
 import HangoutCard from "@/components/HangoutCard"
 import { useRouter } from "expo-router"
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { ImageSourcePropType, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import Feather from '@expo/vector-icons/Feather';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { useEffect, useState } from "react";
+import { DummyEvents } from "@/dummy/EventList";
+
+interface EventOverview {
+  event_id: string,
+  name: string,
+  date?: string,
+  address?: string,
+  image: string | ImageSourcePropType,
+}
+type EventFilter = 'upcoming' | 'today' | 'tomorrow' | 'week' | 'past'
 
 const Hangout = () => {
-  const router = useRouter()
-
-  const hangoutList = [
-    { id: 'a1', name: 'Hangout ttl01', date_time: '2026-03-06 18:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '36 Guild Street London, USA' },
-    { id: 'a2', name: 'Hangout ttl02', date_time: '2026-03-18 09:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '37 Guild Street London, USA' },
-    { id: 'a3', name: 'Hangout ttl03', date_time: '2026-03-29 12:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '38 Guild Street London, USA' },
-    { id: 'a4', name: 'Hangout ttl04', date_time: '2026-03-29 12:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '38 Guild Street London, USA' },
-    { id: 'a5', name: 'Hangout ttl05', date_time: '2026-03-29 12:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '38 Guild Street London, USA' },
-    { id: 'a6', name: 'Hangout ttl06', date_time: '2026-03-29 12:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '38 Guild Street London, USA' },
-    { id: 'a7', name: 'Hangout ttl07', date_time: '2026-03-29 12:00', image: require('../../../../assets/images/dummy01.png'), place_name: '', address: '38 Guild Street London, USA' },
+  //
+  const USE_DUMMY = true
+  const userId = 'qwe123'
+  //
+  const tabs: { label: string, value: EventFilter }[] = [
+    { label: 'Upcoming', value: 'upcoming' },
+    { label: 'Today', value: 'today' },
+    { label: 'Tomorrow', value: 'tomorrow' },
+    { label: 'In a week', value: 'week' },
+    { label: 'Past', value: 'past' },
   ]
+
+  const router = useRouter()
+  const [keyword, setKeyword] = useState<string>('')
+  const [hangoutList, setHangoutList] = useState<EventOverview[]>([])
+  const [activeTab, setActiveTab] = useState<EventFilter>('upcoming')
+  const [hangoutsByTab, setHangoutsByTab] = useState<Record<EventFilter, EventOverview[]>>({
+    upcoming: [],
+    today: [],
+    tomorrow: [],
+    week: [],
+    past: []
+  })
+
+  const fetchEvents = async (tab: EventFilter) => {
+    // console.log(hangoutsByTab)
+    if(hangoutsByTab[tab].length > 0){
+      setHangoutList(hangoutsByTab[tab])
+      return      
+    }
+    //
+    let data: EventOverview[] = []
+    if(USE_DUMMY){
+      const now = new Date()
+      data = DummyEvents.filter(item => {
+        if (!item.date) return tab === 'upcoming'
+        const d = new Date(item.date)
+        switch (tab) {
+          case 'today':
+            return d.toDateString() === now.toDateString()
+          case 'tomorrow':
+            const tomorrow = new Date()
+            tomorrow.setDate(now.getDate() + 1)
+            return d.toDateString() === tomorrow.toDateString()
+          case 'week':
+            const weekLater = new Date()
+            weekLater.setDate(now.getDate() + 6)
+            return d >= now && d <= weekLater
+          case 'past':
+            return d < now
+          default:
+            return d >= now
+        }
+      })
+    } else {
+      data = await getEventList(userId, tab)
+    }
+    //
+
+    // const data = await getEventList(userId, tab)
+
+    setHangoutsByTab(prev => ({
+      ...prev,
+      [tab]: data
+    }))
+    setHangoutList(data)
+  }
+  
+  const handleTabChange = (tab: EventFilter) => {
+    setActiveTab(tab)
+  }
+  useEffect(() => {
+    fetchEvents(activeTab)
+  }, [activeTab])
+
+  const filteredHangouts = hangoutList.filter(item =>
+    item.name.toLowerCase().includes(keyword.toLowerCase())
+  )
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.hangoutHead}>
-        <TouchableOpacity style={styles.btnSort}>
-          <FontAwesome5 name="calendar-alt" size={28} color="#333" />
-        </TouchableOpacity>
+        <Text style={styles.pageTtl}>Hangout Lists</Text>
         <TouchableOpacity onPress={() => router.push('/hangout/create')} style={styles.btnCreate}>
           <Feather name="plus-square" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.pageTtl}>Hangout Lists</Text>
+      <ScrollView horizontal>
+        <View style={styles.filter}>
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.value
+            return(
+              <TouchableOpacity key={tab.value} onPress={() => handleTabChange(tab.value)} style={isActive ? styles.filterItemWrapCurrent : styles.filterItemWrap}>
+                <Text style={isActive ? styles.filterItemCurrent : styles.filterItem}>{tab.label}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      </ScrollView>
+      <View style={styles.searchWrap}>
+        <Feather name="search" size={16} color="#7C7C7C" />
+        <TextInput placeholder="Search..." placeholderTextColor='#7C7C7C' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
+      </View>
       <View style={styles.cardList}>
-        {hangoutList.map((item) => (
-          <HangoutCard key={item.id} data={item} />
+        {filteredHangouts.map((item) => (
+          <HangoutCard key={item.event_id} data={item} />
         ))}
       </View>
-      
-      
+
+      <Text className='mb-100 pb-20' onPress={() => router.push('/hangout/detail/inviteExist')}>detail invite exist</Text>
     </ScrollView>
   )
 }
@@ -48,13 +138,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   hangoutHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30
+    position: 'relative',
+    marginBottom: 30,
+    paddingBlock: 14,
   },
-  btnSort: {
-    padding: 4,
+  pageTtl: {
+    fontFamily: 'Montserrat-Bold',
+    color: '#333',
+    fontSize: 24,
+    textAlign: 'center',
   },
   btnCreate: {
     width: 44,
@@ -63,16 +155,62 @@ const styles = StyleSheet.create({
     boxShadow: '0 4px 8px #3333334c',
     backgroundColor: '#FFA900',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    right: 0,
   },
-  pageTtl: {
-    fontFamily: 'Montserrat-Bold',
-    color: '#333',
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 34,
+  filter: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 18,
+  },
+  filterItemWrap: {
+    borderRadius: 24,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#7c7c7c',
+    paddingBlock: 8,
+    paddingInline: 16,
+  },
+  filterItem: {
+    fontFamily: 'Lexend-Medium',
+    fontSize: 16,
+    color: '#333'
+  },
+  filterItemWrapCurrent: {
+    borderRadius: 24,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#092568',
+    backgroundColor: '#092568',
+    paddingBlock: 8,
+    paddingInline: 16,
+  },
+  filterItemCurrent: {
+    fontFamily: 'Lexend-Medium',
+    fontSize: 16,
+    color: '#fff'
   },
   cardList: {
     marginBottom: 150,
+  },
+  searchWrap: {
+    backgroundColor: '#F3F3F3',
+    borderRadius: 24,
+    paddingInline: 12,
+    paddingBlock: 12,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 'auto',
+    gap: 7,
+    flex: 1,
+    marginBottom: 30,
+  },
+  inputSearch: {
+    fontFamily: 'Lexend-Regular',
+    fontSize: 16,
+    width: '100%',
   },
 })

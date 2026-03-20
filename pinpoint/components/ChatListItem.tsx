@@ -1,13 +1,17 @@
 import { useRouter } from "expo-router"
 import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
+type ChatFilter = 'dm' | 'group' | 'archive'
+
 type ChatItem = {
-  id: string,
-  image: ImageSourcePropType,
+  room_id: string,
+  type: ChatFilter,
+  image: string | ImageSourcePropType,
   name: string,
-  latestMsg: string,
-  latestTime: string,
-  unread: number
+  last_message?: string,
+  last_message_at?: string,
+  unread_count: number,
+  num_member: number
 }
 
 type Props = {
@@ -17,21 +21,31 @@ type Props = {
 const ChatListItem = ({ data }: Props) => {
   const router = useRouter()
   const goToChatRoom = () => {
-    router.push(`/chat/${data.id}`)
+    router.push(`/chat/${data.room_id}`)
   }
   return (
     <TouchableOpacity onPress={goToChatRoom}>
       <View style={styles.chatItem}>
-        <Image source={data.image} style={styles.chatImg} resizeMode="cover" />
-        <View>
-          <Text style={styles.chatName}>{data.name}</Text>
-          <Text style={styles.chatMsg}>{data.latestMsg}</Text>
+        <Image source={
+          typeof data.image === 'string'
+          ? { uri: data.image }
+          : data.image
+        } style={styles.chatImg} resizeMode="cover" />
+        <View style={styles.chatTxtWrap}>
+          <Text style={styles.chatName} numberOfLines={1}>{data.name}
+            {data.num_member && 
+              <Text style={styles.chatNumMember}>({data.num_member})</Text>
+            }
+          </Text>
+          <Text style={styles.chatMsg} numberOfLines={2}>{data.last_message}</Text>
         </View>
         <View style={styles.chatItemSub}>
-          <Text style={styles.chatTime}>{data.latestTime}</Text>
-          <View style={styles.chatUnreadWrap}>
-            <Text style={styles.chatUnread}>{data.unread}</Text>
-          </View>
+          <Text style={styles.chatTime}>{data.last_message_at}</Text>
+          {data.unread_count > 0 &&
+            <View style={styles.chatUnreadWrap}>
+              <Text style={styles.chatUnread}>{data.unread_count}</Text>
+            </View>
+          }
         </View>
       </View>
     </TouchableOpacity>
@@ -52,24 +66,36 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F3F3F3',
   },
   chatImg: {
-    width: 56,
-    height: 56,
-    borderRadius: 56 / 2,
+    width: 58,
+    minWidth: 58,
+    height: 58,
+    borderRadius: 58 / 2,
     overflow: 'hidden'
+  },
+  chatTxtWrap: {
+    flex: 1
   },
   chatName: {
     fontFamily: 'Lexend-SemiBold',
     fontSize: 16,
-    marginBottom: 4
+    marginBottom: 4,
+  },
+  chatNumMember: {
+    fontFamily: 'Lexend-Medium',
+    fontSize: 16,
+    marginLeft: 6,
   },
   chatMsg: {
     fontFamily: 'Lexend-Regular',
-    fontSize: 14,
+    fontSize: 13,
     color: '#7C7C7C'
   },
   chatItemSub: {
     marginLeft: 'auto',
-    alignItems: 'center'
+    alignItems: 'center',
+    minWidth: 28,
+    alignSelf: 'flex-start',
+    paddingTop: 6,
   },
   chatTime: {
     fontSize: 11,

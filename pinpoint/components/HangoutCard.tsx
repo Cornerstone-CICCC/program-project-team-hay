@@ -1,16 +1,15 @@
 import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useRouter } from "expo-router";
+import dayjs from 'dayjs'
 
 type Hangout = {
-  id: string,
+  event_id: string,
   name: string,
-  date_time: string,
-  image: ImageSourcePropType,
-  place_name: string,
-  address: string
+  date?: string,
+  image: string | ImageSourcePropType,
+  address?: string
 }
-
 type Props = {
   data: Hangout
 }
@@ -18,27 +17,50 @@ type Props = {
 const HangoutCard = ({ data }: Props) => {
   const router = useRouter()
   const goToEventDetail = () => {
-    router.push(`/event/${data.id}`)
+    router.push(`/event/${data.event_id}`)
   }
-  const date = new Date(data.date_time)
-  const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase()
-  const day = date.getDate()
+
+  let month = ''
+  let dateStr = ''
+  let isValidDate = false
+
+  if(data.date){
+    const dateObj = dayjs(data.date)
+    isValidDate = dateObj.isValid()
+    if(isValidDate){
+      month = dateObj.format('MMM').toUpperCase()
+      dateStr = dateObj.format('D')
+    }
+  }
+  const isValidPlace = !!data.address
 
   return (
     <TouchableOpacity onPress={goToEventDetail}>
       <View style={styles.cardItem}>
         <View style={styles.cardImgWrap}>
-          <Image source={data.image} style={styles.cardImg} resizeMode="cover" />
-          <View style={styles.cardImgTxtWrap}>
-            <Text style={styles.cardImgTxt}>{month}</Text>
-            <Text style={styles.cardImgTxt}>{day}</Text>
+          <Image source={
+            typeof data.image === 'string'
+            ? { uri: data.image }
+            : data.image
+          } style={styles.cardImg} resizeMode="cover" />
+          <View style={isValidDate ? styles.cardImgTxtWrap : styles.cardImgDateWrap}>
+          {isValidDate ? (
+            <>
+              <Text style={styles.cardImgTxt}>{month}</Text>
+              <Text style={styles.cardImgTxt}>{dateStr}</Text>
+            </>
+          ) : (
+            <Text style={styles.cardImgTxt}>Not{"\n"}Scheduled</Text>
+          )}
           </View>
         </View>
         <Text style={styles.cardTtl}>{data.name}</Text>
-        <View style={styles.cardAddress}>
-          <FontAwesome5 name="map-marker-alt" size={18} color="#FF7600" />
-          <Text>{data.address}</Text>
-        </View>
+        {isValidPlace && 
+          <View style={styles.cardAddress}>
+            <FontAwesome5 name="map-marker-alt" size={18} color="#FF7600" />
+            <Text>{data.address}</Text>
+          </View>
+        }
       </View>
     </TouchableOpacity>
   )
@@ -73,11 +95,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffffcc',
     padding: 8,
   },
+  cardImgDateWrap: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 54, 54, .50)',
+    padding: 8,
+  },
   cardImgTxt: {
     textAlign: 'center',
     fontSize: 13,
     fontFamily: 'Lexend-Medium',
     lineHeight: 14,
+    color: '#333',
   },
   cardTtl: {
     fontFamily: 'Lexend-Medium',

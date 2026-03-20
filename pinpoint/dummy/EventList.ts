@@ -1,0 +1,17 @@
+export const DummyEvents = [
+  { event_id: 'a1', name: 'Hangout ttl01', date: '', image: require('../assets/images/dummy01.png'), address: '36 Guild Street London, USA' },
+  { event_id: 'a2', name: 'Hangout ttl02', date: '', image: require('../assets/images/dummy01.png'), address: '37 Guild Street London, USA' },
+  { event_id: 'a3', name: 'Hangout ttl03', date: '2026-03-01 10:00', image: require('../assets/images/dummy01.png'), address: '' },
+  { event_id: 'a4', name: 'Hangout ttl04', date: '2026-03-18 11:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a5', name: 'Hangout ttl05', date: '2026-03-19 12:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a6', name: 'Hangout ttl06', date: '2026-03-20 13:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a7', name: 'Hangout ttl07', date: '2026-03-21 14:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a8', name: 'Hangout ttl08', date: '2026-03-22 15:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a9', name: 'Hangout ttl09', date: '2026-03-23 16:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a10', name: 'Hangout ttl10', date: '2026-03-24 17:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a11', name: 'Hangout ttl11', date: '2026-04-28 18:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a12', name: 'Hangout ttl12', date: '2026-03-09 20:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a13', name: 'Hangout ttl12', date: '2026-03-20 21:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a14', name: 'Hangout ttl12', date: '2026-03-25 09:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+  { event_id: 'a15', name: 'Hangout ttl12', date: '2026-03-26 12:00', image: require('../assets/images/dummy01.png'), address: '38 Guild Street London, USA' },
+]

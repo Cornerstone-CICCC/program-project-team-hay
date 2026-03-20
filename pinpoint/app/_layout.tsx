@@ -1,17 +1,31 @@
-import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from "expo-router";
-import { useEffect } from 'react';
-import { Text, TextInput } from 'react-native';
-import '../global.css';
+import { useFonts } from "expo-font";
+import { Stack, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { Text, TextInput } from "react-native";
 
-    (Text as any).defaultProps = (Text as any).defaultProps||{};
-    (Text as any). defaultProps.style = {fontFamily:'Lexend-Regular'};
+(Text as any).defaultProps = (Text as any).defaultProps || {};
+(Text as any).defaultProps.style = { fontFamily: "Lexend-Regular" };
 
-    (TextInput as any).defaultProps = (TextInput as any).defaultProps ||{};
-    (TextInput as any).defaultProps.style = {fontFamily:'Lexend-Regular'}
+(TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
+(TextInput as any).defaultProps.style = { fontFamily: "Lexend-Regular" };
 
 export default function RootLayout() {
-    const [loaded] = useFonts({
+  const router = useRouter();
+  let isAuth = false;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isAuth) {
+        router.replace("/(auth)/login");
+      } else {
+        router.replace("/");
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [isAuth, router]);
+
+  const [loaded] = useFonts({
     "Lexend-Bold": require("../assets/fonts/Lexend-Bold.ttf"),
     "Lexend-Light": require("../assets/fonts/Lexend-Light.ttf"),
     "Lexend-Medium": require("../assets/fonts/Lexend-Medium.ttf"),
@@ -23,17 +37,11 @@ export default function RootLayout() {
     "Montserrat-Regular": require("../assets/fonts/Montserrat-Regular.ttf"),
     "Montserrat-SemiBold": require("../assets/fonts/Montserrat-SemiBold.ttf"),
     "Montserrat-Italic": require("../assets/fonts/Montserrat-Italic.ttf"),
-});
+  });
 
-    useEffect(()=>{
-    if(loaded){
-      SplashScreen.hideAsync()
-    }
-    },[loaded])
-
-    if(!loaded){
-      return null
-    }
+  if (!loaded) {
+    return null;
+  }
 
 
   return (

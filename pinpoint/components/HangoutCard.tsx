@@ -1,13 +1,13 @@
-import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useRouter } from "expo-router";
 import dayjs from 'dayjs'
+import { fetchEventBgImage } from "@/libs/eventImgHandler";
 
 type Hangout = {
   event_id: string,
   name: string,
   date?: string,
-  image: string | ImageSourcePropType,
   address?: string
 }
 type Props = {
@@ -39,9 +39,7 @@ const HangoutCard = ({ data }: Props) => {
       <View style={styles.cardItem}>
         <View style={styles.cardImgWrap}>
           <Image source={
-            typeof data.image === 'string'
-            ? { uri: data.image }
-            : data.image
+            fetchEventBgImage(data.name)
           } style={styles.cardImg} resizeMode="cover" />
           <View style={isValidDate ? styles.cardImgTxtWrap : styles.cardImgDateWrap}>
           {isValidDate ? (

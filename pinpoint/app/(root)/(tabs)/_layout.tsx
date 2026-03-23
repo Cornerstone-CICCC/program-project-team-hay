@@ -1,28 +1,22 @@
-import { Tabs } from "expo-router"
-import { Text, View } from "react-native"
+import { Tabs, useRouter } from "expo-router"
+import { Text, TouchableOpacity, View } from "react-native"
 import Feather from '@expo/vector-icons/Feather';
 
-const TabIcon =({ name, focused, label, roundBg = false }: { name: string, focused: boolean, label: string, roundBg?: boolean }) => {
+const TabIcon =({ name, focused, label, createBtn = false }: { name: string, focused: boolean, label: string, createBtn?: boolean }) => {
 
   return (
     <View className='pb-4' style={{ minWidth: 54 }}>
       <View
         style={{
-          width: roundBg ? 44 : undefined,
-          height: roundBg ? 44 : undefined,
-          borderRadius: roundBg ? 22 : undefined,
-          boxShadow: roundBg ? '0 4px 8px #3333334c' : undefined,
-          backgroundColor: roundBg ? '#FFA900' : 'transparent',
-          marginBottom: roundBg ? 36 : 0,
           alignItems: 'center',
           justifyContent: 'center',
-          marginInline: 'auto',
+          alignSelf: 'center',
         }}
       >
         <Feather
           name={name}
           size={22}
-          color={roundBg ? '#fff' : focused ? '#FF7600' : '#333'}
+          color={createBtn ? '#fff' : focused ? '#FF7600' : '#333'}
         />
         {label.trim() && <Text style={{ color: focused ? '#FF7600' : '#333', fontFamily: 'Lexend-Medium', fontSize: 12, marginTop: 3 }}>{label}</Text>}
       </View>
@@ -31,6 +25,8 @@ const TabIcon =({ name, focused, label, roundBg = false }: { name: string, focus
 }
 
 const Layout = () => {
+  const router = useRouter()
+
   return (
     // navigation
     <Tabs
@@ -41,11 +37,10 @@ const Layout = () => {
         tabBarShowLabel: false,
         tabBarStyle:{
           backgroundColor: "#fff",
-          paddingInline: 8,
-          justifyContent:"space-between",
+          paddingHorizontal: 8,
           alignItems:"center",
           flexDirection: "row",
-          position:'fixed',
+          position:'absolute',
           bottom: 0,
           left: 0,
           width: '100%'
@@ -69,13 +64,29 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="createHangout"
+        name="DummyCreateEvent"
         options={{
           title:'Create Hangout',
           headerShown:false,
-          tabBarIcon: ({focused}) => <TabIcon focused={focused} name='plus-square' label='' roundBg={true} />
+          tabBarIcon: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/event/create-event')}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                boxShadow: '0 4px 8px #3333334c',
+                backgroundColor: '#FFA900',
+                marginBottom: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+                alignSelf: 'center',
+                paddingTop: 9,
+              }}>
+              <TabIcon focused={false} name='plus-square' label='' createBtn={true} />
+            </TouchableOpacity>
+          )
         }}
-        
       />
       <Tabs.Screen
         name="chat"
@@ -83,8 +94,6 @@ const Layout = () => {
           title:'Chat',
           headerShown:false,
           tabBarIcon: ({focused}) => <TabIcon focused={focused} name='mail' label='Chat' />
-          // tabBarIcon: ({focused}) => <TabIcon focused={focused} name='message-circle' />
-          // tabBarIcon: ({focused}) => <TabIcon focused={focused} name='message-square' />
         }}
       />
       <Tabs.Screen
@@ -93,13 +102,6 @@ const Layout = () => {
           title:'Account',
           headerShown:false,
           tabBarIcon: ({focused}) => <TabIcon focused={focused} name='user' label='Account' />
-        }}
-        />
-        <Tabs.Screen
-        name="events"
-        options={{
-          title:'Event',
-          headerShown:false,
         }}
         />
     </Tabs>

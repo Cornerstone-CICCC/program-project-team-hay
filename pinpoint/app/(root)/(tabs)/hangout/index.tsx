@@ -1,23 +1,25 @@
 import HangoutCard from "@/components/HangoutCard"
 import { useRouter } from "expo-router"
-import { ImageSourcePropType, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import Feather from '@expo/vector-icons/Feather';
 import { useEffect, useState } from "react";
 import { DummyEvents } from "@/dummy/EventList";
+import { useAuthStore } from "@/store/auth.store";
 
 interface EventOverview {
   event_id: string,
   name: string,
   date?: string,
   address?: string,
-  image: string | ImageSourcePropType,
 }
 type EventFilter = 'upcoming' | 'today' | 'tomorrow' | 'week' | 'past'
 
 const Hangout = () => {
+  const { user } = useAuthStore()
+  const userId = user?.id
+
   //
   const USE_DUMMY = true
-  const userId = 'qwe123'
   //
   const tabs: { label: string, value: EventFilter }[] = [
     { label: 'Upcoming', value: 'upcoming' },
@@ -70,7 +72,7 @@ const Hangout = () => {
         }
       })
     } else {
-      data = await getEventList(userId, tab)
+      data = await getEventList(userId, tab, 8)
     }
     //
 
@@ -98,7 +100,7 @@ const Hangout = () => {
     <ScrollView style={styles.container}>
       <View style={styles.hangoutHead}>
         <Text style={styles.pageTtl}>Hangout Lists</Text>
-        <TouchableOpacity onPress={() => router.push('/hangout/create')} style={styles.btnCreate}>
+        <TouchableOpacity onPress={() => router.push('/event/create-event')} style={styles.btnCreate}>
           <Feather name="plus-square" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -119,9 +121,15 @@ const Hangout = () => {
         <TextInput placeholder="Search..." placeholderTextColor='#7C7C7C' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
       </View>
       <View style={styles.cardList}>
-        {filteredHangouts.map((item) => (
-          <HangoutCard key={item.event_id} data={item} />
-        ))}
+        {filteredHangouts.length === 0 ? (
+          <View style={styles.noCardItem}>
+            <Text style={styles.noCardTxt}>No hangouts yet</Text>
+          </View>
+        ) : (
+          filteredHangouts.map((item) => (
+            <HangoutCard key={item.event_id} data={item} />
+          ))
+        )}
       </View>
 
       <Text className='mb-100 pb-20' onPress={() => router.push('/hangout/detail/inviteExist')}>detail invite exist</Text>
@@ -133,8 +141,8 @@ export default Hangout
 
 const styles = StyleSheet.create({
   container: {
-    paddingInline: 20,
-    paddingTop: 80,
+    paddingHorizontal: 20,
+    paddingTop: 76,
     backgroundColor: '#fff'
   },
   hangoutHead: {
@@ -171,7 +179,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#7c7c7c',
     paddingBlock: 8,
-    paddingInline: 16,
+    paddingHorizontal: 16,
   },
   filterItem: {
     fontFamily: 'Lexend-Medium',
@@ -185,7 +193,7 @@ const styles = StyleSheet.create({
     borderColor: '#092568',
     backgroundColor: '#092568',
     paddingBlock: 8,
-    paddingInline: 16,
+    paddingHorizontal: 16,
   },
   filterItemCurrent: {
     fontFamily: 'Lexend-Medium',
@@ -195,10 +203,25 @@ const styles = StyleSheet.create({
   cardList: {
     marginBottom: 150,
   },
+  noCardItem: {
+    borderRadius: 18,
+    padding: 14,
+    boxShadow: '5px 10px 20px #3333334c',
+    overflow: 'hidden',
+    marginBottom: 20,
+    minHeight: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noCardTxt: {
+    fontFamily: 'Lexend-Regular',
+    fontSize: 16,
+    color: '#7c7c7c',
+  },
   searchWrap: {
     backgroundColor: '#F3F3F3',
     borderRadius: 24,
-    paddingInline: 12,
+    paddingHorizontal: 12,
     paddingBlock: 12,
     display: 'flex',
     flexDirection: 'row',

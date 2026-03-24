@@ -98,7 +98,7 @@ const Hangout = () => {
     <ScrollView style={styles.container}>
       <View style={styles.hangoutHead}>
         <Text style={styles.pageTtl}>Hangout Lists</Text>
-        <TouchableOpacity onPress={() => router.push('/hangout/create')} style={styles.btnCreate}>
+        <TouchableOpacity onPress={() => router.push('/event/create-event')} style={styles.btnCreate}>
           <Feather name="plus-square" size={22} color="#fff" />
         </TouchableOpacity>
       </View>

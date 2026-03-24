@@ -10,6 +10,7 @@ import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from './DateTimeInput';
 import { Member } from '@/app/(root)/members/[id]';
 import { useAuthStore } from '@/store/auth.store';
+import { defalutImage } from '@/constants';
 
 type Prop={
     eventDetail?:EventDetail
@@ -241,7 +242,7 @@ const EventForm = (props:Prop) => {
         <View>
             <Text
             style={styles.headText}>
-                Friends
+                Members
             </Text>
             <View
             className='flex flex-row gap-4 items-center justify-between px-4'>
@@ -254,25 +255,19 @@ const EventForm = (props:Prop) => {
                         eventForm.members.slice(0,3).map(m=>(
                                 <Image
                                 key={m.userId}
-                                style={{
-                                    borderRadius:"50%",
-                                    borderColor:'rgba(130,130,130,0.7)',
-                                    borderWidth:1
-                                }}
+                                style={styles.picStyle}
                                 className='w-[80px] aspect-square'
-                                source={{ uri: m.image}}
+                                source={m.image ?{uri:m.image}:defalutImage.user}
+                                resizeMode='cover'
                                 />
                         )):
                         eventForm.members.map(m=>(
                                 <Image
                                 key={m.userId}
-                                style={{
-                                    borderRadius:"50%",
-                                    borderColor:'rgba(130,130,130,0.7)',
-                                    borderWidth:1
-                                }}
+                                style={styles.picStyle}
                                 className='w-[80px] aspect-square'
-                                source={{ uri: m.image}}
+                                source={m.image ?{uri:m.image}:defalutImage.user}
+                                resizeMode='cover'
                                 />
                         ))
                         }
@@ -357,5 +352,12 @@ const styles = StyleSheet.create({
         marginBottom:8,
         zIndex:100,
         overflow:'visible'
+    },
+    picStyle:{
+        width:80,
+        height:80,
+        borderRadius:9999,
+        borderColor:'rgba(130,130,130,0.7)',
+        borderWidth:1
     }
 })

@@ -66,7 +66,7 @@ export default function AccountSetting() {
 
       // Update profile
       await updateUser(updateData);
-      router.replace("/");
+      // router.replace("/");
     } catch (err) {
       Alert.alert(
         "Error",

@@ -66,7 +66,10 @@ export default function SignupScreen() {
     setIsLoading(true);
     try {
       await signUp(email, password, name);
-      router.push("/(auth)/setProfile");
+      // logging user in
+
+      // after logging in, direct user to home
+      router.push("/(root)/(tabs)/home");
     } catch (err) {
       Alert.alert("Error", "Failed to sign up. Please try again");
       console.error(err);
@@ -188,7 +191,7 @@ export default function SignupScreen() {
 
         <TouchableOpacity
           className="flex items-center"
-          onPress={() => router.push("/(auth)/setProfile")}
+          onPress={() => router.push("/(auth)/login")}
         >
           <Text className="font-LexendSemiBold text-lg">
             You don&apos;t have an account?{" "}

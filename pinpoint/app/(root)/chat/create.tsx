@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     paddingBlock: 18,
-    paddingInline: 14,
+    paddingHorizontal: 14,
   },
   roomName: {
     fontFamily: 'Montserrat-Bold',
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingInline: 20,
+    paddingHorizontal: 20,
     paddingBlock: 20,
     flex: 1,
   },

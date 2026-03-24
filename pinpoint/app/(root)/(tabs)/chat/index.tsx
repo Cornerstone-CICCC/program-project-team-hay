@@ -108,8 +108,8 @@ export default Chat
 
 const styles = StyleSheet.create({
   container: {
-    paddingInline: 20,
-    paddingTop: 80,
+    paddingHorizontal: 20,
+    paddingTop: 76,
     backgroundColor: '#fff'
   },
   chatHead: {
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   searchWrap: {
     backgroundColor: '#F3F3F3',
     borderRadius: 24,
-    paddingInline: 12,
+    paddingHorizontal: 12,
     paddingBlock: 9,
     display: 'flex',
     flexDirection: 'row',
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#7c7c7c',
     paddingBlock: 8,
-    paddingInline: 16,
+    paddingHorizontal: 16,
   },
   chatTabItem: {
     fontFamily: 'Lexend-Medium',
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     borderColor: '#092568',
     backgroundColor: '#092568',
     paddingBlock: 8,
-    paddingInline: 16,
+    paddingHorizontal: 16,
   },
   chatTabItemCurrent: {
     fontFamily: 'Lexend-Medium',

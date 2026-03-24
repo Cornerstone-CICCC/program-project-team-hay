@@ -131,8 +131,6 @@ const Hangout = () => {
           ))
         )}
       </View>
-
-      <Text className='mb-100 pb-20' onPress={() => router.push('/hangout/detail/inviteExist')}>detail invite exist</Text>
     </ScrollView>
   )
 }

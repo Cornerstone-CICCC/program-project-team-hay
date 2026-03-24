@@ -63,6 +63,8 @@ const TrackingMAP = () => {
 
     const fetchMembersLocation = async()=>{
 
+        // set Markers
+        // setMarkers()
     }
 
 
@@ -91,7 +93,7 @@ const TrackingMAP = () => {
         const data ={
         id: "1",
         name: "Coffee Meetup",
-        date: "2026-03-14T16:00",
+        date: "2026-03-23T10:00",
         place:{
             place_name: "Startbucks Coffee Company",
             address: "West Pender Street, Vancouver, BC, Canada",
@@ -104,10 +106,11 @@ const TrackingMAP = () => {
 
         // // check if the time is track available if not redirect back
         // const isTrackAvailable = useIsTrackAvailable(data.date)
-        // if(!isTrackAvailable){
-        //     console.log("Cannot track right now")
-        //     router.back()
-        // }
+        if(!isTrackAvailable){
+            console.log("Cannot track right now")
+        }else{
+            setAvailable(true)
+        }
 
         // fetch location and set to setEvent
         setEvent(data)
@@ -131,12 +134,12 @@ const TrackingMAP = () => {
         // })
         // setMarkers(newMembers)
 
-    },[id, userLatitude, userLongitude])
+    },[id, userLatitude, userLongitude, isTrackAvailable])
 
    //fetching all people's location every 30s after isTrackavailable until everyone arrives or user close
     useEffect(()=>{
 
-        if(!event) return
+        if(!event || !available) return
 
         let subscriber: Location.LocationSubscription
         let interval:number
@@ -169,7 +172,7 @@ const TrackingMAP = () => {
             subscriber?.remove()
             clearInterval(interval)
         }
-    },[isTrackAvailable, event])
+    },[isTrackAvailable, event, available])
 
 
     const handleMessage= async()=>{
@@ -195,104 +198,119 @@ const TrackingMAP = () => {
                 color="black" />
             </TouchableOpacity>
 
+            {isTrackAvailable&&
             <TouchableOpacity
             className='bg-[#FF7600] rounded-md'
-            onPress={()=>setAvailable(false)}>
+            onPress={()=>setAvailable(prev=>!prev)}>
                 <Text
                 className='text-white text-[18px] font-LexendSemiBold px-4 py-2'>
-                    Stop Tracking</Text>
-            </TouchableOpacity>
+                    {available?"Stop Tracking":"Resume Tracking"}
+                    </Text>
+            </TouchableOpacity>}
         </View>
-        <MapView
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
-        style={styles.map}
-        className='w-full h-full rounded-2xl'
-        tintColor='black'
-        mapType='standard'
-        showsPointsOfInterest={false}
-        initialRegion={region}
-        showsUserLocation={true}
-        userInterfaceStyle='light'
-        >
-            {/* Members markers */}
-        {markers.map(marker=>(
-            <Marker
-            key={`marker-${marker.userId}`}
-            coordinate={{
-            latitude:marker.latitude,
-            longitude:marker.longitude
+
+        {!available&&
+        <View
+        className='absolute top-0 w-full h-full bg-black/70 z-10'>
+            <Text
+            style={{
+                color:'white',
+                textAlign:'center',
+                top:'50%',
+                fontSize:20
             }}
-            title={marker.name}
-            onPress={()=>setSelectedMember(marker)}
-            anchor={{ x: 0.5, y: 1 }} 
+            >Tracking Pause</Text>
+        </View>}
+            <MapView
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
+            style={styles.map}
+            className='w-full h-full rounded-2xl'
+            tintColor='black'
+            mapType='standard'
+            showsPointsOfInterest={false}
+            initialRegion={region}
+            showsUserLocation={true}
+            userInterfaceStyle='light'
             >
-            <View style={styles.markerContainer}>
-                {/* Avatar bubble */}
-                <View style={styles.avatarRing}>
-                    <Image
-                    source={sampleImg.user}
-                    style={styles.avatarImage}
-                    />
-                </View>
-                {/* Teardrop pointer */}
-                <View style={styles.markerPointer} />
-            </View>
-
-            </Marker>
-        ))}
-        {
-            event&&event.place.latitude&&event.place.longitude&&(
-            <>
-            <Marker
-            key="destination"
-            coordinate={{
-                latitude:event.place.latitude,
-                longitude:event.place.longitude
-            }}
-            title='destination'
-            />
-
-            {/* direction line */}
-            {selectedMember&&
-            <MapViewDirections
-            origin={{
-                latitude:selectedMember.latitude,
-                longitude:selectedMember.longitude
-            }}
-            destination={{
-                latitude:event.place.latitude,
-                longitude:event.place.longitude
-            }}
-            apikey={process.env.EXPO_PUBLIC_GOOGLE_API_KEY!}
-            strokeColor='#0286ff'
-            strokeWidth={4}
-            mode="TRANSIT"
-            onReady={(result) => {
-            setRouteInfo({
-                duration: Math.ceil(result.duration),   
-                distance: result.distance,              
-            });
-            }}
-            onError={(err) => console.warn('Directions error:', err)}
-            />}
-            </>
-            )
-        }
-        {routeInfo && (
-            <View style={styles.etaBox}>
-                <View>
-                    <Text style={styles.etaTime}>{routeInfo.duration} min</Text>
-                    <Text style={styles.etaDist}>{routeInfo.distance.toFixed(1)} km</Text>
+                {/* Members markers */}
+            {markers.map(marker=>(
+                <Marker
+                key={`marker-${marker.userId}`}
+                coordinate={{
+                latitude:marker.latitude,
+                longitude:marker.longitude
+                }}
+                title={marker.name}
+                onPress={()=>setSelectedMember(marker)}
+                anchor={{ x: 0.5, y: 1 }} 
+                >
+                <View style={styles.markerContainer}>
+                    {/* Avatar bubble */}
+                    <View style={styles.avatarRing}>
+                        <Image
+                        source={{uri:marker.image as any??sampleImg.user}}
+                        style={styles.avatarImage}
+                        />
+                    </View>
+                    {/* Teardrop pointer */}
+                    <View style={styles.markerPointer} />
                 </View>
 
-                <TouchableOpacity
-                onPress={handleMessage}>
-                    <Text>Message</Text>
-                </TouchableOpacity>
+                </Marker>
+            ))}
+            {
+                event&&event.place.latitude&&event.place.longitude&&(
+                <>
+                <Marker
+                key="destination"
+                coordinate={{
+                    latitude:event.place.latitude,
+                    longitude:event.place.longitude
+                }}
+                title='destination'
+                />
 
-            </View>
-            )}
-        </MapView>
+                {/* direction line */}
+                {selectedMember&&
+                <MapViewDirections
+                origin={{
+                    latitude:selectedMember.latitude,
+                    longitude:selectedMember.longitude
+                }}
+                destination={{
+                    latitude:event.place.latitude,
+                    longitude:event.place.longitude
+                }}
+                apikey={process.env.EXPO_PUBLIC_GOOGLE_API_KEY!}
+                strokeColor='#0286ff'
+                strokeWidth={4}
+                mode="TRANSIT"
+                onReady={(result) => {
+                setRouteInfo({
+                    duration: Math.ceil(result.duration),   
+                    distance: result.distance,              
+                });
+                }}
+                onError={(err) => console.warn('Directions error:', err)}
+                />}
+                </>
+                )
+            }
+            {routeInfo && (
+                <View style={styles.etaBox}>
+                    <View>
+                        <Text style={styles.etaTime}>{routeInfo.duration} min</Text>
+                        <Text style={styles.etaDist}>{routeInfo.distance.toFixed(1)} km</Text>
+                    </View>
+
+                    <TouchableOpacity
+                    onPress={handleMessage}>
+                        <Text>Message</Text>
+                    </TouchableOpacity>
+
+                </View>
+                )}
+            </MapView>
     </View>
   )
 }

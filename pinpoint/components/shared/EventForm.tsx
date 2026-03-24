@@ -4,11 +4,12 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { use, useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from './DateTimeInput';
 import { Member } from '@/app/(root)/members/[id]';
+import { useAuthStore } from '@/store/auth.store';
 
 type Prop={
     eventDetail?:EventDetail
@@ -37,6 +38,8 @@ export interface Place{
 // reuse this form for create and edit
 
 const EventForm = (props:Prop) => {
+    const {user} = useAuthStore()
+    const {members, setMembers} = useEventStore()
     const {clearSelectedEvent} = useEventStore()
     const [eventForm, setEventForm ] = useState<Omit<EventDetail,'id'>>({
         name:"",
@@ -51,6 +54,56 @@ const EventForm = (props:Prop) => {
         },
         members:[]//add user (yourself initially)
         })
+
+    
+    useEffect(()=>{
+        // rename props to event
+        const event = props.eventDetail
+
+        if(!user) return
+
+        // if it is to create a new event
+        if(!event) {
+            const myself:Member = {
+                userId:user.id,
+                name:user.name,
+                image:user.profileImage
+            }
+
+            if(eventForm.members.length>0) return
+            setEventForm(prev=>({
+                ...prev,
+                members:[...prev.members,myself]
+            })
+            )
+            // set myself as member
+            setMembers([...members,myself])
+            return
+        }
+
+        //if it is edit then, set the form based on the prop and set the member store 
+        setMembers(event.members)
+        setEventForm({
+            name:event.name,
+            date:event.date?? new Date().toString(),
+            place:event.place??undefined,
+            members:event.members
+        })
+
+    },[user])
+
+    // update members to eventForm
+    useEffect(()=>{
+        console.log("eventForm", eventForm.members)
+        console.log("memberStore",members)
+        // when the member is one, which is yourself, and store update is done on the above useEffect dep user
+        if(members.length>0){
+            setEventForm(prev=>({
+                ...prev,
+                members:[ ...members]
+            }))
+        }
+    },[members])
 
     const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
 
@@ -95,6 +148,9 @@ const EventForm = (props:Prop) => {
             return
         }
         console.log("submit",eventForm)
+
+        //clearing the members
+        setMembers([])
         setEventForm({
         name:"",
         date:new Date().toString(),
@@ -114,34 +170,6 @@ const EventForm = (props:Prop) => {
         clearSelectedEvent()
     }
 
-    useEffect(()=>{
-        // rename props to event
-        const event = props.eventDetail
-
-        if(!event) {
-        //userstore to set userself to be the first member
-        const myself:Member = {
-            userId:'',
-            name:'',
-            image:''
-        }
-
-        setEventForm(prev=>({
-            ...prev,
-            members:[...prev.members,myself]
-        })
-        )
-        return
-        }
-
-        setEventForm({
-            name:event.name,
-            date:event.date?? new Date().toString(),
-            place:event.place??undefined,
-            members:event.members
-        })
-
-    },[])
   return (
     <View
     className='pt-12 flex flex-col gap-12'
@@ -220,18 +248,33 @@ const EventForm = (props:Prop) => {
                 {
                     (eventForm && eventForm.members.length>0)&&
                     <View
-                    className='flex flex-row'>
+                    className='flex flex-row gap-2'>
                         {
+                        eventForm.members.length>3?
+                        eventForm.members.slice(0,3).map(m=>(
+                                <Image
+                                key={m.userId}
+                                style={{
+                                    borderRadius:"50%",
+                                    borderColor:'rgba(130,130,130,0.7)',
+                                    borderWidth:1
+                                }}
+                                className='w-[80px] aspect-square'
+                                source={{ uri: m.image}}
+                                />
+                        )):
                         eventForm.members.map(m=>(
-                            <View
-                            key={m.userId}
-                            style={{
-                                borderRadius:"50%"
-                            }}
-                            className='w-[80px] aspect-square bg-slate-400'>
-                            </View>
+                                <Image
+                                key={m.userId}
+                                style={{
+                                    borderRadius:"50%",
+                                    borderColor:'rgba(130,130,130,0.7)',
+                                    borderWidth:1
+                                }}
+                                className='w-[80px] aspect-square'
+                                source={{ uri: m.image}}
+                                />
                         ))
-                            
                         }
                     </View>
                 }

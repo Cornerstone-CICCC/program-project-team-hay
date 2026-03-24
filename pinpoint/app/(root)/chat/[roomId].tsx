@@ -21,9 +21,7 @@ export const options = {
 
 const Chatroom = () => {
   const router = useRouter()
-  const goToChat = () => {
-    router.push('/chat')
-  }
+
   // const { roomId } = useSearchParams()
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -105,7 +103,7 @@ const Chatroom = () => {
     >
       <View style={styles.bg} className="pt-14">
         <View style={styles.roomHead}>
-          <AntDesign name="arrow-left" size={20} color="#fff" className="px-2 py-1.5" onPress={goToChat} />
+          <AntDesign name="arrow-left" size={20} color="#fff" className="px-2 py-1.5" onPress={() => router.back()} />
           <Text style={styles.roomName}>John</Text>
         </View>
 
@@ -156,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     paddingBlock: 18,
-    paddingInline: 14,
+    paddingHorizontal: 14,
   },
   roomName: {
     fontFamily: 'Montserrat-Bold',
@@ -167,7 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingInline: 20,
+    paddingHorizontal: 20,
     paddingTop: 28,
     marginBottom: 80,
     flex: 1
@@ -235,7 +233,7 @@ const styles = StyleSheet.create({
   sendWrap: {
     backgroundColor: '#fff',
     borderRadius: 28,
-    paddingInline: 14,
+    paddingHorizontal: 14,
     paddingBlock: 7,
     display: 'flex',
     flexDirection: 'row',

@@ -1,9 +1,9 @@
 import { images } from "@/constants"
 
 const cafe = ['coffee','sweet','cake','cafe','dessert', 'afternoon','latte','tea']
-const activity = ['fun','activity','sports','run','play', 'walk','camp','mountain','trail','park']
+const activity = ['fun','activity','sports','run', 'running', 'play', 'walk','camp','mountain','trail','park', 'hiking']
 const birthday = ['year','birthday','celebrate','wedding','congrats','graduation', 'happy','party']
-const dinner = ['dinner','night','restaurant','drink','chill']
+const dinner = ['dinner','night','restaurant','drink','chill', 'drinking']
 const lunch = ['lunch','brunch','noon','food','morning']
 
 export const fetchEventBgImage = (eventName:string) =>{

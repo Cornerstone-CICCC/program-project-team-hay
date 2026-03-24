@@ -10,10 +10,11 @@ import { useEventStore } from '@/store/event.store'
 import { useLocationStore } from '@/store/location.store'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import * as Location from 'expo-location'
-import { useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import { Member } from '../members/[id]'
+import { useAuthStore } from '@/store/auth.store'
 
 // Disirable returning type for event
 export interface EventDetail {
@@ -59,7 +60,7 @@ export interface Vote{
 export const event:EventDetail = {
   id: "28",
   name: "Coffee Meetup",
-  date: "2026-03-19T11:00",
+  date: "2026-03-23T10:00",
   place:{
     place_name: "Startbucks Coffee Company",
     address: "West Pender Street, Vancouver, BC, Canada",
@@ -114,7 +115,8 @@ export const event:EventDetail = {
 };
 
 const EventDetail = () => {
-  const {toggleEventRender} = useEventStore()
+    const {user} = useAuthStore()
+    const {toggleEventRender} = useEventStore()
     const {id} = useLocalSearchParams()
     const {setUserLocation} = useLocationStore()
     const [bgImg,setBgImg] = useState(images.defaultImg)
@@ -123,6 +125,7 @@ const EventDetail = () => {
 
     //fetching data
     useEffect(()=>{
+      console.log(user)
       //Fetching event detail from id
 
       setEventDetail(event)
@@ -131,24 +134,29 @@ const EventDetail = () => {
     },[id, toggleEventRender])
 
     useEffect(()=>{
-    const requestLocation = async()=>{
-      let {status} = await Location.requestForegroundPermissionsAsync()
-      if(status!=='granted'){
-        setHasPermission(false)
-        return
+      // check if user has user location for this event
+
+      const requestLocation = async()=>{
+        let {status} = await Location.requestForegroundPermissionsAsync()
+        if(status!=='granted'){
+
+          setHasPermission(false)
+          return
+        }
+
+        let location =await Location.getCurrentPositionAsync()
+
+
+        setUserLocation({
+          latitude:location.coords.latitude,
+          longitude:location.coords.longitude,
+        })
+
       }
 
-      let location =await Location.getCurrentPositionAsync()
-      setUserLocation({
-        latitude:location.coords.latitude,
-        longitude:location.coords.longitude,
-      })
 
-    }
-
-
-    requestLocation()
-  },[])
+      requestLocation()
+    },[])
 
     if(!eventDetail){
       return (
@@ -178,7 +186,8 @@ const EventDetail = () => {
             />
             <View
             className='absolute top-[4rem] flex flex-row justify-between items-center w-full px-4 py-3'>
-              <TouchableOpacity>
+              <TouchableOpacity
+              onPress={()=> router.back()}>
                 <AntDesign 
                 name="arrow-left"
                  size={30} 

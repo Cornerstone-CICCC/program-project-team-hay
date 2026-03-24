@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 
 export interface Member{
     userId:string,
-    image:string,
+    image?:string,
     name:string,
     friend_id?:string 
 }

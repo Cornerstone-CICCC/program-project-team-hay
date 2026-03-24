@@ -4,7 +4,7 @@ export const DummyChatList = [
   { room_id: 'b03', type: 'dm', image: require('../assets/images/dummy02.png'), name: 'Harry', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 3 },
   { room_id: 'b04', type: 'group', image: require('../assets/images/dummy02.png'), name: 'Christmas Event', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 0, num_member: 2 },
   { room_id: 'b05', type: 'group', image: require('../assets/images/dummy02.png'), name: 'Sport Event', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 0, num_member: 4 },
-  { room_id: 'b06', type: 'group', image: require('../assets/images/dummy02.png'), name: 'Cooking chalenge', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 0, num_member: 9 },
+  { room_id: 'b06', type: 'group', image: require('../assets/images/dummy02.png'), name: 'Cooking Challenge', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 0, num_member: 9 },
   { room_id: 'b07', type: 'dm', image: require('../assets/images/dummy02.png'), name: 'Harry', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 3 },
   { room_id: 'b08', type: 'archive', image: require('../assets/images/dummy02.png'), name: 'Chess Buttle', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 3, num_member: 2 },
   { room_id: 'b09', type: 'archive', image: require('../assets/images/dummy02.png'), name: 'Swimming', last_message: 'What do you want to eat?', last_message_at: '8:19', unread_count: 0, num_member: 8 },

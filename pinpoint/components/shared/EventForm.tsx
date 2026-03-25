@@ -256,7 +256,7 @@ const EventForm = (props:Prop) => {
                                 <Image
                                 key={m.userId}
                                 style={styles.picStyle}
-                                className='w-[80px] aspect-square'
+                                className='w-[70px] aspect-square'
                                 source={m.image ?{uri:m.image}:defalutImage.user}
                                 resizeMode='cover'
                                 />
@@ -274,7 +274,7 @@ const EventForm = (props:Prop) => {
                     </View>
                 }
                 <TouchableOpacity
-                className='pe-16'
+                className='pe-6'
                 onPress={()=>router.push('/hangout/detail/inviteExist' as any)}>
                     <AntDesign name="plus" size={30} color="#092568" />
                 </TouchableOpacity>
@@ -354,8 +354,8 @@ const styles = StyleSheet.create({
         overflow:'visible'
     },
     picStyle:{
-        width:80,
-        height:80,
+        width:70,
+        height:70,
         borderRadius:9999,
         borderColor:'rgba(130,130,130,0.7)',
         borderWidth:1

@@ -34,6 +34,9 @@ export default function AccountSetting() {
     }
   }, [user]);
 
+  useEffect(()=>{
+  },[profileImage])
+
   const handleUpdate = async () => {
     setIsEditing(false);
     setIsLoading(true);
@@ -66,6 +69,17 @@ export default function AccountSetting() {
 
       // Update profile
       await updateUser(updateData);
+      Alert.alert(
+        "Successfully Updated",
+        "Your changes have been saved successfully",
+        [
+          {
+            text:"OK",
+            onPress:()=>console.log("OK Pressed")
+          }
+        ],
+        {cancelable:false}
+      )
       // router.replace("/");
     } catch (err) {
       Alert.alert(

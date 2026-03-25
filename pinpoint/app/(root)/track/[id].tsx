@@ -1,4 +1,4 @@
-import { sampleImg } from '@/constants'
+import { defalutImage } from '@/constants'
 import { calculateRegion, generateMarkersFromData } from '@/libs/map'
 import { useLocationStore } from '@/store/location.store'
 import AntDesign from '@expo/vector-icons/AntDesign'
@@ -248,8 +248,9 @@ const TrackingMAP = () => {
                     {/* Avatar bubble */}
                     <View style={styles.avatarRing}>
                         <Image
-                        source={{uri:marker.image as any??sampleImg.user}}
+                        source={marker.image ?{uri:marker.image}:defalutImage.user}
                         style={styles.avatarImage}
+                        resizeMode='cover'
                         />
                     </View>
                     {/* Teardrop pointer */}

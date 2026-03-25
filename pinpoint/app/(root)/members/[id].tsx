@@ -1,7 +1,8 @@
+import { defalutImage } from '@/constants';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export interface Member{
     userId:string,
@@ -25,18 +26,15 @@ const memberList = ({event_id}:{event_id:string}) => {
       {
         userId: "user-1",
         name: "Emma Watson",
-        image: "/avatars/emma.jpg",
         friend_id:"123"
       },
       {
         userId: "user-2",
         name: "Chris Evans",
-        image: "/avatars/chris.jpg",
       },
       {
         userId: "user-3",
         name: "Tom Holland",
-        image: "/avatars/tom.jpg",
       },
     ]
         setMembers(memberList)
@@ -82,16 +80,14 @@ const memberList = ({event_id}:{event_id:string}) => {
         renderItem={({item})=>(
           <View 
           style={styles.chatItem}>
-            {/* <Image
-            source={uri:item.image}
-            style={styles.chatImg}
-            resizeMode='cover'/> */}
             <View
             className='flex flex-row items-center gap-6'>
-              <View
-              className='bg-gray-400'
-              style={styles.chatImg}
-              />
+                <Image
+                className='aspect-square rounded-full'
+                style={styles.chatImg}
+                source={item.image ?{uri:item.image}:defalutImage.user}
+                resizeMode='cover'
+                />
               <Text
               style={styles.chatName}>
                 {item.name}
@@ -159,7 +155,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 56 / 2,
-    overflow: 'hidden'
+//     overflow: 'hidden'
   },
   chatName: {
     fontFamily: 'Lexend-SemiBold',

@@ -136,10 +136,11 @@ const PlaceOptionInputs =({addOptions, setIsInputShown}:
 }
 
 
-const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable}:{
+const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, setError}:{
     type:PollQuestion,
     title:string,
     setQuestionDisable:Dispatch<SetStateAction<boolean>>
+    setError:Dispatch<SetStateAction<string>>
 })=>{
     type OptionLists = T extends "date" ?Date :PlaceOption
     const {setToggleEventRender} = useEventStore()
@@ -152,13 +153,18 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable}:{
             return
         }
         console.log(options)
-        //POST request
+        try{
+            //POST request
 
-        //clear the options
-        setOptions([])
+            //clear the options
+            setOptions([])
 
-        // toggle Event Render to triger rendering page
-        setToggleEventRender()
+            // toggle Event Render to triger rendering page
+            setToggleEventRender()
+        }catch(error){
+            setError(error as string)
+        }
+
     }
 
     useEffect(()=>{
@@ -269,6 +275,7 @@ const PollForm = () => {
     const [pollQuestion, setPollQuestion] = useState<PollQuestion|null>(null)
     const [questionDisable, setQuestionDisable] = useState<boolean>(false)
     const [question, setQuestion] = useState<string>("")
+    const [error, setError] = useState<string>("")
 
     const defaultText={
             date:"What time should we meet?",
@@ -358,14 +365,24 @@ const PollForm = () => {
                         <OptionLists 
                         type='date'
                         title={question}
-                        setQuestionDisable={setQuestionDisable}/>:
+                        setQuestionDisable={setQuestionDisable}
+                        setError={setError}
+                        />:
                         pollQuestion==="place"&&
                         <OptionLists 
                         type='place'
                         title={question}
-                        setQuestionDisable={setQuestionDisable}/>
+                        setQuestionDisable={setQuestionDisable}
+                        setError={setError}
+                        />
                         }
                     </View>
+
+                    {/* Error */}
+                    {error&&
+                    <View>
+                        <Text>{error}</Text>
+                    </View>}
                 </View>
             </Accordion.Expanded>
             </Accordion.Accordion>

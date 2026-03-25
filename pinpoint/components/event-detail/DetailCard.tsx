@@ -28,21 +28,6 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         mins = dateTime.getMinutes()
     }
 
-    // const dateTime = new Date(event.date)
-    // const day = dateTime.getDate();
-    // const month = dateTime.toLocaleString("en-CA", { month: "long" });
-    // const year = dateTime.getFullYear();
-    // const wod = new Intl.DateTimeFormat("en-CA", {
-    //     weekday: "long",
-    //     }).format(dateTime);
-    // const hour = dateTime.getHours()
-    // const mins = dateTime.getMinutes()
-
-    const addFriendHandler =()=>{
-        //redirect to list of friends
-    }
-
-
   return (
     <View
     className='px-9 py-6 flex gap-8'>
@@ -126,9 +111,9 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         <Text
         className='font-MontserratSemiBold text-[20px] pb-6'>Members</Text>
         <View
-         className=' flex flex-row gap-14 items-center'>
+         className=' flex flex-row gap-12 items-center'>
             <View
-            className='flex flex-row'>
+            className='flex flex-row gap-1'>
             {event.members.map(m=>(
                 <View
                 key={m.userId}>

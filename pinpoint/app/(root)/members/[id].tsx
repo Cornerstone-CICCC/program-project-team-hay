@@ -83,7 +83,7 @@ const memberList = ({event_id}:{event_id:string}) => {
           <View 
           style={styles.chatItem}>
             {/* <Image
-            source={item.image}
+            source={uri:item.image}
             style={styles.chatImg}
             resizeMode='cover'/> */}
             <View
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBlock: 18,
     paddingHorizontal: 20,
-    width: '100%',
+    width: '90%',
     backgroundColor: '#fff'
   },
   roomName: {

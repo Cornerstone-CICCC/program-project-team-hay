@@ -73,17 +73,17 @@ export const event:EventDetail = {
     {
       userId: "user-1",
       name: "Emma Watson",
-      image: "/avatars/emma.jpg",
+      // image: "/avatars/emma.jpg",
     },
     {
       userId: "user-2",
       name: "Chris Evans",
-      image: "/avatars/chris.jpg",
+      // image: "/avatars/chris.jpg",
     },
     {
       userId: "user-3",
       name: "Tom Holland",
-      image: "/avatars/tom.jpg",
+      // image: "/avatars/tom.jpg",
     },
   ],
   activePoll:[{

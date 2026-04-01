@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../store/functions/auth.store";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -29,7 +29,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await signIn(email, password);
-      router.push("/(auth)/test");
+      router.push("../(root)/(tabs)/home");
     } catch (err) {
       Alert.alert("Error", "Failed to sign In. Please try again");
       console.error(err);
@@ -86,7 +86,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity
           className="flex items-center mb-12"
-          onPress={() => router.push("/(auth)/changePassword")}
+          onPress={() => router.push("/(auth)/findPassword")}
         >
           <Text className="font-LexendSemiBold text-[#5669FF] text-lg">
             Forget Password?
@@ -117,7 +117,10 @@ export default function LoginScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row justify-center items-center gap-3 rounded-md py-4 bg-black">
+          <TouchableOpacity
+            className="flex flex-row justify-center items-center gap-3 rounded-md py-4 bg-black"
+            onPress={() => router.push("../(root)/(tabs)/home")}
+          >
             <Image
               source={require("../../assets/images/icon-auth/apple_icon.png")}
               style={{ width: 20, height: 20 }}

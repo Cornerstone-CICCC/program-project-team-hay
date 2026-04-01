@@ -96,6 +96,7 @@ export default function AccountSetting() {
     });
 
     if (!result.canceled && result.assets[0]) {
+      console.log("get image");
       setProfileImage(result.assets[0].uri);
     }
   };
@@ -117,6 +118,7 @@ export default function AccountSetting() {
     });
 
     if (!result.canceled && result.assets[0]) {
+      console.log("get image");
       setProfileImage(result.assets[0].uri);
     }
   };
@@ -136,9 +138,9 @@ export default function AccountSetting() {
       </View>
       <View className="flex items-center gap-3 mt-5 mb-10">
         <TouchableOpacity onPress={showPhotoPicker} className="relative">
-          {user?.profileImage ? (
+          {profileImage || user?.profileImage ? (
             <Image
-              source={{ uri: profileImage || user.profileImage }}
+              source={{ uri: profileImage || user?.profileImage }}
               style={{
                 width: 120,
                 height: 120,

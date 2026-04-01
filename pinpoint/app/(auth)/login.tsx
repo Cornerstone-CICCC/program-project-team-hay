@@ -29,7 +29,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await signIn(email, password);
-      router.push("/(auth)/accountSetting");
+      router.push("/(auth)/test");
     } catch (err) {
       Alert.alert("Error", "Failed to sign In. Please try again");
       console.error(err);
@@ -117,10 +117,7 @@ export default function LoginScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            className="flex flex-row justify-center items-center gap-3 rounded-md py-4 bg-black"
-            onPress={() => router.push("/(auth)/accountSetting")}
-          >
+          <TouchableOpacity className="flex flex-row justify-center items-center gap-3 rounded-md py-4 bg-black">
             <Image
               source={require("../../assets/images/icon-auth/apple_icon.png")}
               style={{ width: 20, height: 20 }}

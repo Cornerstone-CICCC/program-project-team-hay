@@ -92,7 +92,10 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+      throw error;
+    }
 
     if (data.user) {
       const profile = await get().fetchUserProfile(data.user.id);

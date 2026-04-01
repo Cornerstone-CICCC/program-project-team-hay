@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../store/functions/auth.store";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -69,7 +69,7 @@ export default function SignupScreen() {
       // logging user in
 
       // after logging in, direct user to home
-      router.push("/(root)/(tabs)/home");
+      router.push("../(root)/(tabs)/home");
     } catch (err) {
       Alert.alert("Error", "Failed to sign up. Please try again");
       console.error(err);

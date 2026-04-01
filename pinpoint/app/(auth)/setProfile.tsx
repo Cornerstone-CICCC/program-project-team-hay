@@ -11,8 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { uploadProfileImage } from "../../libs/supabase/storage";
-import { useAuthStore } from "../../store/auth.store";
-import Feather from "@react-native-vector-icons/feather";
+import { useAuthStore } from "../../store/functions/auth.store";
 import { MaterialIcons } from "@react-native-vector-icons/material-icons";
 
 export default function SetProfile() {

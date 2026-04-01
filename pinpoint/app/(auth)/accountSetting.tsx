@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 
 import { Feather } from "@react-native-vector-icons/feather";
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../store/functions/auth.store";
 import { uploadProfileImage } from "../../libs/supabase/storage";
 import { Image } from "expo-image";
 import MaterialIcons from "@react-native-vector-icons/material-icons";
@@ -34,8 +34,7 @@ export default function AccountSetting() {
     }
   }, [user]);
 
-  useEffect(()=>{
-  },[profileImage])
+  useEffect(() => {}, [profileImage]);
 
   const handleUpdate = async () => {
     setIsEditing(false);
@@ -74,12 +73,12 @@ export default function AccountSetting() {
         "Your changes have been saved successfully",
         [
           {
-            text:"OK",
-            onPress:()=>console.log("OK Pressed")
-          }
+            text: "OK",
+            onPress: () => console.log("OK Pressed"),
+          },
         ],
-        {cancelable:false}
-      )
+        { cancelable: false },
+      );
       // router.replace("/");
     } catch (err) {
       Alert.alert(
@@ -110,6 +109,7 @@ export default function AccountSetting() {
     });
 
     if (!result.canceled && result.assets[0]) {
+      console.log("get image");
       setProfileImage(result.assets[0].uri);
     }
   };
@@ -131,6 +131,7 @@ export default function AccountSetting() {
     });
 
     if (!result.canceled && result.assets[0]) {
+      console.log("get image");
       setProfileImage(result.assets[0].uri);
     }
   };
@@ -150,9 +151,9 @@ export default function AccountSetting() {
       </View>
       <View className="flex items-center gap-3 mt-5 mb-10">
         <TouchableOpacity onPress={showPhotoPicker} className="relative">
-          {user?.profileImage ? (
+          {profileImage || user?.profileImage ? (
             <Image
-              source={{ uri: profileImage || user.profileImage }}
+              source={{ uri: profileImage || user?.profileImage }}
               style={{
                 width: 120,
                 height: 120,

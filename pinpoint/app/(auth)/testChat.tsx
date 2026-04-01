@@ -1,5 +1,5 @@
 import { Text, TouchableOpacity, View } from "react-native";
-import { useChatDetailStore } from "../../store/chatDetail.store";
+import { useChatDetailStore } from "../../store/functions/chatDetail.store";
 
 export default function TestChatFile() {
   const { subscribeRoom, sendMessage, messages } = useChatDetailStore();

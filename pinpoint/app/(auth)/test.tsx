@@ -1,5 +1,4 @@
-import { usePollStore } from "../../store/poll.store";
-import { useEventStore } from "../../store/event.store";
+import { usePollStore } from "../../store/functions/poll.store";
 import {
   FlatList,
   Text,
@@ -8,15 +7,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useVoteStore } from "../../store/vote.store";
-import { useLocationStore } from "../../store/location.store";
-import { useFriendStore } from "../../store/friend.store";
+import { useVoteStore } from "../../store/functions/vote.store";
+import { useFriendStore } from "../../store/functions/friend.store";
 import { router } from "expo-router";
-import { useHomeStore } from "../../store/home.store";
-import { useEventListStore } from "../../store/eventlist.store";
-import { useChatStore } from "../../store/chat.store";
-import { useChatDetailStore } from "../../store/chatDetail.store";
+import { useHomeStore } from "../../store/functions/home.store";
+import { useEventListStore } from "../../store/functions/eventlist.store";
+import { useChatStore } from "../../store/functions/chat.store";
+import { useChatDetailStore } from "../../store/functions/chatDetail.store";
 import { useEffect, useState } from "react";
+import { useEventStore } from "../../store/functions/event.store";
+import { useLocationStore } from "../../store/functions/location.store";
 
 export default function TestFile() {
   const messages = useChatDetailStore((s) => s.messages);

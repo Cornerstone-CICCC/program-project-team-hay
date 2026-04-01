@@ -1,4 +1,4 @@
-import { supabase } from "../libs/supabase/client";
+import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
 
 export interface User {

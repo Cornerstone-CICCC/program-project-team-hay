@@ -1,5 +1,5 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useAuthStore } from "../../store/auth.store";
+import { useAuthStore } from "../../store/functions/auth.store";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -82,15 +82,11 @@ export default function ChangePassword() {
   return (
     <SafeAreaView edges={["top", "bottom"]} className="px-5">
       <View className="pt-4 flex flex-row justify-between mt-2 mb-10">
-        <TouchableOpacity
-        onPress={()=> router.back()}>
-          <AntDesign 
-          name="arrow-left"
-            size={30} 
-            color="black" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <AntDesign name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
         <Text className="font-MontserratBold text-2xl">Change Password</Text>
-        <View/>
+        <View />
       </View>
 
       <View className="mb-8">

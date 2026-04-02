@@ -1,10 +1,13 @@
 import EventForm from '@/components/shared/EventForm';
+import { useMyEventStore } from '@/store/event.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { router } from 'expo-router';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 const createEvent = () => {
+  const {setMembers} = useMyEventStore()
   return (
     <View
     style={{flex:1}}
@@ -18,7 +21,13 @@ const createEvent = () => {
         <View>
         <View
         className='flex flex-row justify-between mt-15'>
-            <AntDesign name="arrow-left" size={24} color="black" />
+            <TouchableOpacity
+            onPress={()=>{
+              // clear the member store before leaving
+              setMembers([])
+              router.back()}}>
+              <AntDesign name="arrow-left" size={24} color="black" />
+            </TouchableOpacity>
             <Text
             className='font-MontserratBold text-3xl'>
                 Hangout Detail

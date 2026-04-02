@@ -1,14 +1,15 @@
 import { EventDetail } from '@/app/(root)/event/[id]';
-import { useEventStore } from '@/store/event.store';
+import { defalutImage } from '@/constants';
+import { useMyEventStore } from '@/store/event.store';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, router } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const DetailCard = ({event}:{event:EventDetail}) => {
-    const {setSelectedEvent} = useEventStore()
+    const {setSelectedEvent} = useMyEventStore()
     let dateTime
     let day
     let month 
@@ -26,21 +27,6 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         hour = dateTime.getHours()
         mins = dateTime.getMinutes()
     }
-
-    // const dateTime = new Date(event.date)
-    // const day = dateTime.getDate();
-    // const month = dateTime.toLocaleString("en-CA", { month: "long" });
-    // const year = dateTime.getFullYear();
-    // const wod = new Intl.DateTimeFormat("en-CA", {
-    //     weekday: "long",
-    //     }).format(dateTime);
-    // const hour = dateTime.getHours()
-    // const mins = dateTime.getMinutes()
-
-    const addFriendHandler =()=>{
-        //redirect to list of friends
-    }
-
 
   return (
     <View
@@ -125,18 +111,21 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         <Text
         className='font-MontserratSemiBold text-[20px] pb-6'>Members</Text>
         <View
-         className=' flex flex-row gap-14 items-center'>
+         className=' flex flex-row gap-12 items-center'>
             <View
-            className='flex flex-row'>
+            className='flex flex-row gap-1'>
             {event.members.map(m=>(
                 <View
                 key={m.userId}>
-                    {/* <Image
-                    
-                    /> */}
-                    <View
-                    className='w-[75px] aspect-square rounded-full bg-gray-400'
+                    <Image
+                    className='w-[75px] aspect-square rounded-full'
+                    style={styles.picStyle}
+                    source={m.image ?{uri:m.image}:defalutImage.user}
+                    resizeMode='cover'
                     />
+                    {/* <View
+                    className='w-[75px] aspect-square rounded-full bg-gray-400'
+                    /> */}
                 </View>
             ))}
             </View>
@@ -169,6 +158,11 @@ const styles = StyleSheet.create({
         color:"#9CA4AB",
         textAlign:'center',
         fontSize:18,
+    },
+    picStyle:{
+        width:75,
+        height:75,
+        borderRadius:9999
     }
 })
 

@@ -1,4 +1,4 @@
-import { useLocationStore } from "@/store/location.store";
+import { useMyLocationStore } from "@/store/location.store";
 import * as Location from 'expo-location';
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -21,7 +21,7 @@ type Props={
 }
 const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
     Props)=>{
-    const {setUserLocation,userLatitude,userLongitude} = useLocationStore()
+    const {setUserLocation,userLatitude,userLongitude} = useMyLocationStore()
     const [placeInfo, setPlaceInfo]=useState<Place|null>(null)
     const [editLocaton, setEditLocation] = useState<boolean>(false)
 

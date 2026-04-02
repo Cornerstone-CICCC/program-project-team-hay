@@ -3,12 +3,12 @@ import AntDesign from '@expo/vector-icons/AntDesign'
 import React, { useEffect, useState } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
-import { useEventStore } from '@/store/event.store'
+import { useMyEventStore } from '@/store/event.store'
 import { router } from 'expo-router'
 import { EventDetail } from './[id]'
 
 const EditEvent = () => {
-    const {selectedEvent} = useEventStore()
+    const {selectedEvent} = useMyEventStore()
     const [data, setData] = useState<EventDetail| null>(null)
 
     useEffect(()=>{

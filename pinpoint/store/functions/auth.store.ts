@@ -1,4 +1,4 @@
-import { supabase } from "../libs/supabase/client";
+import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
 
 export interface User {
@@ -92,7 +92,10 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+      throw error;
+    }
 
     if (data.user) {
       const profile = await get().fetchUserProfile(data.user.id);

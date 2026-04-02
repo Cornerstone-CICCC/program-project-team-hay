@@ -1,38 +1,55 @@
-import { useState } from "react"
-import { Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { useMyEventStore } from "@/store/event.store";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Member } from "../../members/[id]";
 import InviteFriendType from "@/components/InviteFriendType";
 
 type User = {
   userId: string,
   name: string,
-  image: ImageSourcePropType,
+  image: string,
   email: string,
   public_code: string,
 }
-type Member = {
-  userId: string,
-  name: string,
-  image: ImageSourcePropType,
-  dm_id?: string,
-}
+// type Member = {
+//   userId: string,
+//   name: string,
+//   image: ImageSourcePropType,
+//   dm_id?: string,
+// }
 
 const InviteNew = () => {
   const router = useRouter()
 
   const [eventMember, setEventMember] = useState<Member[]>([])
+  const {setMembers,members} = useMyEventStore()
+  // const toggleInvite = (member: Member) => {
+  //   setEventMember(prev => {
+  //     const exists = prev.some(m => m.userId === member.userId)
+  //     if(exists){
+  //       setMembers(prev.filter(m => m.userId !== member.userId))
+  //       return prev.filter(m => m.userId !== member.userId)
+  //     }
+  //     setMembers([...prev, member])
+  //     return [...prev, member]
+  //   })
+  // }
+
   const toggleInvite = (member: Member) => {
-    setEventMember(prev => {
-      const exists = prev.some(m => m.userId === member.userId)
+    const exists = members.some(m => m.userId === member.userId)
       if(exists){
-        return prev.filter(m => m.userId !== member.userId)
+        setMembers(members.filter(m => m.userId !== member.userId))
+        return
+      }else{
+         setMembers([...members, member])
       }
-      return [...prev, member]
-    })
   }
-  const isInvited = (userId: string) => eventMember.some(m => m.userId === userId)
+
+  // const isInvited = (userId: string) => eventMember.some(m => m.userId === userId)
+  const isInvited = (userId: string) => members.some(m => m.userId === userId)
 
   const [keyword, setKeyword] = useState<string>('')
   const [users, setUsers] = useState<User[]>([])
@@ -66,7 +83,7 @@ const InviteNew = () => {
         {keyword === '' ? null : foundUser ? 
           <View style={styles.chatList}>
             <View style={styles.chatItem}>
-              <Image source={foundUser.image} style={styles.chatImg} resizeMode="cover" />
+              <Image source={foundUser.image as any} style={styles.chatImg} resizeMode="cover" />
               <Text style={styles.chatName}>{foundUser.name}</Text>
               {isInvited(foundUser.userId) ? 
                 <TouchableOpacity onPress={() => toggleInvite(foundUser)} style={styles.btnInvited}>

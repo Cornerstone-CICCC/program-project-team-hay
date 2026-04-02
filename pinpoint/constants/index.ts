@@ -5,7 +5,7 @@ import defaultImg from '@/assets/images/details-page/defalutImg.png';
 import dinner from '@/assets/images/details-page/dinner.png';
 import lunch from '@/assets/images/details-page/lunch.png';
 
-import user from '@/assets/images/avatar/user.png';
+import user from '@/assets/images/avatar/default-user.png';
 
 export const getGoogleImgUrl = (key:string)=>{
     const apiKey= process.env.EXPO_PUBLIC_GOOGLE_API_KEY!
@@ -23,6 +23,6 @@ dinner,
 lunch
 }
 
-export const sampleImg={
+export const defalutImage={
     user
 }

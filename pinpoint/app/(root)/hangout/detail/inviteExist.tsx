@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
-import { FlatList, Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { useMyEventStore } from "@/store/event.store";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
-import { useEventStore } from "@/store/event.store";
+import { useState } from "react";
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Member } from "../../members/[id]";
 
 // type Member = {
@@ -19,7 +19,7 @@ const InviteExist = () => {
     router.push('/hangout/detail/inviteNew')
   }
 
-  const {setMembers, members} = useEventStore()
+  const {setMembers, members} = useMyEventStore()
   // const [eventMember, setEventMember] = useState<Member[]>([])
 
   // const toggleInvite = (member: Member) => {

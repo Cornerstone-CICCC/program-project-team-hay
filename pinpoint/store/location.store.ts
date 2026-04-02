@@ -13,7 +13,7 @@ export interface LocationStore {
   }) => void;
 }
 
-export const useLocationStore = create<LocationStore>()(
+export const useMyLocationStore = create<LocationStore>()(
   persist(
     (set) => ({
       userLongitude: null,

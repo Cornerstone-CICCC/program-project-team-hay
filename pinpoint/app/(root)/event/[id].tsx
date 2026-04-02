@@ -6,15 +6,15 @@ import PollForm from "@/components/event-detail/PollForm";
 import TrackPreview from "@/components/event-detail/TrackPreview";
 import { images } from "@/constants";
 import { fetchEventBgImage } from "@/libs/eventImgHandler";
-import { useEventStore } from "@/store/event.store";
-import { useLocationStore } from "@/store/location.store";
+import { useMyEventStore } from "@/store/event.store";
+import { useAuthStore } from "@/store/functions/auth.store";
+import { useMyLocationStore } from "@/store/location.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { Member } from "../members/[id]";
-import { useAuthStore } from "@/store/functions/auth.store";
 
 // Disirable returning type for event
 export interface EventDetail {
@@ -121,9 +121,9 @@ export const event: EventDetail = {
 
 const EventDetail = () => {
   const { user } = useAuthStore();
-  const { toggleEventRender } = useEventStore();
+  const { toggleEventRender } = useMyEventStore();
   const { id } = useLocalSearchParams();
-  const { setUserLocation } = useLocationStore();
+  const { setUserLocation } = useMyLocationStore();
   const [bgImg, setBgImg] = useState(images.defaultImg);
   const [hasPermission, setHasPermission] = useState(false);
   const [eventDetail, setEventDetail] = useState<null | EventDetail>();

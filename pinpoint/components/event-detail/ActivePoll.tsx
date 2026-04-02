@@ -1,5 +1,5 @@
 import { PollOption } from '@/app/(root)/event/[id]'
-import { useEventStore } from '@/store/event.store'
+import { useMyEventStore } from '@/store/event.store'
 import { Link, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -194,7 +194,7 @@ type ResultProps={
 
 const ResultPoll = (props:ResultProps)=>{
     const {id} = useLocalSearchParams()
-    const {setToggleEventRender} = useEventStore()
+    const {setToggleEventRender} = useMyEventStore()
     const [sortedResult, setSortedResult]= useState<Result[]>([])
     const [ total, setTotal] = useState<number>(0)
     const [isTie, setIsTie] = useState(false)

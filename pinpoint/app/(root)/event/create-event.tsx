@@ -1,5 +1,5 @@
 import EventForm from '@/components/shared/EventForm';
-import { useEventStore } from '@/store/event.store';
+import { useMyEventStore } from '@/store/event.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { router } from 'expo-router';
 import React from 'react';
@@ -7,7 +7,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 
 
 const createEvent = () => {
-  const {setMembers} = useEventStore()
+  const {setMembers} = useMyEventStore()
   return (
     <View
     style={{flex:1}}

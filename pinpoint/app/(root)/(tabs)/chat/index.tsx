@@ -5,37 +5,40 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
 import { DummyChatList } from "@/dummy/ChatList";
+import { useAuthStore } from "@/store/auth.store";
 
-type ChatFilter = 'dm' | 'group' | 'archive'
+type ChatType = 'dm' | 'group' | 'past'
 
 interface ChatRoom {
   room_id: string,
-  type: ChatFilter,
+  type: string,
   name: string,
   image?: string,
   last_message?: string,
   last_message_at?: string,
   unread_count: number,
-  num_member: number,
+  num_member?: number,
 }
 
 const Chat = () => {
+  const { user } = useAuthStore()
+  const userId = user?.id
+
   //
   const USE_DUMMY = true
-  const userId = 'qwe123'
   //
-  const tabs: { label: string, value: ChatFilter }[] = [
+  const tabs: { label: string, value: ChatType }[] = [
     { label: 'DM', value: 'dm' },
     { label: 'Group', value: 'group' },
-    { label: 'Archive', value: 'archive' },
+    { label: 'Past', value: 'past' },
   ]
 
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')
   const [chatList, setChatList] = useState<ChatRoom[]>([])
-  const [activeTab, setActiveTab] = useState<ChatFilter>('dm')
+  const [activeTab, setActiveTab] = useState<ChatType>('dm')
 
-  const fetchChats = async (tab: ChatFilter) => {
+  const fetchChats = async (tab: ChatType) => {
     //
     let data: ChatRoom[] = []
     if(USE_DUMMY){
@@ -45,8 +48,8 @@ const Chat = () => {
             return item.type === 'dm'
           case 'group':
             return item.type === 'group'
-          case 'archive':
-            return item.type === 'archive'
+          case 'past':
+            return item.type === 'past'
           default:
             return item.type === 'dm'
         }
@@ -57,10 +60,13 @@ const Chat = () => {
     //
 
     // const data = await getChatList(userId, tab)
-    setChatList(data)
+    setChatList(data.map(chat => ({
+      ...chat,
+      unread_count: 0,
+    })))
   }
 
-  const handleTabChange = (tab: ChatFilter) => {
+  const handleTabChange = (tab: ChatType) => {
     setActiveTab(tab)
   }
 

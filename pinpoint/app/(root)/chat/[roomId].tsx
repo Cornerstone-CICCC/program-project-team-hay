@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { FlatList, Image, ImageSourcePropType, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native"
+import { FlatList, Image, ImageSourcePropType, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
+import { useAuthStore } from "@/store/auth.store";
 
 type Message = {
   id: string,
@@ -20,7 +21,16 @@ export const options = {
 }
 
 const Chatroom = () => {
+  const { user } = useAuthStore()
+  const userId = user?.id
+  const event_id = null
+
   const router = useRouter()
+  // const params = useSearchParams()
+
+  const goToEventDetail = () => {
+    router.push(`/event/${event_id}`)
+  }
 
   // const { roomId } = useSearchParams()
   const [messages, setMessages] = useState<Message[]>([
@@ -78,6 +88,15 @@ const Chatroom = () => {
       createdAt: '2026-03-06T11:08:00Z',
       isMine: true
     },
+    {
+      id: 'c07',
+      senderId: 'c102',
+      senderName: 'Harry',
+      senderImage: require('../../../assets/images/dummy02.png'),
+      text: 'Awesome!',
+      createdAt: '2026-03-06T11:08:00Z',
+      isMine: true
+    },
   ])
   const [message, setMessage] = useState<string>('')
   const sendMsg = () => {
@@ -104,6 +123,13 @@ const Chatroom = () => {
       <View style={styles.bg} className="pt-14">
         <View style={styles.roomHead}>
           <AntDesign name="arrow-left" size={20} color="#fff" className="px-2 py-1.5" onPress={() => router.back()} />
+          {/* {data.type === 'dm' ? (
+            <Text style={styles.roomName}>{data.name}</Text>
+          ) : (
+            <TouchableOpacity onPress={goToEventDetail}>
+              <Text style={styles.roomName}>{data.name}</Text>
+            </TouchableOpacity>
+          )} */}
           <Text style={styles.roomName}>John</Text>
         </View>
 

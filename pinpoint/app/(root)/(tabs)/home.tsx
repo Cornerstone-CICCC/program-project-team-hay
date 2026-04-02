@@ -4,7 +4,6 @@ import { useAuthStore } from "@/store/functions/auth.store";
 import { useHomeStore } from "@/store/functions/home.store";
 import { useEffect, useState } from "react";
 import {
-  ImageSourcePropType,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,7 +19,7 @@ interface EventOverview {
 interface Friend {
   friend_id: string;
   friend_userId: string;
-  friend_image: string | ImageSourcePropType;
+  friend_image: string;
   friend_name: string;
 }
 

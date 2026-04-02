@@ -1,8 +1,8 @@
-import { EventDetail } from "../app/(root)/event/[id]";
 import { Member } from "@/app/(root)/members/[id]";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { EventDetail } from "../app/(root)/event/[id]";
 
 export interface EventStore {
   toggleEventRender: boolean;
@@ -14,7 +14,7 @@ export interface EventStore {
   setMembers: (invitedMembers: Member[]) => void;
 }
 
-export const useEventStore = create<EventStore>()(
+export const useMyEventStore = create<EventStore>()(
   persist(
     (set) => ({
       toggleEventRender: false,

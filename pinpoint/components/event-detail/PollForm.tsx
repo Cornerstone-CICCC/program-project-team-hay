@@ -1,14 +1,14 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDateTime } from '@/libs/format';
+import { useMyEventStore } from '@/store/event.store';
 import { Accordion } from '@animatereactnative/accordion';
 import Entypo from '@expo/vector-icons/Entypo';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Link } from 'expo-router';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from '../shared/DateTimeInput';
-import { useEventStore } from '@/store/event.store';
 
 export type PollQuestion = "place" | "date"
 
@@ -143,7 +143,7 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
     setError:Dispatch<SetStateAction<string>>
 })=>{
     type OptionLists = T extends "date" ?Date :PlaceOption
-    const {setToggleEventRender} = useEventStore()
+    const {setToggleEventRender} = useMyEventStore()
     const [isInputShown, setIsInputShown] = useState<boolean>(false)
     const [options, setOptions] = useState<OptionLists[]>([])
 

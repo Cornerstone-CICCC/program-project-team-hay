@@ -1,6 +1,6 @@
 import { EventDetail } from '@/app/(root)/event/[id]';
 import { defalutImage } from '@/constants';
-import { useEventStore } from '@/store/event.store';
+import { useMyEventStore } from '@/store/event.store';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -9,7 +9,7 @@ import React from 'react';
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const DetailCard = ({event}:{event:EventDetail}) => {
-    const {setSelectedEvent} = useEventStore()
+    const {setSelectedEvent} = useMyEventStore()
     let dateTime
     let day
     let month 

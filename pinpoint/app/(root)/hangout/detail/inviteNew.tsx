@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { useMyEventStore } from "@/store/event.store";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Member } from "../../members/[id]";
-import { useEventStore } from "@/store/event.store";
 
 type User = {
   userId: string,
@@ -24,7 +24,7 @@ const InviteNew = () => {
   const router = useRouter()
 
   const [eventMember, setEventMember] = useState<Member[]>([])
-  const {setMembers,members} = useEventStore()
+  const {setMembers,members} = useMyEventStore()
   // const toggleInvite = (member: Member) => {
   //   setEventMember(prev => {
   //     const exists = prev.some(m => m.userId === member.userId)

@@ -1,6 +1,7 @@
 import { defalutImage } from '@/constants'
-import { calculateRegion, generateMarkersFromData } from '@/libs/map'
-import { useLocationStore } from '@/store/location.store'
+import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
+import { calculateRegion } from '@/libs/map'
+import { useMyLocationStore } from '@/store/location.store'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import * as Location from 'expo-location'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -8,8 +9,6 @@ import React, { useEffect, useState } from 'react'
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 import MapViewDirections from 'react-native-maps-directions'
-import { EventDetail } from '../event/[id]'
-import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
 
 export interface MarkerData{
     latitude: number,
@@ -37,7 +36,7 @@ export interface TrackEventDetail{
 
 const TrackingMAP = () => {
     const {id} = useLocalSearchParams()
-    const {setUserLocation,userLatitude, userLongitude}= useLocationStore()
+    const {setUserLocation,userLatitude, userLongitude}= useMyLocationStore()
     const [event, setEvent] = useState<TrackEventDetail|null>(null)
     const [routeInfo, setRouteInfo] = useState<{ duration: number; distance: number } | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([])

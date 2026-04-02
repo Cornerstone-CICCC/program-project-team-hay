@@ -1,10 +1,13 @@
 import { EventDetail } from "@/app/(root)/event/[id]";
-import { useEventStore } from "@/store/event.store";
+import { Member } from "@/app/(root)/members/[id]";
+import { defalutImage } from "@/constants";
+import { useMyEventStore } from "@/store/event.store";
+import { useAuthStore } from "@/store/functions/auth.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   StyleSheet,
@@ -15,9 +18,6 @@ import {
 } from "react-native";
 import GoogleTextInput from "../GoogleTextInput";
 import DateTimeInput from "./DateTimeInput";
-import { Member } from "@/app/(root)/members/[id]";
-import { useAuthStore } from "@/store/functions/auth.store";
-import { defalutImage } from "@/constants";
 
 type Prop = {
   eventDetail?: EventDetail;
@@ -47,8 +47,7 @@ export interface Place {
 
 const EventForm = (props: Prop) => {
   const { user } = useAuthStore();
-  const { members, setMembers } = useEventStore();
-  const { clearSelectedEvent } = useEventStore();
+  const { members, setMembers, clearSelectedEvent} = useMyEventStore();
   const [eventForm, setEventForm] = useState<Omit<EventDetail, "id">>({
     name: "",
     date: new Date().toString(),

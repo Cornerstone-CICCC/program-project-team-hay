@@ -3,6 +3,7 @@ import { Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpaci
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
+import InviteFriendType from "@/components/InviteFriendType";
 
 type User = {
   userId: string,
@@ -44,6 +45,8 @@ const InviteNew = () => {
     item.email === keyword || item.public_code === keyword
   )
 
+  
+
   return (
     <View style={styles.bg} className="pt-[76px]">
       <View style={styles.roomHead}>
@@ -53,7 +56,9 @@ const InviteNew = () => {
         <Text style={styles.roomName}>Invite New Friends</Text>
         <View style={styles.roomIcon}></View>
       </View>
+
       <View style={styles.roomMain}>
+        <InviteFriendType />
         <View style={styles.searchWrap}>
           <Feather name="search" size={16} color="#7C7C7C" />
           <TextInput placeholder="Search friend by email or public code" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />

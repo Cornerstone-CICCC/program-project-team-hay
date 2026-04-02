@@ -2,7 +2,7 @@ import { useRouter } from "expo-router"
 import { Image, ImageSourcePropType, StyleSheet, TouchableOpacity } from "react-native"
 
 type Friend = {
-  dm_id: string,
+  friend_id: string,
   friend_userId: string,
   friend_image: string | ImageSourcePropType,
   friend_name: string
@@ -15,7 +15,7 @@ type Props = {
 const CurrentFriendCard = ({ data }: Props) => {
   const router = useRouter()
   const goToChatRoom = () => {
-    router.push(`/chat/${data.dm_id}`)
+    router.push(`/chat/${data.friend_id}`)
   }
 
   return (

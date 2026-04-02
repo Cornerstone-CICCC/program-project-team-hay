@@ -1,8 +1,7 @@
 import CurrentFriendCard from "@/components/CurrentFriendCard";
 import HangoutCard from "@/components/HangoutCard";
-import { HomeFriends } from "@/dummy/HomeFriends";
-import { HomeHangouts } from "@/dummy/HomeHangouts";
 import { useAuthStore } from "@/store/functions/auth.store";
+import { useHomeStore } from "@/store/functions/home.store";
 import { useEffect, useState } from "react";
 import {
   ImageSourcePropType,
@@ -19,35 +18,27 @@ interface EventOverview {
   address?: string;
 }
 interface Friend {
-  dm_id: string;
+  friend_id: string;
   friend_userId: string;
   friend_image: string | ImageSourcePropType;
   friend_name: string;
 }
 
 const Home = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore(s => s.user);
+  const home = useHomeStore();
+  
   const userId = user?.id;
 
-  //
-  const USE_DUMMY = true;
-  //
-  const [hangoutList, setHangoutList] = useState<EventOverview[]>([]);
-  const [recentFriendList, setRecentFriendList] = useState<Friend[]>([]);
+  const [hangoutList, setHangoutList] = useState<EventOverview[] | null>([]);
+  const [recentFriendList, setRecentFriendList] = useState<Friend[] | null>([]);
 
   useEffect(() => {
     if (!userId) return;
 
     const fetchData = async () => {
-      //
-      if (USE_DUMMY) {
-        setHangoutList(HomeHangouts);
-        setRecentFriendList(HomeFriends);
-        return;
-      }
-      //
-      const hangouts = await getHomeEventList(userId);
-      const friends = await getRecentFriends(userId);
+      const hangouts = await home.getHomeEventList();
+      const friends = await home.getRecentFriends();
       setHangoutList(hangouts);
       setRecentFriendList(friends);
     };
@@ -59,7 +50,7 @@ const Home = () => {
       <Text style={styles.ttl}>{user?.name}</Text>
       <Text style={styles.subttl}>Your near future Hangout</Text>
       <View style={styles.cardList}>
-        {hangoutList.length === 0 ? (
+        {!hangoutList || hangoutList.length === 0 ? (
           <View style={styles.noCardItem}>
             <Text style={styles.noCardTxt}>No hangouts yet</Text>
           </View>
@@ -71,11 +62,11 @@ const Home = () => {
       </View>
       <Text style={styles.subttl}>Current contacted friends</Text>
       <View style={styles.friendList}>
-        {recentFriendList.length === 0 ? (
+        {!recentFriendList || recentFriendList.length === 0 ? (
           <Text style={styles.noFriend}>No recent contacts</Text>
         ) : (
           recentFriendList.map((item) => (
-            <CurrentFriendCard key={item.dm_id} data={item} />
+            <CurrentFriendCard key={item.friend_id} data={item} />
           ))
         )}
       </View>

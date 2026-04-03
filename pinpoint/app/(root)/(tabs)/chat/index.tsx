@@ -4,29 +4,24 @@ import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
-import { DummyChatList } from "@/dummy/ChatList";
-import { useAuthStore } from "@/store/auth.store";
+import { useChatStore } from "@/store/functions/chat.store";
 
 type ChatType = 'dm' | 'group' | 'past'
 
 interface ChatRoom {
   room_id: string,
-  type: string,
+  type: "dm" | "group";
   name: string,
   image?: string,
   last_message?: string,
   last_message_at?: string,
-  unread_count: number,
-  num_member?: number,
+  unread_count?: number,
+  // num_member?: number,
 }
 
 const Chat = () => {
-  const { user } = useAuthStore()
-  const userId = user?.id
+  const chat = useChatStore()
 
-  //
-  const USE_DUMMY = true
-  //
   const tabs: { label: string, value: ChatType }[] = [
     { label: 'DM', value: 'dm' },
     { label: 'Group', value: 'group' },
@@ -35,31 +30,12 @@ const Chat = () => {
 
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')
-  const [chatList, setChatList] = useState<ChatRoom[]>([])
+  const [chatList, setChatList] = useState<ChatRoom[] | null>([])
   const [activeTab, setActiveTab] = useState<ChatType>('dm')
 
   const fetchChats = async (tab: ChatType) => {
-    //
-    let data: ChatRoom[] = []
-    if(USE_DUMMY){
-      data = DummyChatList.filter(item => {
-        switch(tab) {
-          case 'dm':
-            return item.type === 'dm'
-          case 'group':
-            return item.type === 'group'
-          case 'past':
-            return item.type === 'past'
-          default:
-            return item.type === 'dm'
-        }
-      })
-    } else {
-      data = await getChatList(userId, tab)
-    }
-    //
-
-    // const data = await getChatList(userId, tab)
+    const data = await chat.getChatList(tab)
+    if(!data) return;
     setChatList(data.map(chat => ({
       ...chat,
       unread_count: 0,
@@ -74,7 +50,7 @@ const Chat = () => {
     fetchChats(activeTab)
   }, [activeTab])
 
-  const filteredChats = chatList.filter(item => 
+  const filteredChats = (chatList ?? []).filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
   

@@ -1,17 +1,18 @@
+import { defalutImage } from "@/constants"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
-import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
 type ChatType = 'dm' | 'group' | 'past'
 
 type ChatItem = {
   room_id: string,
   type: string,
-  image?: string | ImageSourcePropType,
+  image?: string,
   name: string,
   last_message?: string,
   last_message_at?: string,
-  unread_count: number,
+  unread_count?: number,
   num_member?: number
 }
 
@@ -32,11 +33,10 @@ const ChatListItem = ({ data }: Props) => {
   return (
     <TouchableOpacity onPress={goToChatRoom}>
       <View style={styles.chatItem}>
-        <Image source={
-          typeof data.image === 'string'
-          ? { uri: data.image }
-          : data.image
-        } style={styles.chatImg} resizeMode="cover" />
+        <Image
+          source={data.image ? { uri: data.image } : defalutImage.user}
+          style={styles.chatImg} resizeMode="cover"
+        />
         <View style={styles.chatTxtWrap}>
           <View style={styles.chatTtl}>
             <Text style={styles.chatName} numberOfLines={1}>{data.name}</Text>
@@ -48,7 +48,7 @@ const ChatListItem = ({ data }: Props) => {
         </View>
         <View style={styles.chatItemSub}>
           <Text style={styles.chatTime}>{data.last_message_at}</Text>
-          {data.unread_count > 0 &&
+          {!data.unread_count || data.unread_count > 0 &&
             <View style={styles.chatUnreadWrap}>
               <Text style={styles.chatUnread}>{data.unread_count}</Text>
             </View>

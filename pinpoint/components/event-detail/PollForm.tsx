@@ -1,5 +1,6 @@
 import { formatDateTime } from '@/libs/format';
 import { useMyEventStore } from '@/store/event.store';
+import { usePollStore } from '@/store/functions/poll.store';
 import { Accordion } from '@animatereactnative/accordion';
 import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -27,30 +28,27 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
   const [showDatePicker, setShowDatePicker] = useState(true);
   const [msg, setMsg] = useState<string>("")
 
-  const onChange = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
-    if (event.type === 'set' && selected) {
-      setDate(selected);
-    }
-  };
 
     const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
 
-    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
+        if (Platform.OS === 'android') 
+            return setShowDatePicker(false);  // auto-close on Android
         if (event.type === 'set' && selected) {
-            const updated = date?new Date(date):new Date()
+            console.log("selected",selected)
+            const updated = new Date(date)
             updated.setFullYear(selected.getFullYear())
             updated.setMonth(selected.getMonth())
             updated.setDate(selected.getDate())
+            console.log("update", updated)
 
             setDate(updated)
         }
     };
   
     const onTimeChange = (event: DateTimePickerEvent, selected?: Date)=>{
-    if (Platform.OS === 'android') setShowDatePicker(false);
+        if (Platform.OS === 'android') return setShowDatePicker(false);
         if (event.type === 'set' && selected) {
-            const updated = date?new Date(date):new Date()
+            const updated = new Date(date)
             updated.setHours(selected.getHours())
             updated.setMinutes(selected.getMinutes())
             setDate(updated)
@@ -70,6 +68,7 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
     }
 
     addOptions(prev=>[...prev, date])
+    setDate(new Date())
     setIsInputShown(false)
   }
 
@@ -92,10 +91,12 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
                     onChange={onChange}
                 />
         )} */}
-        {showDatePicker &&<DateTimeInput
+        {showDatePicker &&
+        <DateTimeInput
         onDateChange={onDateChange}
         onTimeChange={onTimeChange}
-        type='poll'/>}
+        type='poll'
+        dateValue={date}/>}
         {msg&&
             <Text
             className='pt-2 text-red-700'>
@@ -136,7 +137,8 @@ const PlaceOptionInputs =({addOptions, setIsInputShown}:
 }
 
 
-const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, setError}:{
+const OptionLists =<T extends PollQuestion>({event_id,type,title, setQuestionDisable, setError}:{
+    event_id:string,
     type:PollQuestion,
     title:string,
     setQuestionDisable:Dispatch<SetStateAction<boolean>>
@@ -147,14 +149,55 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
     const [isInputShown, setIsInputShown] = useState<boolean>(false)
     const [options, setOptions] = useState<OptionLists[]>([])
 
+    const {createNewPoll} = usePollStore()
+
     // request backend to create a poll with options
     const createPollHandler = async()=>{
         if(options.length<=1 && !title){
             return
         }
-        console.log(options)
+        console.log("options",options)
         try{
-            //POST request
+            const newPoll ={
+                title,
+                event_id,
+                type,
+            }
+
+            let pollOptions:{
+                label: string;
+                latitude?: number;
+                longitude?: number;
+                address?: string;
+                url?: string;
+                imgKey?: string;
+            }[]
+
+            if(type==="date"){
+                const dateOptions = options as Date[]
+                pollOptions= dateOptions.map(op=>({
+                    label:op.toString()
+                }))
+            }else if(type==="place"){
+                const placeOptions = options as PlaceOption[]
+                pollOptions = placeOptions.map(op=>({
+                    label:op.placeNeme,
+                    address:op.address,
+                    latitude:op.latitude,
+                    longitude:op.longitude,
+                    imgKey:op.imgKey,
+                    url:op.url
+                }))
+            }else{
+                console.log("There is no type passed")
+                return
+            }
+
+
+            // //POST request
+            const res = await createNewPoll(newPoll, pollOptions)
+
+            console.log("poll form response", res)
 
             //clear the options
             setOptions([])
@@ -255,7 +298,7 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
                 </TouchableOpacity>)
             }
             {
-                options.length>0&&(
+                options.length>1&&(
                     <TouchableOpacity
                     disabled={options.length<=1}
                     onPress={createPollHandler}
@@ -271,7 +314,7 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
     )
 }
 
-const PollForm = () => {
+const PollForm = ({id}:{id:string}) => {
     const [pollQuestion, setPollQuestion] = useState<PollQuestion|null>(null)
     const [questionDisable, setQuestionDisable] = useState<boolean>(false)
     const [question, setQuestion] = useState<string>("")
@@ -362,14 +405,16 @@ const PollForm = () => {
                         </Text>
 
                         {pollQuestion==="date"?
-                        <OptionLists 
+                        <OptionLists
+                        event_id={id}
                         type='date'
                         title={question}
                         setQuestionDisable={setQuestionDisable}
                         setError={setError}
                         />:
                         pollQuestion==="place"&&
-                        <OptionLists 
+                        <OptionLists
+                        event_id={id}
                         type='place'
                         title={question}
                         setQuestionDisable={setQuestionDisable}

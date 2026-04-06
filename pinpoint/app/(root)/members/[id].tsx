@@ -1,4 +1,6 @@
 import { defalutImage } from '@/constants';
+import { useEventStore } from '@/store/functions/event.store';
+import { useFriendStore } from '@/store/functions/friend.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -12,33 +14,44 @@ export interface Member{
 }
 const memberList = ({event_id}:{event_id:string}) => {
     const [members, setMembers] = useState<Member[]>([])
+    const {getMemberListByEventId} = useEventStore()
+    const {createDmRoom} = useFriendStore()
 
     useEffect(()=>{
-      // const memberList:Member[] = fetchMembers
+      if(!event_id) return
         // fetch members
+        const fetchMember = async()=>{
+          const data =await getMemberListByEventId(event_id)
 
-        // set member
-        // setMembers(memberList)
+          if(!data){
+            console.log("Error fetching members")
+            return
+          }
+
+          setMembers(data)
+        }
+
+        fetchMember()
     },[event_id])
 
-    useEffect(()=>{ //to be removed
-      const memberList:Member[] = [
-      {
-        userId: "user-1",
-        name: "Emma Watson",
-        friend_id:"123"
-      },
-      {
-        userId: "user-2",
-        name: "Chris Evans",
-      },
-      {
-        userId: "user-3",
-        name: "Tom Holland",
-      },
-    ]
-        setMembers(memberList)
-    },[])
+    // useEffect(()=>{ //to be removed
+    //   const memberList:Member[] = [
+    //   {
+    //     userId: "user-1",
+    //     name: "Emma Watson",
+    //     friend_id:"123"
+    //   },
+    //   {
+    //     userId: "user-2",
+    //     name: "Chris Evans",
+    //   },
+    //   {
+    //     userId: "user-3",
+    //     name: "Tom Holland",
+    //   },
+    // ]
+    //     setMembers(memberList)
+    // },[])
 
     // redirect to dm chat room, if dm_id not exist, then create a new dm row
     const handleRedirectToDMRoom = async(item:Member)=>{
@@ -46,9 +59,14 @@ const memberList = ({event_id}:{event_id:string}) => {
 
       if(!item.friend_id){
         //create friend
+        const data = await createDmRoom(item.userId)
 
-        // set returning friend_id
-        // friend_id=
+        if(!data){
+          console.log("Error getting new dm room id")
+          return
+        }
+
+        friend_id=data.friend_id
       }else{
         friend_id= item.friend_id
       }

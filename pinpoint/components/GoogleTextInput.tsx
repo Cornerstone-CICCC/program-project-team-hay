@@ -52,7 +52,7 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
     return (
     <View
     className="mb-15">
-        {/* Type is not edit */}
+        {/* When location is unset */}
         {editLocaton&&
             <GooglePlacesAutocomplete
         fetchDetails={true}
@@ -86,7 +86,7 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
             backgroundColor: 'white',
               elevation: 999,   // Android shadow
               shadowColor: '#000',  // iOS shadow
-              shadowOffset: { width: 0, height: 2 },
+              shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.2,
               shadowRadius: 4,
               zIndex: 1000,

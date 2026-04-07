@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
 
@@ -25,6 +26,7 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
+  findPassword: (email: string) => Promise<void>;
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -147,6 +149,21 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     } catch (err) {
       console.error("Error changing password", err);
       throw err;
+    }
+  },
+  findPassword: async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "pinpoint://resetPassword",
+      });
+
+      if (error) {
+        console.log("Err:", error);
+      } else {
+        router.push("/");
+      }
+    } catch (err) {
+      console.log("Error find password", err);
     }
   },
 }));

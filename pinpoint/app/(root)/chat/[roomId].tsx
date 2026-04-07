@@ -1,19 +1,19 @@
-import { useState } from "react"
-import { FlatList, Image, ImageSourcePropType, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { useEffect, useState } from "react"
+import { FlatList, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
-import { useSearchParams } from "expo-router/build/hooks";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore } from "@/store/functions/auth.store";
+import { useCurrentChatStore } from "@/store/chat.store";
+import { useChatDetailStore } from "@/store/functions/chatDetail.store";
+import { fetchEventBgImage } from "@/libs/eventImgHandler";
 
 type Message = {
   id: string,
-  senderId: string,
-  senderName: string,
-  senderImage: ImageSourcePropType,
-  text: string,
-  createdAt: string,
-  isMine: boolean
+  room_id: string,
+  sender_id: string,
+  message: string,
+  created_at: string,
 }
 
 export const options = {
@@ -21,99 +21,66 @@ export const options = {
 }
 
 const Chatroom = () => {
-  const { user } = useAuthStore()
-  const userId = user?.id
-  const event_id = null
-
   const router = useRouter()
-  // const params = useSearchParams()
+  const user = useAuthStore(s => s.user);
+  const currentChat = useCurrentChatStore(s => s.currentRoom)
 
+  const room_id = currentChat?.room_id
+  const type = currentChat?.type
+  const name = currentChat?.name
+  const chatDetail = useChatDetailStore()
+
+  const { 
+    messages,
+    getAllMessages,
+    sendMessage,
+    subscribeRoom,
+    unsubscribeRoom
+  } = chatDetail
+  
+  const chatMessages = room_id ? messages[room_id] || [] : []
+
+  useEffect(() => {
+    if(!room_id || !type) return
+
+    getAllMessages(room_id, type)
+    subscribeRoom(room_id, type)
+
+    return () => {
+      unsubscribeRoom(room_id)
+    }
+  }, [room_id, type])
+
+  const handleSendMsg = async () => {
+    if(!message.trim() || !room_id || !type) return
+
+    await sendMessage({
+      room_id,
+      type,
+      message
+    })
+
+    setMessage('')
+  }
+
+  // const fetchUserImg = useAuthStore(s => s.fetchUserProfile)
+  const getImageSource = (item: Message) => {
+    if(type === 'dm'){
+      return{
+        uri: `https://api.dicebear.com/7.x/initials/png?seed=${item.sender_id}`
+      }
+    } else {
+      return fetchEventBgImage(name)
+    }
+  }
+
+  const userId = user?.id
+  const event_id = type === 'group' ? room_id : null
   const goToEventDetail = () => {
     router.push(`/event/${event_id}`)
   }
 
-  // const { roomId } = useSearchParams()
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'c01',
-      senderId: 'c101',
-      senderName: 'John',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'Hello!',
-      createdAt: '2026-03-06T10:49:00Z',
-      isMine: false
-    },
-    {
-      id: 'c02',
-      senderId: 'c102',
-      senderName: 'Harry',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'Hey! How are you?',
-      createdAt: '2026-03-06T11:03:00Z',
-      isMine: true
-    },
-    {
-      id: 'c03',
-      senderId: 'c101',
-      senderName: 'John',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'Good. Are you free tomorrow?',
-      createdAt: '2026-03-06T11:05:00Z',
-      isMine: false
-    },
-    {
-      id: 'c04',
-      senderId: 'c102',
-      senderName: 'Harry',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'Yep! What are you planning?',
-      createdAt: '2026-03-06T11:08:00Z',
-      isMine: true
-    },
-    {
-      id: 'c05',
-      senderId: 'c101',
-      senderName: 'John',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'I found so nice reataurant! So if you have free time, do you want to go there?',
-      createdAt: '2026-03-06T11:05:00Z',
-      isMine: false
-    },
-    {
-      id: 'c06',
-      senderId: 'c102',
-      senderName: 'Harry',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'Awesome!',
-      createdAt: '2026-03-06T11:08:00Z',
-      isMine: true
-    },
-    {
-      id: 'c07',
-      senderId: 'c102',
-      senderName: 'Harry',
-      senderImage: require('../../../assets/images/dummy02.png'),
-      text: 'Awesome!',
-      createdAt: '2026-03-06T11:08:00Z',
-      isMine: true
-    },
-  ])
   const [message, setMessage] = useState<string>('')
-  const sendMsg = () => {
-    if(!message.trim()) return
-    const currentUser = { id: 'c102', name: 'Harry', image: require('../../../assets/images/dummy02.png') }
-    const newMsg: Message = {
-      id: `c${messages.length + 1}`,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      senderImage: currentUser.image,
-      text: message,
-      createdAt: new Date().toISOString(),
-      isMine: true
-    }
-    setMessages(prev => [...prev, newMsg])
-    setMessage('')
-  }
 
   return (
     <KeyboardAvoidingView
@@ -123,26 +90,28 @@ const Chatroom = () => {
       <View style={styles.bg} className="pt-14">
         <View style={styles.roomHead}>
           <AntDesign name="arrow-left" size={20} color="#fff" className="px-2 py-1.5" onPress={() => router.back()} />
-          {/* {data.type === 'dm' ? (
-            <Text style={styles.roomName}>{data.name}</Text>
+          {type === 'dm' ? (
+            <Text style={styles.roomName}>{name}</Text>
           ) : (
             <TouchableOpacity onPress={goToEventDetail}>
-              <Text style={styles.roomName}>{data.name}</Text>
+              <Text style={styles.roomName}>{name}</Text>
             </TouchableOpacity>
-          )} */}
-          <Text style={styles.roomName}>John</Text>
+          )}
         </View>
 
         <View style={styles.roomMain}>
-          <FlatList inverted data={[...messages].reverse()} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) =>
-            <View style={item.isMine ? styles.msgTo : styles.msgFrom}>
-              {!item.isMine && <Image source={item.senderImage} style={styles.msgImg} resizeMode="cover" />}
-              <View style={item.isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
-                <Text style={item.isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.text}</Text>
-                <Text style={styles.msgTime} className={item.isMine ? 'text-right' : ''}>{item.createdAt}</Text>
+          <FlatList inverted data={[...chatMessages].reverse()} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) => {
+            const isMine = item.sender_id === userId
+            return (
+              <View style={isMine ? styles.msgTo : styles.msgFrom}>
+                {!isMine && <Image source={getImageSource(item)} style={styles.msgImg} resizeMode="cover" />}
+                <View style={isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
+                  <Text style={isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.message}</Text>
+                  <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{item.created_at}</Text>
+                </View>
               </View>
-            </View>
-          }/>
+            )
+          }}/>
         </View>
 
         <View style={styles.roomBottom}>
@@ -156,7 +125,7 @@ const Chatroom = () => {
               style={styles.inputMsg}
             />
             <View style={styles.sendIcon}>
-              <Feather name="send" size={24} color="#fff" onPress={sendMsg} />
+              <Feather name="send" size={24} color="#fff" onPress={handleSendMsg} />
             </View>
           </View>
         </View>

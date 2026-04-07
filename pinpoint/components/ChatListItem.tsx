@@ -1,4 +1,5 @@
 import { defalutImage } from "@/constants"
+import { useCurrentChatStore } from "@/store/chat.store"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
@@ -7,7 +8,7 @@ type ChatType = 'dm' | 'group' | 'past'
 
 type ChatItem = {
   room_id: string,
-  type: string,
+  type: "dm" | "group",
   image?: string,
   name: string,
   last_message?: string,
@@ -22,9 +23,18 @@ type Props = {
 
 const ChatListItem = ({ data }: Props) => {
   const router = useRouter()
+  const currentChat = useCurrentChatStore(s => s.setCurrentRoom)
+
   const goToChatRoom = () => {
+    currentChat({
+      room_id: data.room_id,
+      type: data.type,
+      name: data.name
+    })
     router.push(`/chat/${data.room_id}`)
   }
+  
+
   const [unreadCount, setUnreadCount] = useState<number>(0)
   useEffect(() => {
 

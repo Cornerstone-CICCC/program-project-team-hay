@@ -1,4 +1,5 @@
 import { PollOption } from '@/app/(root)/event/[id]'
+import { Member } from '@/app/(root)/members/[id]'
 import { formatDateTime } from '@/libs/format'
 import { useMyEventStore } from '@/store/event.store'
 import { useEventStore } from '@/store/functions/event.store'
@@ -19,21 +20,27 @@ type Props={
 export type Result={
     poll_option_id:string,
     label:string,
+    address?:string,
+    latitude?:number,
+    longitude?:number,
+    imgKey?:string,
+    url?:string,
     voteCount: number
 }
 
-const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
+const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
     const [selectedItem, setSelectedItem] = useState<string| null>(null)
     const [resultShown, setResultShown] = useState<boolean>(false)
     const [resutls, setResults] = useState<Result[]|null>(null)
     const {createVoteForOption} = useVoteStore()
-    const {showPollResult,pollResult}= useMyEventStore()
+    const {showPollResult,datePollResult,placePollResult}= useMyEventStore()
 
     // If user has been voted showPollResult should be true
     useEffect(()=>{
         setResultShown(showPollResult)
         if(showPollResult){
-            setResults(pollResult)
+
+            setResults(poll.type==="date"?datePollResult:placePollResult)
         }
     },[showPollResult])
 
@@ -192,7 +199,7 @@ const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
                     <ResultPoll
                     poll_id={poll.id}
                     type={poll.type}
-                    memberLen={memberLen}
+                    members={members}
                     results={resutls}
                     />:
                     <Text>
@@ -211,7 +218,7 @@ type ResultProps={
     poll_id:string,
     results:Result[]
     type:string,
-    memberLen:number
+    members:Member[]
 }
 
 const ResultPoll = (props:ResultProps)=>{
@@ -220,12 +227,16 @@ const ResultPoll = (props:ResultProps)=>{
     const [sortedResult, setSortedResult]= useState<Result[]>([])
     const [ total, setTotal] = useState<number>(0)
     const [isTie, setIsTie] = useState(false)
+    const [memberLen, setMemberLen] = useState<number>(0) 
 
     const {updateEventById} = useEventStore()
     const {updatePollById} = usePollStore()
     
 
     useEffect(()=>{
+
+        if(!props) return
+        setMemberLen(props.members.length)
 
         const sorted = props.results.sort((a,b)=>b.voteCount-a.voteCount)
 
@@ -252,7 +263,7 @@ const ResultPoll = (props:ResultProps)=>{
 
     // update event and close poll 
     const handleUpdate = async()=>{
-        const event_id=id
+        const eventId=id as string
         const winner = sortedResult[0]
         const winner_option_id = winner.poll_option_id
         const type = props.type
@@ -261,22 +272,30 @@ const ResultPoll = (props:ResultProps)=>{
         // need to fetch poll_option detail by option id
         
         if(type === "date"){
-            // updates ={
-            //     date:new Date(winner.label)
-            // } 
+            updates ={
+                date:new Date(winner.label),
+                members:props.members
+            } 
         }if( type==="place"){
-            // updates={
-            //     place_name:winner.label,
-            //     address:winner.poll_option.address,
-            //     latitude:winner.poll_option.latitude,
-            //     longitude:winner.poll_option.longitude,
-            //     url: winner.poll_option.url?? null,
-            //     imgKey:winner.poll_option.imgKey?? null
-            // }
+            updates={
+                place_name:winner.label,
+                address:winner.address,
+                latitude:winner.latitude,
+                longitude:winner.longitude,
+                url: winner.url,
+                imgKey:winner.imgKey,
+                members:props.members
+            }
+        }
+
+        if(!updates){
+            console.log("nothing to update")
+            return
         }
 
         // request to update event
-
+        const res = updateEventById(eventId,updates )
+        console.log("Event update by poll", res)
 
         // close poll
         await handleClosePoll()
@@ -287,7 +306,7 @@ const ResultPoll = (props:ResultProps)=>{
     const showAlert=()=>{
         Alert.alert(
             'Warning',
-            `${props.memberLen -total} member${props.memberLen -total!==1?"s have ":" has"} not voted yet.\n Do you want to update and close this poll?`,
+            `${memberLen -total} member${memberLen -total!==1?"s have ":" has"} not voted yet.\n Do you want to update and close this poll?`,
             [
                 {
                     text:'Cancel',
@@ -322,21 +341,23 @@ const ResultPoll = (props:ResultProps)=>{
 
                     <Text
                     className='text-[18px] font-Lexend'>
-                        {r.voteCount} / {props.memberLen}
+                        {r.voteCount} / {memberLen}
                     </Text>
                 </View>
             ))}
 
             {
-            total === props.memberLen && (
+            total === memberLen && (
                 <TouchableOpacity 
                 className='pt-12 w-fit mx-auto'
                 onPress={isTie ? handleClosePoll : handleUpdate}>
-                    <Text>{isTie ? "Close Poll" : "Update and Close Poll"}</Text>
+                    <Text
+                    className='text-lg font-LexendSemiBold text-white py-2 px-4 bg-[#FF7600] rounded-lg'>
+                        {isTie ? "Close Poll" : "Update and Close Poll"}</Text>
                 </TouchableOpacity>
             )}
             {/* 60% of members voted, then show update and close poll with warning */}
-            {total/ props.memberLen >= 0.6&&(
+            {(total/ memberLen >= 0.6&&total !== memberLen)&&(
                 <TouchableOpacity
                 className='pt-12 w-fit mx-auto'
                 onPress={showAlert}>

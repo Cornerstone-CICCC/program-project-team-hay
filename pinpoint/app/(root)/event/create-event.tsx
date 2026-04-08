@@ -6,7 +6,7 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
-const createEvent = () => {
+const CreateEvent = () => {
   const {setMembers} = useMyEventStore()
   return (
     <View
@@ -42,6 +42,6 @@ const createEvent = () => {
   )
 }
 
-export default createEvent
+export default CreateEvent
 
 const styles = StyleSheet.create({})

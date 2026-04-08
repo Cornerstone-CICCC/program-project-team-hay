@@ -28,6 +28,7 @@ type Action = {
     newPwd: string,
   ) => Promise<void>;
   onGoogleSignIn:()=>Promise<void>;
+  checkProvider:()=>Promise<string|null>
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -219,5 +220,23 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         } catch (error) {
           console.log('Error signing in with Google:', error)
         }
+  },
+  checkProvider:async()=>{
+    try{
+      const {data:{user}} = await supabase.auth.getUser()
+
+      if(!user){
+        console.log("Logged in user not found")
+        return null
+      }
+
+      const provider = user.app_metadata.provider as string
+      
+      return provider
+
+    }catch(e){
+      console.log('Error getting provoder', e)
+      return null
+    }
   }
 }));

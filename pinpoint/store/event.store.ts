@@ -16,8 +16,11 @@ export interface EventStore {
   setMembers: (invitedMembers: Member[]) => void;
   showPollResult:boolean;
   setShowPollResult:(isUserVoted:boolean)=>void;
-  pollResult:Result[]|null;
-  setPollResult:(results:Result[])=>void
+  datePollResult:Result[]|null;
+  setDatePollResult:(results:Result[])=>void
+  placePollResult:Result[]|null;
+  setPlacePollResult:(results:Result[])=>void
+
 }
 
 export const useMyEventStore = create<EventStore>()(
@@ -50,10 +53,16 @@ export const useMyEventStore = create<EventStore>()(
           showPollResult:isUserVoted
         })
       },
-      pollResult:null,
-      setPollResult:(results:Result[])=>{
+      datePollResult:null,
+      setDatePollResult:(results:Result[])=>{
         set({
-          pollResult:results
+          datePollResult:results
+        })
+      },
+      placePollResult:null,
+      setPlacePollResult:(results:Result[])=>{
+        set({
+          placePollResult:results
         })
       }
     }),

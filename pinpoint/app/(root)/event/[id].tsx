@@ -126,7 +126,7 @@ const EventDetail = () => {
   const { toggleEventRender } = useMyEventStore();
   const { id } = useLocalSearchParams();
   const { setUserLocation } = useMyLocationStore();
-  const {setShowPollResult, setPollResult} = useMyEventStore()
+  const {setShowPollResult, setDatePollResult, setPlacePollResult} = useMyEventStore()
   const [bgImg, setBgImg] = useState(images.defaultImg);
   const [hasPermission, setHasPermission] = useState(false);
   const [eventDetail, setEventDetail] = useState<null | EventDetail>();
@@ -150,21 +150,50 @@ const EventDetail = () => {
       
       // check if the user has been voted for active poll and set results 
       if(eventDetail.activePoll){
+        if(!eventDetail.activePoll) return
+        setShowPollResult(false)
         let results:Result[] =[]
-        eventDetail.activePoll[0].options.map(op=>{
-          results.push({
-            poll_option_id:op.option_id,
-            label:op.label,
-            voteCount:op.votes?.length??0
-          })
-          op.votes?.map(v=>{
-            if(v.userId === user.id){
-              console.log("you voted")
-              setShowPollResult(true)
-            }
-          })
-        })
-        setPollResult(results)
+        eventDetail.activePoll.map(poll=>{
+          if(poll.type==="date"){
+          poll.options.map(op=>{
+            console.log("options",op)
+            results.push({
+              poll_option_id:op.option_id,
+              label:op.label,
+              voteCount:op.votes?.length??0
+            })
+              op.votes?.map(v=>{
+                  if(v.userId === user.id){
+                    console.log("you voted")
+                    setShowPollResult(true)
+                  }
+                })
+            })
+            setDatePollResult(results)
+          }else if(poll.type==="place"){
+            poll.options.map(op=>{
+            console.log("options",op)
+            results.push({
+              poll_option_id:op.option_id,
+              label:op.label,
+              address:op.address,
+              latitude:op.latitude,
+              longitude:op.longitude,
+              imgKey:op.imgKey,
+              url:op.url,
+              voteCount:op.votes?.length??0
+            })
+              op.votes?.map(v=>{
+                  if(v.userId === user.id){
+                    console.log("you voted")
+                    setShowPollResult(true)
+                  }
+                })
+            })
+            setPlacePollResult(results)
+          }
+        }
+        )
       }
 
       setEventDetail({
@@ -272,7 +301,7 @@ const EventDetail = () => {
                 resizeMode="cover"
               />
               <View className="absolute top-[4rem] flex flex-row justify-between items-center w-full px-4 py-3">
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/home")}>
                   <AntDesign name="arrow-left" size={30} color="black" />
                 </TouchableOpacity>
                 <Text className="justify-self-center text-3xl font-LexendBold">
@@ -290,7 +319,7 @@ const EventDetail = () => {
                 <ActivePoll
                   key={`active_poll_${p.id}`}
                   poll={p}
-                  memberLen={eventDetail.members.length}
+                  members={eventDetail.members}
                 />
               ))}
             {!(eventDetail.date && new Date() > new Date(eventDetail.date)) && ( // if current date is over, then not show the poll Form

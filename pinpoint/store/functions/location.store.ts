@@ -1,5 +1,5 @@
-import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
+import { supabase } from "../../libs/supabase/client";
 import { useAuthStore } from "./auth.store";
 
 interface UserLocation {
@@ -196,7 +196,7 @@ export const useLocationStore = create<Action>((set, get) => ({
         })
         .filter((item): item is MarkerData => item !== null);
 
-      console.log(details);
+      // console.log(details);
       return details;
     } catch (error) {
       console.log(error);

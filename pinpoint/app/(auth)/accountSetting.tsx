@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -9,29 +10,46 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as ImagePicker from "expo-image-picker";
 
 import { Feather } from "@react-native-vector-icons/feather";
-import { useAuthStore } from "../../store/functions/auth.store";
-import { uploadProfileImage } from "../../libs/supabase/storage";
-import { Image } from "expo-image";
 import MaterialIcons from "@react-native-vector-icons/material-icons";
+import { Image } from "expo-image";
+import { uploadProfileImage } from "../../libs/supabase/storage";
+import { useAuthStore } from "../../store/functions/auth.store";
 
 export default function AccountSetting() {
   const router = useRouter();
 
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
+  const checkProvider = useAuthStore((s)=>s.checkProvider)
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [provider, setProvider] = useState<string>("email")
+
 
   useEffect(() => {
     if (user?.name) {
       setName(user.name);
     }
+    console.log(user)
+
+    const checkAuthProvider = async()=>{
+      const provider = await checkProvider()
+
+      if(!provider){
+        console.log("Error fetching auth provider")
+        return
+      }
+      if(provider.toLowerCase().trim()!=="email"){
+        setProvider(provider)
+      }
+    }
+
+    checkAuthProvider()
   }, [user]);
 
   useEffect(() => {}, [profileImage]);
@@ -224,11 +242,13 @@ export default function AccountSetting() {
             Login Type
           </Text>
           <Text className="font-Lexend text-2xl px-2 py-2 text-[#333333]">
-            {user?.login_type}
+            {provider}
           </Text>
         </View>
       </View>
-      <View className="mt-2 mb-8">
+      {
+        provider.toLocaleLowerCase().trim()==="email"&&
+        <View className="mt-2 mb-8">
         <TouchableOpacity
           className="flex items-center "
           onPress={() => router.push("/(auth)/changePassword")}
@@ -237,7 +257,7 @@ export default function AccountSetting() {
             Change Password?
           </Text>
         </TouchableOpacity>
-      </View>
+      </View>}
 
       <View className="mt-5">
         <TouchableOpacity

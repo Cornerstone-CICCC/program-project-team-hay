@@ -22,13 +22,11 @@ export default function AccountSetting() {
 
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
-  const checkProvider = useAuthStore((s)=>s.checkProvider)
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [provider, setProvider] = useState<string>("email")
 
 
   useEffect(() => {
@@ -37,19 +35,6 @@ export default function AccountSetting() {
     }
     console.log(user)
 
-    const checkAuthProvider = async()=>{
-      const provider = await checkProvider()
-
-      if(!provider){
-        console.log("Error fetching auth provider")
-        return
-      }
-      if(provider.toLowerCase().trim()!=="email"){
-        setProvider(provider)
-      }
-    }
-
-    checkAuthProvider()
   }, [user]);
 
   useEffect(() => {}, [profileImage]);
@@ -242,12 +227,12 @@ export default function AccountSetting() {
             Login Type
           </Text>
           <Text className="font-Lexend text-2xl px-2 py-2 text-[#333333]">
-            {provider}
+            {user?.login_type}
           </Text>
         </View>
       </View>
       {
-        provider.toLocaleLowerCase().trim()==="email"&&
+        user?.login_type.toLocaleLowerCase().trim()==="email"&&
         <View className="mt-2 mb-8">
         <TouchableOpacity
           className="flex items-center "

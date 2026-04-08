@@ -212,9 +212,22 @@ export const useAuthStore = create<State & Action>((set, get) => ({
               }
               const userId = user.id
               const profile = await get().fetchUserProfile(userId);
-              set({ user: profile });
 
-              console.log('Signed in successfully!')
+              if(!profile){
+                console.log("Error getting profile")
+                return
+              }
+              set({ user: {
+                id:profile.id,
+                email:profile.email,
+                name:profile.name,
+                public_code:profile.public_code,
+                login_type:user.app_metadata.provider ??"email",
+                profileImage:profile.profileImage,
+                onboardingCompleted:profile.onboardingCompleted
+              } });
+
+              console.log('Signed in successfully! set User info')
             }
           }
         } catch (error) {

@@ -17,6 +17,7 @@ const DateTimeInput = ({
     eventForm,
     onDateChange,
     onTimeChange,
+    dateValue,
     type,
 }:Props) => {
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -65,7 +66,7 @@ const DateTimeInput = ({
                           
                     {(showDatePicker||Platform.OS!=="android")&&
                     <DateTimePicker
-                        value={new Date(eventForm?.date ?? new Date())}
+                        value={dateValue ??new Date(eventForm?.date ?? new Date())}
                         mode="date"
                         display="default"
                         minimumDate={new Date(eventForm?.date ?? new Date())}
@@ -107,7 +108,7 @@ const DateTimeInput = ({
                     </View>
                     {(showDatePicker||Platform.OS!=="android")&&
                     <DateTimePicker
-                        value={new Date(eventForm?.date ?? new Date())}
+                        value={dateValue?? new Date(eventForm?.date ?? new Date())}
                         mode="time"
                         display="default"
                         minimumDate={new Date(eventForm?.date ?? new Date())}

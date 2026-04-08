@@ -3,6 +3,7 @@ import { Member } from "@/app/(root)/members/[id]";
 import { defalutImage } from "@/constants";
 import { useMyEventStore } from "@/store/event.store";
 import { useAuthStore } from "@/store/functions/auth.store";
+import { useEventStore } from "@/store/functions/event.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -61,6 +62,7 @@ const EventForm = (props: Prop) => {
     },
     members: [], //add user (yourself initially)
   });
+  const {createEvent, updateEventById} = useEventStore()
 
   useEffect(() => {
     // rename props to event
@@ -145,11 +147,28 @@ const EventForm = (props: Prop) => {
   };
 
   const submitEventForm = async () => {
-    if (eventForm.name.trim() !== "" || eventForm.members.length < 2) {
+    console.log("submit", eventForm);
+    if (eventForm.name.trim() === "" 
+    // || eventForm.members.length < 2
+  ) {
       console.log("Title is not entered or member is not added");
       return;
     }
     console.log("submit", eventForm);
+
+    const res=  await createEvent({
+      name:eventForm.name,
+      date: eventForm.date?new Date(eventForm.date):undefined,
+      place_name:eventForm.place?.place_name?? undefined,
+      address: eventForm.place?.address?? undefined,
+      latitude:eventForm.place?.latitude?? undefined,
+      longitude:eventForm.place?.longitude?? undefined,
+      url:eventForm.place?.url?? undefined,
+      imgKey:eventForm.place?.imgKey?? undefined,
+      members: eventForm.members
+    })
+
+    console.log(res)
 
     //clearing the members
     setMembers([]);
@@ -169,6 +188,31 @@ const EventForm = (props: Prop) => {
   };
 
   const updateEvent = async () => {
+    console.log("update", eventForm)
+
+    if(!props.eventDetail) return
+    const id = props.eventDetail.id
+    const updates={
+      name:eventForm.name,
+      date: eventForm.date? new Date(eventForm.date): undefined,
+      place_nane: eventForm.place?.place_name,
+      address:eventForm.place?.address,
+      latitude:eventForm.place?.latitude,
+      longitude:eventForm.place?.longitude,
+      url:eventForm.place?.url,
+      imgKey:eventForm.place?.imgKey,
+      members:eventForm.members
+    }
+    // update backend
+    const res = updateEventById(
+      id,
+      updates
+    )
+    if(!res){
+      console.log("error updating")
+      return
+    }
+    console.log(res)
     clearSelectedEvent();
   };
 
@@ -334,8 +378,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(130,130,130,0.7)",
     borderRadius: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 2,
     paddingVertical: 2,
+    height:60,
     width: "100%",
     marginBottom: 8,
     zIndex: 100,

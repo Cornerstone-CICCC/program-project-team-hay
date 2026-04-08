@@ -187,8 +187,8 @@ export const useAuthStore = create<State & Action>((set, get) => ({
             const access_token = params.get('access_token')
             const refresh_token = params.get('refresh_token')
 
-            console.log("access_token",access_token)
-            console.log("refresh_token",refresh_token)
+            // console.log("access_token",access_token)
+            // console.log("refresh_token",refresh_token)
     
             if (access_token && refresh_token) {
               // 5. Set the session in Supabase
@@ -196,8 +196,6 @@ export const useAuthStore = create<State & Action>((set, get) => ({
                 access_token,
                 refresh_token,
               })
-
-              console.log("session data", error)
     
               if (data.error){
                 console.log("session error")

@@ -21,10 +21,16 @@ type EventType = {
 };
 
 type Action = {
+  rooms: ChatRoom[];
+  subscription: any | null;
   getChatList: (chatType: ChatType) => Promise<ChatRoom[] | null>;
+  subscribeChatList: (ChatType: ChatType) => void;
+  unsubscribeChatList: () => void;
 };
 
 export const useChatStore = create<Action>((set, get) => ({
+  rooms: [],
+  subscription: null,
   getChatList: async (chatType: ChatType): Promise<ChatRoom[] | null> => {
     try {
       const currentUser = useAuthStore.getState().user;
@@ -117,6 +123,8 @@ export const useChatStore = create<Action>((set, get) => ({
           });
         console.log(details);
 
+        set({ rooms: details });
+
         return details;
       } else {
         const isPast = chatType === "past";
@@ -187,7 +195,7 @@ export const useChatStore = create<Action>((set, get) => ({
 
             return {
               room_id: e.id,
-              type: "group",
+              type: "group" as const,
               name: e.name,
               last_message: lastMsg?.content ?? null,
               last_message_at: lastMsg?.created_at ?? null,
@@ -204,11 +212,68 @@ export const useChatStore = create<Action>((set, get) => ({
           });
 
         console.log(details);
+
+        set({ rooms: details });
         return details as ChatRoom[];
       }
     } catch (error) {
       console.error(error);
       return null;
+    }
+  },
+
+  subscribeChatList: (chatType: ChatType) => {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser || get().subscription || chatType === "past") return;
+
+    const table = chatType === "dm" ? "dm_message" : "group_message";
+    const idKey = chatType === "dm" ? "friend_id" : "event_id";
+
+    const channel = supabase
+      .channel(`chat_list_realtime_${chatType}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table },
+        (payload) => {
+          const newMsg = payload.new;
+          const roomId = newMsg[idKey];
+
+          set((state) => {
+            // find the room indext to update
+            const targetIndex = state.rooms.findIndex(
+              (r) => r.room_id === roomId,
+            );
+
+            if (targetIndex === -1) {
+              get().getChatList(chatType);
+              return state;
+            }
+
+            // update the room info
+            const updatedRoom: ChatRoom = {
+              ...state.rooms[targetIndex],
+              last_message: newMsg.content,
+              last_message_at: newMsg.created_at,
+            };
+
+            // filter room
+            const otherRooms = state.rooms.filter((r) => r.room_id !== roomId);
+
+            return {
+              rooms: [updatedRoom, ...otherRooms],
+            };
+          });
+        },
+      )
+      .subscribe();
+
+    set({ subscription: channel });
+  },
+  unsubscribeChatList: () => {
+    const sub = get().subscription;
+    if (sub) {
+      supabase.removeChannel(sub);
+      set({ subscription: null });
     }
   },
 }));

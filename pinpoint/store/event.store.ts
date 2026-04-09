@@ -1,8 +1,10 @@
 import { Member } from "@/app/(root)/members/[id]";
+import { Result } from "@/components/event-detail/ActivePoll";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { EventDetail } from "../app/(root)/event/[id]";
+
 
 export interface EventStore {
   toggleEventRender: boolean;
@@ -12,6 +14,10 @@ export interface EventStore {
   clearSelectedEvent: () => void;
   members: Member[]; //store member for eventForm
   setMembers: (invitedMembers: Member[]) => void;
+  showPollResult:boolean;
+  setShowPollResult:(isUserVoted:boolean)=>void;
+  pollResult:Result[]|null;
+  setPollResult:(results:Result[])=>void
 }
 
 export const useMyEventStore = create<EventStore>()(
@@ -38,6 +44,18 @@ export const useMyEventStore = create<EventStore>()(
           members: invitedMembers,
         });
       },
+      showPollResult:false,
+      setShowPollResult:(isUserVoted:boolean)=>{
+        set({
+          showPollResult:isUserVoted
+        })
+      },
+      pollResult:null,
+      setPollResult:(results:Result[])=>{
+        set({
+          pollResult:results
+        })
+      }
     }),
 
     //

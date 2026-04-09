@@ -1,6 +1,8 @@
 import { defalutImage } from '@/constants'
 import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
 import { calculateRegion } from '@/libs/map'
+import { useEventStore } from '@/store/functions/event.store'
+import { useLocationStore } from '@/store/functions/location.store'
 import { useMyLocationStore } from '@/store/location.store'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import * as Location from 'expo-location'
@@ -44,6 +46,9 @@ const TrackingMAP = () => {
     const [selectedMember, setSelectedMember] = useState<MarkerData|null>(null)
     const [available, setAvailable] = useState(false)
 
+    const {fetchLocationDetailByID}= useEventStore()
+    const {updateMyLocation, getAllMembersLocation} = useLocationStore()
+
     const [region, setRegion] = useState<{
         latitude:number,
         longitude:number,
@@ -60,10 +65,25 @@ const TrackingMAP = () => {
         return router.back()
     }
 
+
     const fetchMembersLocation = async()=>{
 
+        if(!id){
+            console.log("No id found")
+            return
+        }
+
+        const details = await getAllMembersLocation(id as string)
+
+        console.log(details)
+
+        if(!details){
+            console.log("There is no data for members location")
+            return
+        }
+
         // set Markers
-        // setMarkers()
+        setMarkers(details)
     }
 
 
@@ -88,20 +108,41 @@ const TrackingMAP = () => {
         if(!id||!userLatitude || !userLongitude) return
 
         // Fetch event data with location
-        
-        const data ={
-        id: "1",
-        name: "Coffee Meetup",
-        date: "2026-03-23T10:00",
-        place:{
-            place_name: "Startbucks Coffee Company",
-            address: "West Pender Street, Vancouver, BC, Canada",
-            latitude:49.28463,
-            longitude:-123.1151,
-            url:"https://maps.google.com/?cid=1502409917068404389",
-            imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
-        },
+        const fetchDestinationDetail = async()=>{
+            const data = await fetchLocationDetailByID(id as string)
+
+            if(!data){
+                console.log("No event location detail")
+                return
+            }
+            // fetch location and set to setEvent
+            setEvent(data)
+            // calculate initial Region for map
+            const initialRegion = calculateRegion({
+                userLatitude,
+                userLongitude,
+                destinationLatitude: data.place.latitude,
+                destinationLongitude: data.place.longitude
+            })
+
+            setRegion(initialRegion)
         }
+
+        fetchDestinationDetail()
+        
+        // const data ={
+        // id: "1",
+        // name: "Coffee Meetup",
+        // date: "2026-03-23T10:00",
+        // place:{
+        //     place_name: "Startbucks Coffee Company",
+        //     address: "West Pender Street, Vancouver, BC, Canada",
+        //     latitude:49.28463,
+        //     longitude:-123.1151,
+        //     url:"https://maps.google.com/?cid=1502409917068404389",
+        //     imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
+        // },
+        // }
 
         // // check if the time is track available if not redirect back
         // const isTrackAvailable = useIsTrackAvailable(data.date)
@@ -111,27 +152,15 @@ const TrackingMAP = () => {
             setAvailable(true)
         }
 
-        // fetch location and set to setEvent
-        setEvent(data)
-
-        // calculate initial Region for map
-        const initialRegion = calculateRegion({
-            userLatitude,
-            userLongitude,
-            destinationLatitude: data.place.latitude,
-            destinationLongitude: data.place.longitude
-        })
-
-        setRegion(initialRegion)
-
         // updating my location to backend
+        const userLocation ={
+            event_id: id as string,
+            latitude: userLatitude,
+            longitude: userLongitude
+        }
+        updateMyLocation(userLocation)
 
-        // const newMembers = generateMarkersFromData({ //need to use fetchmember location later
-        //     data:event.members,
-        //     userLatitude,
-        //     userLongitude
-        // })
-        // setMarkers(newMembers)
+        fetchMembersLocation()
 
     },[id, userLatitude, userLongitude, isTrackAvailable])
 

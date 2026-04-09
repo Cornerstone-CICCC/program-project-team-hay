@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   chatHead: {
-    display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
@@ -107,17 +106,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F3F3',
     borderRadius: 24,
     paddingHorizontal: 12,
-    paddingBlock: 9,
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    height: 'auto',
+    height: "auto",
     gap: 7,
     flex: 1,
   },
   inputSearch: {
     fontFamily: 'Lexend-Regular',
-    width: '100%',
+    fontSize: 16,
+    width: "100%",
+    paddingBlock: 12,
   },
   chatCreate: {
     backgroundColor: '#FF7600',

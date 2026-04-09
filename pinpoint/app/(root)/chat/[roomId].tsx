@@ -3,10 +3,10 @@ import { FlatList, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, Text
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
-import { useAuthStore } from "@/store/functions/auth.store";
-import { useCurrentChatStore } from "@/store/chat.store";
+import { useAuthStore, User } from "@/store/functions/auth.store";
+import { useMyChatStore } from "@/store/chat.store";
 import { useChatDetailStore } from "@/store/functions/chatDetail.store";
-import { fetchEventBgImage } from "@/libs/eventImgHandler";
+import { defalutImage } from "@/constants";
 
 type Message = {
   id: string,
@@ -22,13 +22,15 @@ export const options = {
 
 const Chatroom = () => {
   const router = useRouter()
-  const user = useAuthStore(s => s.user);
-  const currentChat = useCurrentChatStore(s => s.currentRoom)
+  const useAuth = useAuthStore(s => s.user);
+  const currentChat = useMyChatStore(s => s.currentRoom)
 
   const room_id = currentChat?.room_id
   const type = currentChat?.type
   const name = currentChat?.name
   const chatDetail = useChatDetailStore()
+
+  console.log(room_id, type, name)
 
   const { 
     messages,
@@ -63,18 +65,38 @@ const Chatroom = () => {
     setMessage('')
   }
 
-  // const fetchUserImg = useAuthStore(s => s.fetchUserProfile)
-  const getImageSource = (item: Message) => {
-    if(type === 'dm'){
-      return{
-        uri: `https://api.dicebear.com/7.x/initials/png?seed=${item.sender_id}`
+  const fetchProfile = useAuthStore(s => s.fetchUserProfile);
+  const [users, setUsers] = useState<Record<string, User>>({})
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const targetUserIds = [...new Set(chatMessages.map(m => m.sender_id))]
+      const storeUsers: Record<string, User> = {}
+
+      for (const id of targetUserIds) {
+        if(!users[id]){
+          const target = await fetchProfile(id)
+          if(target) storeUsers[id] = target
+        }
       }
-    } else {
-      return fetchEventBgImage(name)
+      setUsers(prev => ({ ...prev, ...storeUsers }))
     }
+
+    if(chatMessages.length > 0){
+      fetchUsers()
+    }
+  }, [chatMessages])
+
+  const getImageSource = (item: Message) => {
+    const target = users[item.sender_id]
+
+    if(target?.profileImage){
+      return { uri: target.profileImage }
+    }
+
+    return defalutImage.user
   }
 
-  const userId = user?.id
+  const userId = useAuth?.id
   const event_id = type === 'group' ? room_id : null
   const goToEventDetail = () => {
     router.push(`/event/${event_id}`)
@@ -102,12 +124,15 @@ const Chatroom = () => {
         <View style={styles.roomMain}>
           <FlatList inverted data={[...chatMessages].reverse()} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) => {
             const isMine = item.sender_id === userId
+            const msgDate = new Date(item.created_at)
+            const formattedDate = `${msgDate.getFullYear()}/${String(msgDate.getMonth()+1).padStart(2,'0')}/${String(msgDate.getDate()).padStart(2,'0')}/` +
+              `${String(msgDate.getHours()).padStart(2,'0')}:${String(msgDate.getMinutes()).padStart(2,'0')}`
             return (
               <View style={isMine ? styles.msgTo : styles.msgFrom}>
                 {!isMine && <Image source={getImageSource(item)} style={styles.msgImg} resizeMode="cover" />}
                 <View style={isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
                   <Text style={isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.message}</Text>
-                  <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{item.created_at}</Text>
+                  <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{formattedDate}</Text>
                 </View>
               </View>
             )

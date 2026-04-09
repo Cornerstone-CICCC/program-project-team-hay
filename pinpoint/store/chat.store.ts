@@ -11,7 +11,7 @@ type State = {
   setCurrentRoom: (room: CurrentRoom) => void
 }
 
-export const useCurrentChatStore = create<State>((set) => ({
+export const useMyChatStore = create<State>((set) => ({
   currentRoom: null,
-  setCurrentRoom: (room) => set({ currentRoom: room })
+  setCurrentRoom: (room) => set({ currentRoom: room }),
 }))

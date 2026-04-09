@@ -1,6 +1,7 @@
 import { defalutImage } from "@/constants"
+import { useMyChatStore } from "@/store/chat.store"
 import { useRouter } from "expo-router"
-import { Image, StyleSheet, TouchableOpacity } from "react-native"
+import { Image, StyleSheet, Text, TouchableOpacity } from "react-native"
 
 type Friend = {
   friend_id: string,
@@ -15,16 +16,26 @@ type Props = {
 
 const CurrentFriendCard = ({ data }: Props) => {
   const router = useRouter()
-  const goToChatRoom = () => {
+  const currentChat = useMyChatStore(s => s.setCurrentRoom)
+
+  console.log(`chatroom_id ${data.friend_id}`)
+
+  const goToDmRoom = () => {
+    currentChat({
+      room_id: data.friend_id,
+      type: 'dm',
+      name: data.friend_name
+    })
     router.push(`/chat/${data.friend_id}`)
   }
 
   return (
-    <TouchableOpacity onPress={goToChatRoom}>
+    <TouchableOpacity onPress={goToDmRoom}>
       <Image
         source={data.friend_image ? { uri: data.friend_image } : defalutImage.user}
         style={styles.friendImg} resizeMode="cover"
       />
+      <Text style={styles.friendName}>{data.friend_name}</Text>
     </TouchableOpacity>
   )
 }
@@ -37,5 +48,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: 70,
     height: 70,
+  },
+  friendName: {
+    textAlign: 'center',
+    marginTop: 3,
+    fontFamily: "Lexend-Regular",
+    fontSize: 14,
+    color: '#333'
   }
 })

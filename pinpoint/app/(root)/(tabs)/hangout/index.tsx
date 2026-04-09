@@ -259,7 +259,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F3F3",
     borderRadius: 24,
     paddingHorizontal: 12,
-    paddingBlock: 12,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
@@ -272,5 +271,6 @@ const styles = StyleSheet.create({
     fontFamily: "Lexend-Regular",
     fontSize: 16,
     width: "100%",
+    paddingBlock: 12,
   },
 });

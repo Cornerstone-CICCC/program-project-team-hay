@@ -5,11 +5,13 @@ import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
 import { useFriendStore } from "@/store/functions/friend.store";
 import { defalutImage } from "@/constants";
+import { useMyChatStore } from "@/store/chat.store";
 
 
 const Createroom = () => {
   const friend = useFriendStore()
   const router = useRouter()
+  const currentChat = useMyChatStore(s => s.setCurrentRoom)
 
   const goToChat = () => {
     router.push('/chat')
@@ -34,9 +36,16 @@ const Createroom = () => {
     setFoundUser(newFriend)
   }
 
-  const createChat = async (friend_userId: string) => {
-    await friend.createDmRoom(friend_userId)
-    router.push(`/chat/${friend_userId}`)
+  const goToDmRoom = async (friend_userId: string, friend_name: string) => {
+    const dmRoom = await friend.createDmRoom(friend_userId)
+    if(!dmRoom) return
+
+    currentChat({
+      room_id: dmRoom.friend_id,
+      type: 'dm',
+      name: dmRoom.friend_name
+    })
+    router.push(`/chat/${dmRoom.friend_id}`)
   }
 
   return (
@@ -54,7 +63,7 @@ const Createroom = () => {
         </View>
         {keyword === '' ? null : foundUser ?
           <View style={styles.chatList}>
-            <TouchableOpacity onPress={() => createChat(foundUser.userId)} style={styles.chatItem}>
+            <TouchableOpacity onPress={() => goToDmRoom(foundUser.userId, foundUser.name)} style={styles.chatItem}>
               <Image source={foundUser.image ? { uri: foundUser.image } : defalutImage.user } style={styles.chatImg} resizeMode="cover" />
               <Text style={styles.chatName}>{foundUser.name}</Text>
             </TouchableOpacity>

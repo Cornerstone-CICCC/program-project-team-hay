@@ -30,8 +30,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await signIn(email, password);
-      // router.push("../(root)/(tabs)/home");
-      router.push("../(root)/event/48");//test-ayaka
+      router.push("../(root)/(tabs)/home");
     } catch (err) {
       Alert.alert("Error", "Failed to sign In. Please try again");
       console.error(err);

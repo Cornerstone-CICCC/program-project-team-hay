@@ -1,6 +1,8 @@
 import { router } from "expo-router";
 import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
+import Constants from "expo-constants";
+import * as Linking from "expo-linking";
 
 export interface User {
   id: string;
@@ -26,7 +28,7 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
-  findPassword: (email: string) => Promise<void>;
+  findPassword: (email: string) => Promise<boolean>;
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -153,17 +155,30 @@ export const useAuthStore = create<State & Action>((set, get) => ({
   },
   findPassword: async (email: string) => {
     try {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(email)) {
+        alert("Please enter valid email.");
+        return false;
+      }
+
+      const redirectUrl = Linking.createURL("resetPassword");
+      console.log(redirectUrl);
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "pinpoint://resetPassword",
+        redirectTo: redirectUrl,
       });
 
       if (error) {
         console.log("Err:", error);
+        return false;
       } else {
-        router.push("/");
+        console.log("Password reset email sent!");
+        return true;
       }
     } catch (err) {
       console.log("Error find password", err);
+      return false;
     }
   },
 }));

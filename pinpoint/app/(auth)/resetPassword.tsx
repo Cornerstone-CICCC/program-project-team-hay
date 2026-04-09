@@ -23,6 +23,7 @@ export default function ResetPassword() {
 
   const user = useAuthStore((s) => s.user);
   const changePassword = useAuthStore((s) => s.changePassword);
+  const findPassword = useAuthStore((s) => s.findPassword);
 
   useEffect(() => {
     if (!confirmPwd) {
@@ -100,19 +101,6 @@ export default function ResetPassword() {
 
       <View>
         <View className="mb-7">
-          <View className="flex mb-5">
-            <Text className="text-lg font-Lexend">Old Password</Text>
-            <TextInput
-              placeholder="Input your password"
-              placeholderTextColor={"#BCBCBC"}
-              autoComplete="password"
-              secureTextEntry
-              className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
-              value={oldPwd}
-              onChangeText={setOldPwd}
-            ></TextInput>
-          </View>
-
           <View className="flex mb-5">
             <Text className="text-lg font-Lexend">New Password</Text>
             <TextInput

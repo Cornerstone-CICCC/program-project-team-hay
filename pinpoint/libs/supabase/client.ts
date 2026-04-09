@@ -9,6 +9,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true, // allow token to be automatically refreshing
     persistSession: true, // keep login
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,
   },
 });

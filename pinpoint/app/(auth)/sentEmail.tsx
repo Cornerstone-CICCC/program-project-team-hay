@@ -1,10 +1,24 @@
+import { useAuthStore } from "@/store/functions/auth.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function SentEmail() {
+export default function FindPassword() {
   const router = useRouter();
+
+  const [email, setEmail] = useState<string>("");
+  const findPassword = useAuthStore((s) => s.findPassword);
+
+  const handleFindPassword = async () => {
+    if (email) {
+      await findPassword(email);
+    }
+
+    router.push("/");
+    console.log("success");
+  };
 
   return (
     <SafeAreaView edges={["top", "bottom"]} className="px-5">
@@ -16,51 +30,17 @@ export default function SentEmail() {
         <View />
       </View>
 
-      <View className="flex items-center justify-center mb-10 gap-5">
+      <View className="flex items-center justify-center mt-10 pt-10 gap-5">
         <Image
-          source={require("../../assets/images/icon-auth/lock_icon.png")}
-          className="mb-5"
+          source={require("../../assets/images/icon-auth/icon_email.png")}
+          className="mb-7 mt-10"
         ></Image>
-        <Text className="font-MontserratBold text-3xl">
-          Forgot your password?
+        <Text className="font-MontserratBold text-2xl text-center">
+          We have sent a password recover instructions to your email
         </Text>
-        <Text className="font-Lexend text-center max-w-80">
-          Enter your registered email below to receive password rest instruction
+        <Text className="font-Lexend text-center max-w-80 text-lg text-[#8F8F8F]">
+          Did not recive the email? check you spam filter or resend
         </Text>
-      </View>
-
-      <View>
-        <View className="flex mb-5">
-          <Text className="text-lg font-Lexend">Email address</Text>
-          <TextInput
-            placeholder="Input email address"
-            placeholderTextColor={"#BCBCBC"}
-            keyboardType="email-address"
-            autoComplete="email"
-            autoCapitalize="none"
-            className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
-          ></TextInput>
-        </View>
-
-        <TouchableOpacity className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6">
-          <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
-            Send
-          </Text>
-        </TouchableOpacity>
-
-        <View
-          style={{ height: 260, backgroundColor: "transparent", width: "100%" }}
-        ></View>
-
-        <TouchableOpacity
-          className="flex items-center"
-          onPress={() => router.push("/(auth)/login")}
-        >
-          <Text className="font-LexendSemiBold text-lg">
-            You remember your password?{" "}
-            <Text className="font-LexendBold text-[#5669FF]">Sign In</Text>
-          </Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

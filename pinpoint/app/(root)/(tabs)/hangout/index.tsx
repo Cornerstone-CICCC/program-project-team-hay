@@ -1,6 +1,8 @@
 import HangoutCard from "@/components/HangoutCard";
 import { useRouter } from "expo-router";
 import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,8 +12,7 @@ import {
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { useEffect, useState } from "react";
-import { DummyEvents } from "@/dummy/EventList";
-import { useAuthStore } from "@/store/functions/auth.store";
+import { useEventListStore } from "@/store/functions/eventlist.store";
 
 interface EventOverview {
   event_id: string;
@@ -20,14 +21,14 @@ interface EventOverview {
   address?: string;
 }
 type EventFilter = "upcoming" | "today" | "tomorrow" | "week" | "past";
+type TabState = {
+  events: EventOverview[];
+  lastCursor: string | null;
+}
 
 const Hangout = () => {
-  const { user } = useAuthStore();
-  const userId = user?.id;
+  const event = useEventListStore()
 
-  //
-  const USE_DUMMY = true;
-  //
   const tabs: { label: string; value: EventFilter }[] = [
     { label: "Upcoming", value: "upcoming" },
     { label: "Today", value: "today" },
@@ -38,60 +39,33 @@ const Hangout = () => {
 
   const router = useRouter();
   const [keyword, setKeyword] = useState<string>("");
-  const [hangoutList, setHangoutList] = useState<EventOverview[]>([]);
   const [activeTab, setActiveTab] = useState<EventFilter>("upcoming");
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false)
   const [hangoutsByTab, setHangoutsByTab] = useState<
-    Record<EventFilter, EventOverview[]>
+    Record<EventFilter, TabState>
   >({
-    upcoming: [],
-    today: [],
-    tomorrow: [],
-    week: [],
-    past: [],
+    upcoming: { events: [], lastCursor: null },
+    today: { events: [], lastCursor: null },
+    tomorrow: { events: [], lastCursor: null },
+    week: { events: [], lastCursor: null },
+    past: { events: [], lastCursor: null },
   });
 
   const fetchEvents = async (tab: EventFilter) => {
-    // console.log(hangoutsByTab)
-    if (hangoutsByTab[tab].length > 0) {
-      setHangoutList(hangoutsByTab[tab]);
-      return;
-    }
-    //
-    let data: EventOverview[] = [];
-    if (USE_DUMMY) {
-      const now = new Date();
-      data = DummyEvents.filter((item) => {
-        if (!item.date) return tab === "upcoming";
-        const d = new Date(item.date);
-        switch (tab) {
-          case "today":
-            return d.toDateString() === now.toDateString();
-          case "tomorrow":
-            const tomorrow = new Date();
-            tomorrow.setDate(now.getDate() + 1);
-            return d.toDateString() === tomorrow.toDateString();
-          case "week":
-            const weekLater = new Date();
-            weekLater.setDate(now.getDate() + 6);
-            return d >= now && d <= weekLater;
-          case "past":
-            return d < now;
-          default:
-            return d >= now;
-        }
-      });
-    } else {
-      data = await getEventList(userId, tab, 8);
-    }
-    //
+    console.log(hangoutsByTab)
+    if (hangoutsByTab[tab].events.length > 0) return;
 
-    // const data = await getEventList(userId, tab)
+    const data = await event.getEventList(tab)
+    console.log(data)
+    if(!data) return
 
     setHangoutsByTab((prev) => ({
       ...prev,
-      [tab]: data,
+      [tab]: {
+        events: data.events,
+        lastCursor: data.lastCursor ?? null,
+      },
     }));
-    setHangoutList(data);
   };
 
   const handleTabChange = (tab: EventFilter) => {
@@ -101,12 +75,45 @@ const Hangout = () => {
     fetchEvents(activeTab);
   }, [activeTab]);
 
-  const filteredHangouts = hangoutList.filter((item) =>
+  const filteredHangouts = hangoutsByTab[activeTab].events.filter((item) =>
     item.name.toLowerCase().includes(keyword.toLowerCase()),
   );
 
+  const loadMoreEvents = async (tab: EventFilter) => {
+    if(isLoadingMore) return;
+
+    const tabData = hangoutsByTab[tab]
+    if(!tabData.lastCursor) return;
+
+    setIsLoadingMore(true)
+    const data = await event.getEventList(tab, tabData.lastCursor)
+    if(!data){
+      setIsLoadingMore(false)
+      return;
+    }
+
+    setHangoutsByTab(prev => ({
+      ...prev,
+      [tab]: {
+        events: [...prev[tab].events, ...data.events],
+        lastCursor: data.lastCursor ?? null,
+      },
+    }))
+    setIsLoadingMore(false)
+  }
+
+  const loadMoreEventsbyScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100;
+    if(isBottom){
+      loadMoreEvents(activeTab)
+    }
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} onScroll={loadMoreEventsbyScroll}>
       <View style={styles.hangoutHead}>
         <Text style={styles.pageTtl}>Hangout Lists</Text>
         <TouchableOpacity
@@ -252,7 +259,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F3F3",
     borderRadius: 24,
     paddingHorizontal: 12,
-    paddingBlock: 12,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
@@ -265,5 +271,6 @@ const styles = StyleSheet.create({
     fontFamily: "Lexend-Regular",
     fontSize: 16,
     width: "100%",
+    paddingBlock: 12,
   },
 });

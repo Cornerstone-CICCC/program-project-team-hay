@@ -27,7 +27,8 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
-  onGoogleSignIn:()=>Promise<void>;
+  onGoogleSignIn:()=>Promise<string|null>;
+  checkProvider:()=>Promise<string|null>
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -169,7 +170,10 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     
           console.log("data",data)
     
-          if (error) throw error
+          if (error) {
+            console.log(error)
+            return null
+          }
     
           // 2. Open Google login page in browser
           const result = await WebBrowser.openAuthSessionAsync(
@@ -178,7 +182,9 @@ export const useAuthStore = create<State & Action>((set, get) => ({
           )
     
           // 3. After user logs in, Google redirects back to your app
-          if (result.type === 'success') {
+          if (result.type !== 'success'){
+            return null
+          }
             // const url = new URL(result.url)
             // console.log("url",url)
             const params = new URLSearchParams(result.url.split('#')[1])
@@ -199,7 +205,7 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     
               if (data.error){
                 console.log("session error")
-                return
+                return null
               }
     
               const {data:{user}} = await supabase.auth.getUser()
@@ -207,17 +213,51 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     
               if(!user){
                 console.log("No User found in session")
-                return
+                return null
               }
               const userId = user.id
               const profile = await get().fetchUserProfile(userId);
-              set({ user: profile });
 
-              console.log('Signed in successfully!')
+              if(!profile){
+                console.log("Error getting profile")
+                return null
+              }
+              set({ user: {
+                id:profile.id,
+                email:profile.email,
+                name:profile.name,
+                public_code:profile.public_code,
+                login_type:user.app_metadata.provider ??"email",
+                profileImage:profile.profileImage,
+                onboardingCompleted:profile.onboardingCompleted
+              } });
+
+              console.log('Signed in successfully! set User info')
+              return 'Signed in successfully! set User info'
+            }else{
+              return null
             }
-          }
         } catch (error) {
           console.log('Error signing in with Google:', error)
+          return null
         }
+  },
+  checkProvider:async()=>{
+    try{
+      const {data:{user}} = await supabase.auth.getUser()
+
+      if(!user){
+        console.log("Logged in user not found")
+        return null
+      }
+
+      const provider = user.app_metadata.provider as string
+      
+      return provider
+
+    }catch(e){
+      console.log('Error getting provoder', e)
+      return null
+    }
   }
 }));

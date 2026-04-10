@@ -69,7 +69,7 @@ const DateTimeInput = ({
                         value={dateValue ??new Date(eventForm?.date ?? new Date())}
                         mode="date"
                         display="default"
-                        minimumDate={new Date(eventForm?.date ?? new Date())}
+                        minimumDate={ new Date()}
                         onChange={(e, date)=>{
                             if(!date) return
                             setShowDatePicker(false)
@@ -111,7 +111,7 @@ const DateTimeInput = ({
                         value={dateValue?? new Date(eventForm?.date ?? new Date())}
                         mode="time"
                         display="default"
-                        minimumDate={new Date(eventForm?.date ?? new Date())}
+                        minimumDate={new Date()}
                         onChange={(e,date)=>{
                             if(!date) return
                             setShowTimePicker(false)

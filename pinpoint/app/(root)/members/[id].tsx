@@ -1,8 +1,10 @@
 import { defalutImage } from '@/constants';
+import { useAuthStore } from '@/store/functions/auth.store';
 import { useEventStore } from '@/store/functions/event.store';
 import { useFriendStore } from '@/store/functions/friend.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -12,50 +14,39 @@ export interface Member{
     name:string,
     friend_id?:string 
 }
-const memberList = ({event_id}:{event_id:string}) => {
+const MemberList = () => {
+    const {id} = useLocalSearchParams()
+    const {user} = useAuthStore()
     const [members, setMembers] = useState<Member[]>([])
     const {getMemberListByEventId} = useEventStore()
     const {createDmRoom} = useFriendStore()
 
     useEffect(()=>{
-      if(!event_id) return
+      if(!id) return
         // fetch members
         const fetchMember = async()=>{
-          const data =await getMemberListByEventId(event_id)
+          const data =await getMemberListByEventId(id as string)
 
           if(!data){
             console.log("Error fetching members")
             return
           }
+          console.log(data)
 
           setMembers(data)
         }
 
         fetchMember()
-    },[event_id])
-
-    // useEffect(()=>{ //to be removed
-    //   const memberList:Member[] = [
-    //   {
-    //     userId: "user-1",
-    //     name: "Emma Watson",
-    //     friend_id:"123"
-    //   },
-    //   {
-    //     userId: "user-2",
-    //     name: "Chris Evans",
-    //   },
-    //   {
-    //     userId: "user-3",
-    //     name: "Tom Holland",
-    //   },
-    // ]
-    //     setMembers(memberList)
-    // },[])
+    },[id])
 
     // redirect to dm chat room, if dm_id not exist, then create a new dm row
     const handleRedirectToDMRoom = async(item:Member)=>{
       let friend_id;
+
+      if(item.friend_id===user?.id){
+        console.log("You cannot message yourself")
+        return
+      }
 
       if(!item.friend_id){
         //create friend
@@ -112,14 +103,15 @@ const memberList = ({event_id}:{event_id:string}) => {
               </Text>
             </View>
 
-            <TouchableOpacity
+            {item.userId!==user?.id
+            &&<TouchableOpacity
             onPress={()=>handleRedirectToDMRoom(item)}
             >
               <Text
               className='border border-[#EEEEEE] rounded-md py-1 px-3 font-Lexend'
               style={styles.btntext}
               >Message</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
           </View>
         )}
         />
@@ -129,7 +121,7 @@ const memberList = ({event_id}:{event_id:string}) => {
   )
 }
 
-export default memberList
+export default MemberList
 
 const styles = StyleSheet.create({
   bg: {

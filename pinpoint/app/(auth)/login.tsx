@@ -42,7 +42,11 @@ export default function LoginScreen() {
 
   const handleGoogleSignIn = async()=>{
       try {
-      await onGoogleSignIn();
+      const res = await onGoogleSignIn();
+
+      if(!res){
+        return
+      }
 
       router.push("../(root)/(tabs)/home");
     } catch (err) {

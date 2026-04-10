@@ -4,71 +4,53 @@ import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
-import { DummyChatList } from "@/dummy/ChatList";
+import { useChatStore } from "@/store/functions/chat.store";
 
-type ChatFilter = 'dm' | 'group' | 'archive'
+type ChatType = 'dm' | 'group' | 'past'
 
 interface ChatRoom {
   room_id: string,
-  type: ChatFilter,
+  type: "dm" | "group";
   name: string,
   image?: string,
   last_message?: string,
   last_message_at?: string,
-  unread_count: number,
-  num_member: number,
+  unread_count?: number,
+  // num_member?: number,
 }
 
 const Chat = () => {
-  //
-  const USE_DUMMY = true
-  const userId = 'qwe123'
-  //
-  const tabs: { label: string, value: ChatFilter }[] = [
+  const chat = useChatStore()
+
+  const tabs: { label: string, value: ChatType }[] = [
     { label: 'DM', value: 'dm' },
     { label: 'Group', value: 'group' },
-    { label: 'Archive', value: 'archive' },
+    { label: 'Past', value: 'past' },
   ]
 
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')
-  const [chatList, setChatList] = useState<ChatRoom[]>([])
-  const [activeTab, setActiveTab] = useState<ChatFilter>('dm')
+  const chatList = chat.rooms
+  const [activeTab, setActiveTab] = useState<ChatType>('dm')
 
-  const fetchChats = async (tab: ChatFilter) => {
-    //
-    let data: ChatRoom[] = []
-    if(USE_DUMMY){
-      data = DummyChatList.filter(item => {
-        switch(tab) {
-          case 'dm':
-            return item.type === 'dm'
-          case 'group':
-            return item.type === 'group'
-          case 'archive':
-            return item.type === 'archive'
-          default:
-            return item.type === 'dm'
-        }
-      })
-    } else {
-      data = await getChatList(userId, tab)
-    }
-    //
-
-    // const data = await getChatList(userId, tab)
-    setChatList(data)
+  const fetchChats = async (tab: ChatType) => {
+    await chat.getChatList(tab)
   }
 
-  const handleTabChange = (tab: ChatFilter) => {
+  const handleTabChange = (tab: ChatType) => {
     setActiveTab(tab)
   }
 
   useEffect(() => {
     fetchChats(activeTab)
+
+    chat.subscribeChatList(activeTab)
+    return () => {
+      chat.unsubscribeChatList()
+    }
   }, [activeTab])
 
-  const filteredChats = chatList.filter(item => 
+  const filteredChats = (chatList ?? []).filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
   
@@ -113,7 +95,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   chatHead: {
-    display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     flexDirection: 'row',
@@ -125,17 +106,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F3F3',
     borderRadius: 24,
     paddingHorizontal: 12,
-    paddingBlock: 9,
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    height: 'auto',
+    height: "auto",
     gap: 7,
     flex: 1,
   },
   inputSearch: {
     fontFamily: 'Lexend-Regular',
-    width: '100%',
+    fontSize: 16,
+    width: "100%",
+    paddingBlock: 12,
   },
   chatCreate: {
     backgroundColor: '#FF7600',

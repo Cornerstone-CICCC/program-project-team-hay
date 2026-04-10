@@ -1,17 +1,21 @@
+import { defalutImage } from "@/constants"
+import { fetchEventBgImage } from "@/libs/eventImgHandler"
+import { useMyChatStore } from "@/store/chat.store"
 import { useRouter } from "expo-router"
-import { Image, ImageSourcePropType, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { useEffect, useState } from "react"
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
-type ChatFilter = 'dm' | 'group' | 'archive'
+type ChatType = 'dm' | 'group' | 'past'
 
 type ChatItem = {
   room_id: string,
-  type: ChatFilter,
-  image: string | ImageSourcePropType,
+  type: "dm" | "group",
+  image?: string,
   name: string,
   last_message?: string,
   last_message_at?: string,
-  unread_count: number,
-  num_member: number
+  unread_count?: number,
+  num_member?: number
 }
 
 type Props = {
@@ -20,28 +24,51 @@ type Props = {
 
 const ChatListItem = ({ data }: Props) => {
   const router = useRouter()
+  const currentChat = useMyChatStore(s => s.setCurrentRoom)
+
   const goToChatRoom = () => {
+    currentChat({
+      room_id: data.room_id,
+      type: data.type,
+      name: data.name
+    })
     router.push(`/chat/${data.room_id}`)
   }
+
+  const lastMsgDate = data.last_message_at ? new Date(data.last_message_at) : null
+  const formattedDate = lastMsgDate ? (
+    `${lastMsgDate.getFullYear()}/${String(lastMsgDate.getMonth()+1).padStart(2,'0')}/${String(lastMsgDate.getDate()).padStart(2,'0')}/` +
+    `${String(lastMsgDate.getHours()).padStart(2,'0')}:${String(lastMsgDate.getMinutes()).padStart(2,'0')}`
+  ) : ''
+  
+  const [unreadCount, setUnreadCount] = useState<number>(0)
+  useEffect(() => {
+
+  }, [])
+
   return (
     <TouchableOpacity onPress={goToChatRoom}>
       <View style={styles.chatItem}>
-        <Image source={
-          typeof data.image === 'string'
-          ? { uri: data.image }
-          : data.image
-        } style={styles.chatImg} resizeMode="cover" />
+        <Image
+          source={data.type === 'dm' ? (
+            data.image ? { uri: data.image } : defalutImage.user
+          ) : (
+            fetchEventBgImage(data.name)
+          )}
+          style={styles.chatImg} resizeMode="cover"
+        />
         <View style={styles.chatTxtWrap}>
-          <Text style={styles.chatName} numberOfLines={1}>{data.name}
+          <View style={styles.chatTtl}>
+            <Text style={styles.chatName} numberOfLines={1}>{data.name}</Text>
             {data.num_member && 
               <Text style={styles.chatNumMember}>({data.num_member})</Text>
             }
-          </Text>
+          </View>
           <Text style={styles.chatMsg} numberOfLines={2}>{data.last_message}</Text>
         </View>
         <View style={styles.chatItemSub}>
-          <Text style={styles.chatTime}>{data.last_message_at}</Text>
-          {data.unread_count > 0 &&
+          <Text style={styles.chatTime}>{formattedDate}</Text>
+          {!data.unread_count || data.unread_count > 0 &&
             <View style={styles.chatUnreadWrap}>
               <Text style={styles.chatUnread}>{data.unread_count}</Text>
             </View>
@@ -73,7 +100,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   chatTxtWrap: {
-    flex: 1
+    flex: 1,
+    maxWidth: '60%',
+  },
+  chatTtl: {
+    flexDirection: 'row',
+    gap: 5,
   },
   chatName: {
     fontFamily: 'Lexend-SemiBold',
@@ -83,7 +115,6 @@ const styles = StyleSheet.create({
   chatNumMember: {
     fontFamily: 'Lexend-Medium',
     fontSize: 16,
-    marginLeft: 6,
   },
   chatMsg: {
     fontFamily: 'Lexend-Regular',
@@ -98,6 +129,7 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   chatTime: {
+    fontFamily: 'Lexend-Regular',
     fontSize: 11,
     color: '#7C7C7C',
     marginBottom: 6

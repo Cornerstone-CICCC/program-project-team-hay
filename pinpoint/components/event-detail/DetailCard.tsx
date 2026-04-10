@@ -1,6 +1,7 @@
 import { EventDetail } from '@/app/(root)/event/[id]';
 import { Member } from '@/app/(root)/members/[id]';
 import { defalutImage } from '@/constants';
+import { useMyChatStore } from '@/store/chat.store';
 import { useMyEventStore } from '@/store/event.store';
 import { useAuthStore } from '@/store/functions/auth.store';
 import { useFriendStore } from '@/store/functions/friend.store';
@@ -33,6 +34,8 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         mins = dateTime.getMinutes()
     }
 
+    const currentChat = useMyChatStore(s => s.setCurrentRoom)
+
     const handleDirectDmRoom = async(item:Member)=>{
       let friend_id;
 
@@ -55,8 +58,23 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         friend_id= item.friend_id
       }
 
+      currentChat({
+        room_id: friend_id,
+        type: 'dm',
+        name: item.name
+      })
       router.push(`/chat/${friend_id}` as any)
     }
+
+    const goToGroupChat = async () => {
+        currentChat({
+            room_id: event.id,
+            type: 'group',
+            name: event.name
+        })
+        router.push(`/chat/${event.id}` as any)
+    }
+
   return (
     <View
     className='px-9 py-6 flex gap-8'>
@@ -182,7 +200,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
 
 
       <TouchableOpacity
-      onPress={()=>router.push(`/chat/${event.id}` as any)}>
+      onPress={()=>goToGroupChat()}>
         <Text
         className='text-lg text-center font-LexendSemiBold'>
             Message in Group

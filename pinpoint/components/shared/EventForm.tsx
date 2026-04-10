@@ -15,7 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import GoogleTextInput from "../GoogleTextInput";
 import DateTimeInput from "./DateTimeInput";
@@ -49,6 +49,7 @@ export interface Place {
 const EventForm = (props: Prop) => {
   const { user } = useAuthStore();
   const { members, setMembers, clearSelectedEvent} = useMyEventStore();
+  const [error, setError]=useState<string>("")
   const [eventForm, setEventForm] = useState<Omit<EventDetail, "id">>({
     name: "",
     date: new Date().toString(),
@@ -79,12 +80,17 @@ const EventForm = (props: Prop) => {
       };
 
       if (eventForm.members.length > 0) return;
-      setEventForm((prev) => ({
+      let find:Member|undefined
+      let memberList:Member[]=[]
+      setEventForm((prev) => {
+        find = prev.members.find(m=>m.userId===myself.userId)
+        memberList = find? prev.members:[...prev.members, myself]
+        return   {
         ...prev,
-        members: [...prev.members, myself],
-      }));
+        members: memberList,
+      }});
       // set myself as member
-      setMembers([...members, myself]);
+      setMembers(memberList);
       return;
     }
 
@@ -119,6 +125,12 @@ const EventForm = (props: Prop) => {
       updated.setMonth(selected.getMonth());
       updated.setDate(selected.getDate());
 
+      // if(selected<new Date()){
+      //   setError("Hangout date needs to be date after today")
+      //   return
+      // }
+      // setError("")
+
       setEventForm((prev) => ({
         ...prev,
         date: updated.toString(),
@@ -140,6 +152,7 @@ const EventForm = (props: Prop) => {
 
   const locationSaveHandler = (place: Place) => {
     if (!place) return;
+    console.log(place)
     setEventForm((prev) => ({
       ...prev,
       place,
@@ -168,7 +181,12 @@ const EventForm = (props: Prop) => {
       members: eventForm.members
     })
 
-    console.log(res)
+    if(!res){
+      console.log("Error creating event")
+      return
+    }
+
+    const event_id = res.id
 
     //clearing the members
     setMembers([]);
@@ -185,6 +203,8 @@ const EventForm = (props: Prop) => {
       },
       members: [],
     });
+
+    router.push(`/(root)/event/${event_id}`)
   };
 
   const updateEvent = async () => {
@@ -214,10 +234,11 @@ const EventForm = (props: Prop) => {
     }
     console.log(res)
     clearSelectedEvent();
+    router.push(`/(root)/event/${id}`)
   };
 
   return (
-    <View className="pt-12 flex flex-col gap-12">
+    <View className="pt-12 flex flex-col gap-10">
       <View>
         <Text style={styles.headText}>Title</Text>
         <TextInput
@@ -270,6 +291,11 @@ const EventForm = (props: Prop) => {
           onDateChange={onDateChange}
           onTimeChange={onTimeChange}
         />
+        
+        <Text
+        className="text-md text-red-700 text-center pt-3">
+          {error}
+        </Text>
       </View>
       {/* Friends  */}
       <View>

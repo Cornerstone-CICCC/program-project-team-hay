@@ -1,6 +1,7 @@
 import { defalutImage } from '@/constants'
 import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
 import { calculateRegion } from '@/libs/map'
+import { useAuthStore } from '@/store/functions/auth.store'
 import { useEventStore } from '@/store/functions/event.store'
 import { useLocationStore } from '@/store/functions/location.store'
 import { useMyLocationStore } from '@/store/location.store'
@@ -48,6 +49,7 @@ const TrackingMAP = () => {
 
     const {fetchLocationDetailByID}= useEventStore()
     const {updateMyLocation, getAllMembersLocation} = useLocationStore()
+    const {user}= useAuthStore()
 
     const [region, setRegion] = useState<{
         latitude:number,
@@ -75,7 +77,7 @@ const TrackingMAP = () => {
 
         const details = await getAllMembersLocation(id as string)
 
-        console.log(details)
+        // console.log("details",details)
 
         if(!details){
             console.log("There is no data for members location")
@@ -106,6 +108,7 @@ const TrackingMAP = () => {
         requestLocation()
 
         if(!id||!userLatitude || !userLongitude) return
+        console.log(id)
 
         // Fetch event data with location
         const fetchDestinationDetail = async()=>{
@@ -115,6 +118,7 @@ const TrackingMAP = () => {
                 console.log("No event location detail")
                 return
             }
+            console.log("location",data.place)
             // fetch location and set to setEvent
             setEvent(data)
             // calculate initial Region for map
@@ -124,6 +128,8 @@ const TrackingMAP = () => {
                 destinationLatitude: data.place.latitude,
                 destinationLongitude: data.place.longitude
             })
+
+            console.log("initial region", initialRegion)
 
             setRegion(initialRegion)
         }
@@ -202,6 +208,13 @@ const TrackingMAP = () => {
         }
     },[isTrackAvailable, event, available])
 
+    useEffect(()=>{
+        console.log("routeInfo", routeInfo)
+        console.log("selectedMember", selectedMember)
+    },[routeInfo, selectedMember])
+
+
+
 
     const handleMessage= async()=>{
         
@@ -219,7 +232,7 @@ const TrackingMAP = () => {
         <View
         className='absolute z-20 w-full flex flex-row justify-between items-center px-4 pt-20 pb-3 bg-[rgba(266,266,266,0.7)]'>
             <TouchableOpacity
-            onPress={()=> router.back()}>
+            onPress={()=>{ router.back()}}>
             <AntDesign 
             name="arrow-left"
                 size={30} 
@@ -256,9 +269,12 @@ const TrackingMAP = () => {
             tintColor='black'
             mapType='standard'
             showsPointsOfInterest={false}
-            initialRegion={region}
+            region={region}
             showsUserLocation={true}
             userInterfaceStyle='light'
+            onPress={()=>{
+                setRouteInfo(null)
+                setSelectedMember(null)}}
             >
                 {/* Members markers */}
             {markers.map(marker=>(
@@ -269,7 +285,9 @@ const TrackingMAP = () => {
                 longitude:marker.longitude
                 }}
                 title={marker.name}
-                onPress={()=>setSelectedMember(marker)}
+                onPress={(e)=>{
+                    e.stopPropagation()
+                    setSelectedMember(marker)}}
                 anchor={{ x: 0.5, y: 1 }} 
                 >
                 <View style={styles.markerContainer}>
@@ -325,28 +343,29 @@ const TrackingMAP = () => {
                 </>
                 )
             }
-            {routeInfo && (
+            </MapView>
+            {selectedMember&&routeInfo && (
                 <View style={styles.etaBox}>
                     <View>
                         <Text style={styles.etaTime}>{routeInfo.duration} min</Text>
                         <Text style={styles.etaDist}>{routeInfo.distance.toFixed(1)} km</Text>
                     </View>
 
+                    {selectedMember?.userId!==user?.id&&
                     <TouchableOpacity
                     onPress={handleMessage}>
                         <Text>Message</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>}
 
                 </View>
                 )}
-            </MapView>
     </View>
   )
 }
 
 export default TrackingMAP
 
-const AVATAR_SIZE = 48;
+const AVATAR_SIZE = 40;
 
 const styles = StyleSheet.create({
     map:{
@@ -410,12 +429,12 @@ const styles = StyleSheet.create({
         elevation: 6,
     },
     etaTime: {
-        fontSize: 15,
+        fontSize: 17,
         fontWeight: '700',
         color: '#0286ff',
     },
     etaDist: {
-        fontSize: 15,
+        fontSize: 17,
         fontWeight: '500',
         color: '#666',
     },

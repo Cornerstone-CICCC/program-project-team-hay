@@ -1,8 +1,7 @@
-import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
-import { useFriendStore } from "./friend.store";
+import { supabase } from "../../libs/supabase/client";
 import { useAuthStore } from "./auth.store";
-
+import { useFriendStore } from "./friend.store";
 export interface User {
   id: string;
   name: string;
@@ -135,7 +134,7 @@ export const useEventStore = create<Action>((set, get) => ({
       .eq("event_id", event.id);
 
     if (selectUsersErr || !userId) {
-      console.error("Error selecting users from user)event table: ", error);
+      console.error("Error selecting users from user)event table: ", selectUsersErr);
       return null;
     }
 

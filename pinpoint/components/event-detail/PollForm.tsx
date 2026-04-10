@@ -200,10 +200,9 @@ const OptionLists =<T extends PollQuestion>({event_id,type,title, setQuestionDis
 
             console.log("poll form response", res)
 
+            setIsAccordionOpen(false)
             //clear the options
             setOptions([])
-            setIsAccordionOpen(false)
-
             // toggle Event Render to triger rendering page
             setToggleEventRender()
         }catch(error){
@@ -336,6 +335,10 @@ const PollForm = ({id}:{id:string}) => {
     useEffect(()=>{
         setQuestion(pollQuestion==="date"?defaultText.date:pollQuestion==="place"?defaultText.place:"")
     },[pollQuestion])
+
+    useEffect(()=>{
+        console.log(isAccordionOpen)
+    },[isAccordionOpen])
     
     
     return (
@@ -348,6 +351,7 @@ const PollForm = ({id}:{id:string}) => {
             }}
             className='py-6 px-4'>
             <Accordion.Accordion
+            key={`${isAccordionOpen}`}
             isOpen={isAccordionOpen}
             onChange={(v)=>setIsAccordionOpen(v)}
             layout={LinearTransition.duration(400)}

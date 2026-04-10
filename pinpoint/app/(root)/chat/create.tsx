@@ -37,15 +37,25 @@ const Createroom = () => {
   }
 
   const goToDmRoom = async (friend_userId: string, friend_name: string) => {
-    const dmRoom = await friend.createDmRoom(friend_userId)
-    if(!dmRoom) return
+    const isFriend = await friend.checkIfWeAreFriend(friend_userId)
+    if(isFriend){
+      currentChat({
+        room_id: isFriend.friend_id,
+        type: 'dm',
+        name: friend_name,
+      })
+      router.push(`/chat/${isFriend.friend_id}`)
+    } else {
+      const dmRoom = await friend.createDmRoom(friend_userId)
+      if(!dmRoom) return
 
-    currentChat({
-      room_id: dmRoom.friend_id,
-      type: 'dm',
-      name: dmRoom.friend_name
-    })
-    router.push(`/chat/${dmRoom.friend_id}`)
+      currentChat({
+        room_id: dmRoom.friend_id,
+        type: 'dm',
+        name: dmRoom.friend_name
+      })
+      router.push(`/chat/${dmRoom.friend_id}`)
+    }
   }
 
   return (

@@ -15,23 +15,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ResetPassword() {
   const router = useRouter();
 
-  const [oldPwd, setOldPwd] = useState<string>("");
   const [newPwd, setNewPwd] = useState<string>("");
   const [confirmPwd, setConfirmPwd] = useState<string>("");
   const [pwdError, setPwdError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const resetPassword = useAuthStore((s) => s.resetPassword);
 
   const user = useAuthStore((s) => s.user);
   const changePassword = useAuthStore((s) => s.changePassword);
   const findPassword = useAuthStore((s) => s.findPassword);
 
   useEffect(() => {
-    if (!confirmPwd) {
-      setPwdError("");
-      return;
-    }
-
-    if (confirmPwd !== newPwd) {
+    if (confirmPwd && newPwd !== confirmPwd) {
       setPwdError("Passwords do not match");
     } else {
       setPwdError("");
@@ -48,54 +44,44 @@ export default function ResetPassword() {
     }
   };
 
-  const handleChangepassword = async () => {
-    if (newPwd !== confirmPwd) {
-      Alert.alert("Error", "New password and confirm password do not match");
+  const handleResetPassword = async () => {
+    if (newPwd !== confirmPwd) return;
+    if (newPwd.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
       return;
     }
 
     setIsLoading(true);
     try {
-      if (!oldPwd || !newPwd || !confirmPwd) {
-        Alert.alert("Not Available", "Please enter all the fiels first");
+      const success = await resetPassword(newPwd);
+      if (success) {
+        Alert.alert("Success", "Password updated successfully!", [
+          { text: "OK", onPress: () => router.push("/(auth)/login") },
+        ]);
       }
-
-      if (user?.login_type !== "email") {
-        Alert.alert(
-          "Not Available",
-          "Password change is not available for social login",
-        );
-        return;
-      }
-      if (user?.email) {
-        await changePassword(user?.email, oldPwd, newPwd);
-      }
-
-      router.push("/");
-      console.log("success");
     } catch (err) {
-      Alert.alert("Error", "Failed to change password. Please try again");
-      console.error(err);
+      Alert.alert("Error", "Failed to reset password");
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <SafeAreaView edges={["top", "bottom"]} className="px-5">
       <View className="pt-4 flex flex-row justify-between mt-2 mb-10">
         <TouchableOpacity onPress={() => router.back()}>
           <AntDesign name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
-        <Text className="font-MontserratBold text-2xl">Change Password</Text>
+        <Text className="font-MontserratBold text-2xl">Reset Password</Text>
         <View />
       </View>
 
       <View className="mb-8">
         <Text className="text-2xl font-LexendSemiBold mb-2">
-          Password Security
+          Create New Password
         </Text>
         <Text className="text-xl font-Lexend">
-          Please enter at least 8 characters. Do not use easy-to-guess names
+          Your identity has been verified. Please set a new secure password.
         </Text>
       </View>
 
@@ -134,13 +120,13 @@ export default function ResetPassword() {
         </View>
 
         <TouchableOpacity
-          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6"
-          onPress={handleChangepassword}
+          className="bg-[#FF7600] py-4 rounded-md flex items-center"
+          onPress={handleResetPassword}
         >
           {isLoading ? (
-            <ActivityIndicator size={24} color="#fff"></ActivityIndicator>
+            <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="font-LexendSemiBold text-lg text-[#FFFFFF] ">
+            <Text className="font-LexendSemiBold text-lg text-white">
               Update Password
             </Text>
           )}

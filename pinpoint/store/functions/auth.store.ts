@@ -3,6 +3,7 @@ import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
+import { Alert } from "react-native";
 
 export interface User {
   id: string;
@@ -28,7 +29,10 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
-  findPassword: (email: string) => Promise<boolean>;
+
+  findPassword: (email: string) => Promise<boolean>; // send otp
+  verifyOtp: (email: string, token: string) => Promise<boolean>; // verify otp number
+  resetPassword: (newPwd: string) => Promise<boolean>; // update password
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -162,22 +166,54 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         return false;
       }
 
-      const redirectUrl = Linking.createURL("resetPassword");
-      console.log(redirectUrl);
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
 
       if (error) {
         console.log("Err:", error);
         return false;
-      } else {
-        console.log("Password reset email sent!");
-        return true;
       }
+
+      console.log("Password reset email sent!");
+      return true;
     } catch (err) {
       console.log("Error find password", err);
+      return false;
+    }
+  },
+  verifyOtp: async (email: string, token: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "recovery",
+      });
+
+      if (error) {
+        console.log("OTP verification failed:", error.message);
+        alert("Invalid or expired code.");
+        return false;
+      }
+
+      return !!data.session;
+    } catch (err) {
+      console.log("Error in verifyOtp:", err);
+      return false;
+    }
+  },
+  resetPassword: async (newPwd: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPwd,
+      });
+
+      if (error) {
+        Alert.alert("Password reset failed:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.log("Error in resetPassword:", err);
       return false;
     }
   },

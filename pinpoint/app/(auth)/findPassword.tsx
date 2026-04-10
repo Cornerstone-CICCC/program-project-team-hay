@@ -20,7 +20,10 @@ export default function FindPassword() {
     const success = await findPassword(email);
 
     if (success) {
-      router.push("/(auth)/sentEmail");
+      router.push({
+        pathname: "/(auth)/sentEmail",
+        params: { email: email },
+      });
       console.log("success");
     }
   };

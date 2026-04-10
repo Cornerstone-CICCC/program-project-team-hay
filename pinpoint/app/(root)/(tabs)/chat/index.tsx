@@ -30,16 +30,11 @@ const Chat = () => {
 
   const router = useRouter()
   const [keyword, setKeyword] = useState<string>('')
-  const [chatList, setChatList] = useState<ChatRoom[] | null>([])
+  const chatList = chat.rooms
   const [activeTab, setActiveTab] = useState<ChatType>('dm')
 
   const fetchChats = async (tab: ChatType) => {
-    const data = await chat.getChatList(tab)
-    if(!data) return;
-    setChatList(data.map(chat => ({
-      ...chat,
-      unread_count: 0,
-    })))
+    await chat.getChatList(tab)
   }
 
   const handleTabChange = (tab: ChatType) => {
@@ -48,6 +43,11 @@ const Chat = () => {
 
   useEffect(() => {
     fetchChats(activeTab)
+
+    chat.subscribeChatList(activeTab)
+    return () => {
+      chat.unsubscribeChatList()
+    }
   }, [activeTab])
 
   const filteredChats = (chatList ?? []).filter(item => 

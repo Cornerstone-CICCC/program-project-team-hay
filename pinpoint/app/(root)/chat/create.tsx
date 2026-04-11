@@ -1,35 +1,62 @@
 import { useState } from "react"
-import { Image, ImageSourcePropType, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
+import { useFriendStore } from "@/store/functions/friend.store";
+import { defalutImage } from "@/constants";
+import { useMyChatStore } from "@/store/chat.store";
 
-type User = {
-  id: string,
-  name: string,
-  image: ImageSourcePropType,
-  email: string,
-  public_code: string,
-}
 
 const Createroom = () => {
+  const friend = useFriendStore()
   const router = useRouter()
+  const currentChat = useMyChatStore(s => s.setCurrentRoom)
+
   const goToChat = () => {
     router.push('/chat')
   }
-  const goToRoom = (id: string) => {
-    router.push(`/chat/${id}`)
-  }
+
   const [keyword, setKeyword] = useState<string>('')
-  const [users, setUsers] = useState<User[]>([])
-  const userLists: User[] = [
-    { id: 'f01', image: require('../../../assets/images/dummy02.png'), name: 'John', email: 'test01@gmail.com', public_code: '3e4r5t' },
-    { id: 'f02', image: require('../../../assets/images/dummy02.png'), name: 'Smith', email: 'test02@gmail.com', public_code: '2e4r5t' },
-    { id: 'f03', image: require('../../../assets/images/dummy02.png'), name: 'Harry', email: 'test03@gmail.com', public_code: '1e4r5t' },
-  ]
-  const foundUser = userLists.find(item => 
-    item.email === keyword || item.public_code === keyword
-  )
+  const [foundUser, setFoundUser] = useState<{
+    userId: string;
+    name: string;
+    //email: string;
+    image: string;
+    public_code: string;
+  } | null>(null)
+
+  const handleSearchUser = async (text: string) => {
+    setKeyword(text)
+    if(text.trim() === ''){
+      setFoundUser(null)
+      return;
+    }
+    const newFriend = await friend.searchUser(text)
+    setFoundUser(newFriend)
+  }
+
+  const goToDmRoom = async (friend_userId: string, friend_name: string) => {
+    const isFriend = await friend.checkIfWeAreFriend(friend_userId)
+    if(isFriend){
+      currentChat({
+        room_id: isFriend.friend_id,
+        type: 'dm',
+        name: friend_name,
+      })
+      router.push(`/chat/${isFriend.friend_id}`)
+    } else {
+      const dmRoom = await friend.createDmRoom(friend_userId)
+      if(!dmRoom) return
+
+      currentChat({
+        room_id: dmRoom.friend_id,
+        type: 'dm',
+        name: dmRoom.friend_name
+      })
+      router.push(`/chat/${dmRoom.friend_id}`)
+    }
+  }
 
   return (
     <View style={styles.bg} className="pt-14">
@@ -42,12 +69,12 @@ const Createroom = () => {
       <View style={styles.roomMain}>
         <View style={styles.searchWrap}>
           <Feather name="search" size={16} color="#7C7C7C" />
-          <TextInput placeholder="Enter your friend's Email or Public Code" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
+          <TextInput placeholder="Enter your friend's Public Code" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={handleSearchUser} style={styles.inputSearch} />
         </View>
         {keyword === '' ? null : foundUser ?
           <View style={styles.chatList}>
-            <TouchableOpacity onPress={() => goToRoom(foundUser.id)} style={styles.chatItem}>
-              <Image source={foundUser.image} style={styles.chatImg} resizeMode="cover" />
+            <TouchableOpacity onPress={() => goToDmRoom(foundUser.userId, foundUser.name)} style={styles.chatItem}>
+              <Image source={foundUser.image ? { uri: foundUser.image } : defalutImage.user } style={styles.chatImg} resizeMode="cover" />
               <Text style={styles.chatName}>{foundUser.name}</Text>
             </TouchableOpacity>
           </View>

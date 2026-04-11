@@ -4,6 +4,8 @@ import { create } from "zustand";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { Alert } from "react-native";
+import { makeRedirectUri } from "expo-auth-session";
+import * as WebBrowser from 'expo-web-browser';
 
 export interface User {
   id: string;
@@ -33,6 +35,8 @@ type Action = {
   findPassword: (email: string) => Promise<boolean>; // send otp
   verifyOtp: (email: string, token: string) => Promise<boolean>; // verify otp number
   resetPassword: (newPwd: string) => Promise<boolean>; // update password
+  onGoogleSignIn:()=>Promise<string|null>;
+  checkProvider:()=>Promise<string|null>
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -217,4 +221,111 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       return false;
     }
   },
+  onGoogleSignIn: async()=>{
+        try {
+          const redirectTo = makeRedirectUri()
+    
+          console.log('Redirect URI:', redirectTo)
+    
+          // 1. Ask Supabase for the Google login URL
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo,
+              skipBrowserRedirect: true, // we manually open the browser below
+            },
+          })
+    
+          console.log("data",data)
+    
+          if (error) {
+            console.log(error)
+            return null
+          }
+    
+          // 2. Open Google login page in browser
+          const result = await WebBrowser.openAuthSessionAsync(
+            data?.url ?? '',
+            redirectTo
+          )
+    
+          // 3. After user logs in, Google redirects back to your app
+          if (result.type !== 'success'){
+            return null
+          }
+            // const url = new URL(result.url)
+            // console.log("url",url)
+            const params = new URLSearchParams(result.url.split('#')[1])
+    
+            // 4. Extract tokens from the URL
+            const access_token = params.get('access_token')
+            const refresh_token = params.get('refresh_token')
+
+            // console.log("access_token",access_token)
+            // console.log("refresh_token",refresh_token)
+    
+            if (access_token && refresh_token) {
+              // 5. Set the session in Supabase
+              const data = await supabase.auth.setSession({
+                access_token,
+                refresh_token,
+              })
+    
+              if (data.error){
+                console.log("session error")
+                return null
+              }
+    
+              const {data:{user}} = await supabase.auth.getUser()
+              console.log("data",data)
+    
+              if(!user){
+                console.log("No User found in session")
+                return null
+              }
+              const userId = user.id
+              const profile = await get().fetchUserProfile(userId);
+
+              if(!profile){
+                console.log("Error getting profile")
+                return null
+              }
+              set({ user: {
+                id:profile.id,
+                email:profile.email,
+                name:profile.name,
+                public_code:profile.public_code,
+                login_type:user.app_metadata.provider ??"email",
+                profileImage:profile.profileImage,
+                onboardingCompleted:profile.onboardingCompleted
+              } });
+
+              console.log('Signed in successfully! set User info')
+              return 'Signed in successfully! set User info'
+            }else{
+              return null
+            }
+        } catch (error) {
+          console.log('Error signing in with Google:', error)
+          return null
+        }
+  },
+  checkProvider:async()=>{
+    try{
+      const {data:{user}} = await supabase.auth.getUser()
+
+      if(!user){
+        console.log("Logged in user not found")
+        return null
+      }
+
+      const provider = user.app_metadata.provider as string
+      
+      return provider
+
+    }catch(e){
+      console.log('Error getting provoder', e)
+      return null
+    }
+  }
 }));

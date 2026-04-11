@@ -1,5 +1,10 @@
 import { PollOption } from '@/app/(root)/event/[id]'
+import { Member } from '@/app/(root)/members/[id]'
+import { formatDateTime } from '@/libs/format'
 import { useMyEventStore } from '@/store/event.store'
+import { useEventStore } from '@/store/functions/event.store'
+import { usePollStore } from '@/store/functions/poll.store'
+import { useVoteStore } from '@/store/functions/vote.store'
 import { Link, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -12,54 +17,78 @@ type Props={
     options:PollOption[]
 }
 
-type Result={
-    poll_option:PollOption,
+export type Result={
+    poll_option_id:string,
+    label:string,
+    address?:string,
+    latitude?:number,
+    longitude?:number,
+    imgKey?:string,
+    url?:string,
     voteCount: number
 }
 
-const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
-    // const { userId} = useUserStore()
+const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
     const [selectedItem, setSelectedItem] = useState<string| null>(null)
     const [resultShown, setResultShown] = useState<boolean>(false)
     const [resutls, setResults] = useState<Result[]|null>(null)
+    const {createVoteForOption} = useVoteStore()
+    const {showPollResult,datePollResult,placePollResult}= useMyEventStore()
 
-
+    // If user has been voted showPollResult should be true
     useEffect(()=>{
-        let userId="user-1"
-        let myAnswer = false
-        let resultArr:Result[]=[]
-        poll.options.forEach(op=>{
-            if(op.votes){
-                const find = op.votes.find(vote=> vote.userId===userId)
-                if(find){
-                    const res = {
-                        poll_option:op,
-                        voteCount: op.votes.length
-                    }
-                    resultArr.push(res)
-                    
-                    myAnswer= true
-                }
-            }
-        })
+        setResultShown(showPollResult)
+        if(showPollResult){
 
-        // if user has been answered before, show results
-        if(myAnswer){
-            const sortResultArr = resultArr.sort((a,b)=> b.voteCount-a.voteCount)
-            setResults(sortResultArr)
-            setResultShown(true)
+            setResults(poll.type==="date"?datePollResult:placePollResult)
         }
-    },[])
+    },[showPollResult])
+
+    // useEffect(()=>{
+    //     let userId="user-1"
+    //     let myAnswer = false
+    //     let resultArr:Result[]=[]
+    //     poll.options.forEach(op=>{
+    //         if(op.votes){
+    //             const find = op.votes.find(vote=> vote.userId===userId)
+    //             if(find){
+    //                 const res = {
+    //                     poll_option_id:op.option_id,
+    //                     label:op.label,
+    //                     voteCount: op.votes.length
+    //                 }
+    //                 resultArr.push(res)
+                    
+    //                 myAnswer= true
+    //             }
+    //         }
+    //     })
+
+    //     // if user has been answered before, show results
+    //     if(myAnswer){
+    //         const sortResultArr = resultArr.sort((a,b)=> b.voteCount-a.voteCount)
+    //         setResults(sortResultArr)
+    //         setResultShown(true)
+    //     }
+    // },[])
 
     const handleSubmit =async()=>{
+        if(!selectedItem) return
         //Sending api request to update vote 
+        const res = await createVoteForOption(selectedItem, poll.id)
 
-        //fetch the results
+        console.log(res)
 
-        //dummy data
-        const newResults:Result[]= poll.options.map((o,i)=>({
-             poll_option:o,
-             voteCount:1+i,
+        if(!res){
+            console.log("null response")
+            return
+        }
+
+        // setting result
+        const newResults= res.map((o)=>({
+             poll_option_id:o.poll_option_id,
+             label:o.label,
+             voteCount:o.voteCount,
         }))
 
         //set it to resutls
@@ -108,9 +137,9 @@ const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
                         {poll.options.map(op=>(
                             <View
                             key={`options-${op.option_id}`}
-                            className='flex flex-row gap-6 items-center'>
+                            className='flex flex-row gap-4 items-center'>
                                 {/* Radio */}
-                                {selectedItem&&selectedItem===op.label?(
+                                {selectedItem&&selectedItem===op.option_id?(
                                 <TouchableOpacity
                                 onPress={()=>setSelectedItem(null)}>
                                     <View
@@ -126,7 +155,7 @@ const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
                                 </TouchableOpacity>):
                                     (<TouchableOpacity
                                     onPress={()=>{
-                                        setSelectedItem(op.label)
+                                        setSelectedItem(op.option_id)
                                     }}
                                     >
                                     <View
@@ -141,7 +170,7 @@ const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
                                 <View>
                                     <Text
                                     className='text-[18px] font-Lexend'>
-                                       {poll.type==="date"?`${op.label.split("T")[0]} ${op.label.split("T")[1]}`:
+                                       {poll.type==="date"?`${formatDateTime(new Date(op.label))}`:
                                        `${op.label}`
                                        }
                                     </Text>
@@ -170,7 +199,7 @@ const ActivePoll = ({poll,memberLen}:{poll:Props,memberLen:number}) => {
                     <ResultPoll
                     poll_id={poll.id}
                     type={poll.type}
-                    memberLen={memberLen}
+                    members={members}
                     results={resutls}
                     />:
                     <Text>
@@ -189,7 +218,7 @@ type ResultProps={
     poll_id:string,
     results:Result[]
     type:string,
-    memberLen:number
+    members:Member[]
 }
 
 const ResultPoll = (props:ResultProps)=>{
@@ -198,9 +227,16 @@ const ResultPoll = (props:ResultProps)=>{
     const [sortedResult, setSortedResult]= useState<Result[]>([])
     const [ total, setTotal] = useState<number>(0)
     const [isTie, setIsTie] = useState(false)
+    const [memberLen, setMemberLen] = useState<number>(0) 
+
+    const {updateEventById} = useEventStore()
+    const {updatePollById} = usePollStore()
     
 
     useEffect(()=>{
+
+        if(!props) return
+        setMemberLen(props.members.length)
 
         const sorted = props.results.sort((a,b)=>b.voteCount-a.voteCount)
 
@@ -218,34 +254,48 @@ const ResultPoll = (props:ResultProps)=>{
     // Change is_active in poll row
     const handleClosePoll =async()=>{
 
+        // update backend 
+        await updatePollById(props.poll_id)
+
         // triggger to update active poll
         setToggleEventRender()
     }
 
-    // update and close poll
+    // update event and close poll 
     const handleUpdate = async()=>{
-        const event_id=id
+        const eventId=id as string
         const winner = sortedResult[0]
+        const winner_option_id = winner.poll_option_id
         const type = props.type
         let updates;
+
+        // need to fetch poll_option detail by option id
         
         if(type === "date"){
             updates ={
-                date:new Date(winner.poll_option.label)
+                date:new Date(winner.label),
+                members:props.members
             } 
         }if( type==="place"){
             updates={
-                place_name:winner.poll_option.label,
-                address:winner.poll_option.address,
-                latitude:winner.poll_option.latitude,
-                longitude:winner.poll_option.longitude,
-                url: winner.poll_option.url?? null,
-                imgKey:winner.poll_option.imgKey?? null
+                place_name:winner.label,
+                address:winner.address,
+                latitude:winner.latitude,
+                longitude:winner.longitude,
+                url: winner.url,
+                imgKey:winner.imgKey,
+                members:props.members
             }
         }
 
-        // request to update event
+        if(!updates){
+            console.log("nothing to update")
+            return
+        }
 
+        // request to update event
+        const res = updateEventById(eventId,updates )
+        console.log("Event update by poll", res)
 
         // close poll
         await handleClosePoll()
@@ -256,7 +306,7 @@ const ResultPoll = (props:ResultProps)=>{
     const showAlert=()=>{
         Alert.alert(
             'Warning',
-            `${props.memberLen -total} member${props.memberLen -total!==1?"s have ":" has"} not voted yet.\n Do you want to update and close this poll?`,
+            `${memberLen -total} member${memberLen -total!==1?"s have ":" has"} not voted yet.\n Do you want to update and close this poll?`,
             [
                 {
                     text:'Cancel',
@@ -280,30 +330,34 @@ const ResultPoll = (props:ResultProps)=>{
         <View>
             {sortedResult.map(r=>(
                 <View
-                key={`result-op-${r.poll_option.option_id}`}
-                className='flex flex-row justify-between px-10 py-2'>
+                key={`result-op-${r.poll_option_id}`}
+                className='flex flex-row justify-between px-4 py-2'>
                     <Text
                     className='text-[18px] font-Lexend'>
-                        {props.type==="date"?`${r.poll_option.label.split("T")[0]} ${r.poll_option.label.split("T")[1]}`:
-                        `${r.poll_option.label}`
+                        {props.type==="date"?`${formatDateTime(new Date(r.label))}`:
+                        `${r.label}`
                         }
                     </Text>
 
                     <Text
                     className='text-[18px] font-Lexend'>
-                        {r.voteCount} / {props.memberLen}
+                        {r.voteCount} / {memberLen}
                     </Text>
                 </View>
             ))}
 
             {
-            total === props.memberLen && (
-                <TouchableOpacity onPress={isTie ? handleClosePoll : handleUpdate}>
-                    <Text>{isTie ? "Close Poll" : "Update and Close Poll"}</Text>
+            total === memberLen && (
+                <TouchableOpacity 
+                className='pt-12 w-fit mx-auto'
+                onPress={isTie ? handleClosePoll : handleUpdate}>
+                    <Text
+                    className='text-lg font-LexendSemiBold text-white py-2 px-4 bg-[#FF7600] rounded-lg'>
+                        {isTie ? "Close Poll" : "Update and Close Poll"}</Text>
                 </TouchableOpacity>
             )}
             {/* 60% of members voted, then show update and close poll with warning */}
-            {total/ props.memberLen >= 0.6&&(
+            {(total/ memberLen >= 0.6&&total !== memberLen)&&(
                 <TouchableOpacity
                 className='pt-12 w-fit mx-auto'
                 onPress={showAlert}>

@@ -1,6 +1,10 @@
 import { EventDetail } from '@/app/(root)/event/[id]';
+import { Member } from '@/app/(root)/members/[id]';
 import { defalutImage } from '@/constants';
+import { useMyChatStore } from '@/store/chat.store';
 import { useMyEventStore } from '@/store/event.store';
+import { useAuthStore } from '@/store/functions/auth.store';
+import { useFriendStore } from '@/store/functions/friend.store';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -9,6 +13,8 @@ import React from 'react';
 import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const DetailCard = ({event}:{event:EventDetail}) => {
+    const {user} = useAuthStore()
+    const {createDmRoom} = useFriendStore()
     const {setSelectedEvent} = useMyEventStore()
     let dateTime
     let day
@@ -26,6 +32,47 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         wod = new Intl.DateTimeFormat("en-CA", { weekday: "long"}).format(dateTime)
         hour = dateTime.getHours()
         mins = dateTime.getMinutes()
+    }
+
+    const currentChat = useMyChatStore(s => s.setCurrentRoom)
+
+    const handleDirectDmRoom = async(item:Member)=>{
+      let friend_id;
+
+      if(item.friend_id===user?.id){
+        console.log("You cannot message yourself")
+        return
+      }
+
+      if(!item.friend_id){
+        //create friend
+        const data = await createDmRoom(item.userId)
+
+        if(!data){
+          console.log("Error getting new dm room id")
+          return
+        }
+
+        friend_id=data.friend_id
+      }else{
+        friend_id= item.friend_id
+      }
+
+      currentChat({
+        room_id: friend_id,
+        type: 'dm',
+        name: item.name
+      })
+      router.push(`/chat/${friend_id}` as any)
+    }
+
+    const goToGroupChat = async () => {
+        currentChat({
+            room_id: event.id,
+            type: 'group',
+            name: event.name
+        })
+        router.push(`/chat/${event.id}` as any)
     }
 
   return (
@@ -114,7 +161,8 @@ const DetailCard = ({event}:{event:EventDetail}) => {
          className=' flex flex-row gap-12 items-center'>
             <View
             className='flex flex-row gap-1'>
-            {event.members.map(m=>(
+            {event.members.length>3 ? event.members.slice(0,3).map
+            (m=>(
                 <View
                 key={m.userId}>
                     <Image
@@ -127,26 +175,37 @@ const DetailCard = ({event}:{event:EventDetail}) => {
                     className='w-[75px] aspect-square rounded-full bg-gray-400'
                     /> */}
                 </View>
+            )):
+            event.members.map(m=>(
+                <TouchableOpacity
+                onPress={()=>handleDirectDmRoom(m)}
+                key={m.userId}>
+                    <Image
+                    className='w-[75px] aspect-square rounded-full'
+                    style={styles.picStyle}
+                    source={m.image ?{uri:m.image}:defalutImage.user}
+                    resizeMode='cover'
+                    />
+                </TouchableOpacity>
             ))}
             </View>
 
+            {event.members.length>3&&
             <Link
             href={`/members/${event.id}`}>
                 <Text>See More</Text>
-            </Link>
+            </Link>}
         </View>
       </View>
 
-      {/* <Link> */}
+
       <TouchableOpacity
-      onPress={()=>router.push(`/chat/${event.id}` as any)}>
+      onPress={()=>goToGroupChat()}>
         <Text
         className='text-lg text-center font-LexendSemiBold'>
-            Message memebres
+            Message in Group
         </Text>
       </TouchableOpacity>
-
-      {/* </Link> */}
     </View>
   )
 }

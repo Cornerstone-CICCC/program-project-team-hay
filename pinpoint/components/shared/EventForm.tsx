@@ -3,6 +3,7 @@ import { Member } from "@/app/(root)/members/[id]";
 import { defalutImage } from "@/constants";
 import { useMyEventStore } from "@/store/event.store";
 import { useAuthStore } from "@/store/functions/auth.store";
+import { useEventStore } from "@/store/functions/event.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -14,7 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import GoogleTextInput from "../GoogleTextInput";
 import DateTimeInput from "./DateTimeInput";
@@ -48,6 +49,7 @@ export interface Place {
 const EventForm = (props: Prop) => {
   const { user } = useAuthStore();
   const { members, setMembers, clearSelectedEvent} = useMyEventStore();
+  const [error, setError]=useState<string>("")
   const [eventForm, setEventForm] = useState<Omit<EventDetail, "id">>({
     name: "",
     date: new Date().toString(),
@@ -61,6 +63,7 @@ const EventForm = (props: Prop) => {
     },
     members: [], //add user (yourself initially)
   });
+  const {createEvent, updateEventById} = useEventStore()
 
   useEffect(() => {
     // rename props to event
@@ -77,12 +80,17 @@ const EventForm = (props: Prop) => {
       };
 
       if (eventForm.members.length > 0) return;
-      setEventForm((prev) => ({
+      let find:Member|undefined
+      let memberList:Member[]=[]
+      setEventForm((prev) => {
+        find = prev.members.find(m=>m.userId===myself.userId)
+        memberList = find? prev.members:[...prev.members, myself]
+        return   {
         ...prev,
-        members: [...prev.members, myself],
-      }));
+        members: memberList,
+      }});
       // set myself as member
-      setMembers([...members, myself]);
+      setMembers(memberList);
       return;
     }
 
@@ -117,6 +125,12 @@ const EventForm = (props: Prop) => {
       updated.setMonth(selected.getMonth());
       updated.setDate(selected.getDate());
 
+      // if(selected<new Date()){
+      //   setError("Hangout date needs to be date after today")
+      //   return
+      // }
+      // setError("")
+
       setEventForm((prev) => ({
         ...prev,
         date: updated.toString(),
@@ -138,6 +152,7 @@ const EventForm = (props: Prop) => {
 
   const locationSaveHandler = (place: Place) => {
     if (!place) return;
+    console.log(place)
     setEventForm((prev) => ({
       ...prev,
       place,
@@ -145,11 +160,33 @@ const EventForm = (props: Prop) => {
   };
 
   const submitEventForm = async () => {
-    if (eventForm.name.trim() !== "" || eventForm.members.length < 2) {
+    console.log("submit", eventForm);
+    if (eventForm.name.trim() === "" 
+    // || eventForm.members.length < 2
+  ) {
       console.log("Title is not entered or member is not added");
       return;
     }
     console.log("submit", eventForm);
+
+    const res=  await createEvent({
+      name:eventForm.name,
+      date: eventForm.date?new Date(eventForm.date):undefined,
+      place_name:eventForm.place?.place_name?? undefined,
+      address: eventForm.place?.address?? undefined,
+      latitude:eventForm.place?.latitude?? undefined,
+      longitude:eventForm.place?.longitude?? undefined,
+      url:eventForm.place?.url?? undefined,
+      imgKey:eventForm.place?.imgKey?? undefined,
+      members: eventForm.members
+    })
+
+    if(!res){
+      console.log("Error creating event")
+      return
+    }
+
+    const event_id = res.id
 
     //clearing the members
     setMembers([]);
@@ -166,14 +203,42 @@ const EventForm = (props: Prop) => {
       },
       members: [],
     });
+
+    router.push(`/(root)/event/${event_id}`)
   };
 
   const updateEvent = async () => {
+    console.log("update", eventForm)
+
+    if(!props.eventDetail) return
+    const id = props.eventDetail.id
+    const updates={
+      name:eventForm.name,
+      date: eventForm.date? new Date(eventForm.date): undefined,
+      place_nane: eventForm.place?.place_name,
+      address:eventForm.place?.address,
+      latitude:eventForm.place?.latitude,
+      longitude:eventForm.place?.longitude,
+      url:eventForm.place?.url,
+      imgKey:eventForm.place?.imgKey,
+      members:eventForm.members
+    }
+    // update backend
+    const res = updateEventById(
+      id,
+      updates
+    )
+    if(!res){
+      console.log("error updating")
+      return
+    }
+    console.log(res)
     clearSelectedEvent();
+    router.push(`/(root)/event/${id}`)
   };
 
   return (
-    <View className="pt-12 flex flex-col gap-12">
+    <View className="pt-12 flex flex-col gap-10">
       <View>
         <Text style={styles.headText}>Title</Text>
         <TextInput
@@ -226,6 +291,11 @@ const EventForm = (props: Prop) => {
           onDateChange={onDateChange}
           onTimeChange={onTimeChange}
         />
+        
+        <Text
+        className="text-md text-red-700 text-center pt-3">
+          {error}
+        </Text>
       </View>
       {/* Friends  */}
       <View>
@@ -334,8 +404,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(130,130,130,0.7)",
     borderRadius: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 2,
     paddingVertical: 2,
+    height:60,
     width: "100%",
     marginBottom: 8,
     zIndex: 100,

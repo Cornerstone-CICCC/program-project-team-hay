@@ -11,82 +11,56 @@ import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
-import { DummyChatList } from "@/dummy/ChatList";
-import { useAuthStore } from "@/store/functions/auth.store";
+import { useChatStore } from "@/store/functions/chat.store";
 
 type ChatType = "dm" | "group" | "past";
 
 interface ChatRoom {
-  room_id: string;
-  type: string;
-  name: string;
-  image?: string;
-  last_message?: string;
-  last_message_at?: string;
-  unread_count: number;
-  num_member?: number;
+  room_id: string,
+  type: "dm" | "group";
+  name: string,
+  image?: string,
+  last_message?: string,
+  last_message_at?: string,
+  unread_count?: number,
+  // num_member?: number,
 }
 
 const Chat = () => {
-  const { user } = useAuthStore();
-  const userId = user?.id;
+  const chat = useChatStore()
 
-  //
-  const USE_DUMMY = true;
-  //
-  const tabs: { label: string; value: ChatType }[] = [
-    { label: "DM", value: "dm" },
-    { label: "Group", value: "group" },
-    { label: "Past", value: "past" },
-  ];
+  const tabs: { label: string, value: ChatType }[] = [
+    { label: 'DM', value: 'dm' },
+    { label: 'Group', value: 'group' },
+    { label: 'Past', value: 'past' },
+  ]
 
-  const router = useRouter();
-  const [keyword, setKeyword] = useState<string>("");
-  const [chatList, setChatList] = useState<ChatRoom[]>([]);
-  const [activeTab, setActiveTab] = useState<ChatType>("dm");
+  const router = useRouter()
+  const [keyword, setKeyword] = useState<string>('')
+  const chatList = chat.rooms
+  const [activeTab, setActiveTab] = useState<ChatType>('dm')
 
   const fetchChats = async (tab: ChatType) => {
-    //
-    let data: ChatRoom[] = [];
-    if (USE_DUMMY) {
-      data = DummyChatList.filter((item) => {
-        switch (tab) {
-          case "dm":
-            return item.type === "dm";
-          case "group":
-            return item.type === "group";
-          case "past":
-            return item.type === "past";
-          default:
-            return item.type === "dm";
-        }
-      });
-    } else {
-      data = await getChatList(userId, tab);
-    }
-    //
-
-    // const data = await getChatList(userId, tab)
-    setChatList(
-      data.map((chat) => ({
-        ...chat,
-        unread_count: 0,
-      })),
-    );
-  };
+    await chat.getChatList(tab)
+  }
 
   const handleTabChange = (tab: ChatType) => {
     setActiveTab(tab);
   };
 
   useEffect(() => {
-    fetchChats(activeTab);
-  }, [activeTab]);
+    fetchChats(activeTab)
 
-  const filteredChats = chatList.filter((item) =>
-    item.name.toLowerCase().includes(keyword.toLowerCase()),
-  );
+    chat.subscribeChatList(activeTab)
+    return () => {
+      chat.unsubscribeChatList()
+    }
+  }, [activeTab])
 
+  const filteredChats = (chatList ?? []).filter(item => 
+    item.name.toLowerCase().includes(keyword.toLowerCase())
+  )
+  
   return (
     <ScrollView style={styles.container}>
       <View style={styles.chatTab}>
@@ -151,10 +125,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   chatHead: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexDirection: 'row',
     marginBottom: 10,
     gap: 34,
     minHeight: 40,
@@ -163,17 +136,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F3F3",
     borderRadius: 24,
     paddingHorizontal: 12,
-    paddingBlock: 9,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     height: "auto",
     gap: 7,
     flex: 1,
   },
   inputSearch: {
-    fontFamily: "Lexend-Regular",
+    fontFamily: 'Lexend-Regular',
+    fontSize: 16,
     width: "100%",
+    paddingBlock: 12,
   },
   chatCreate: {
     backgroundColor: "#FF7600",

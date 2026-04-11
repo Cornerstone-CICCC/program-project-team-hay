@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../store/functions/auth.store";
+
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuthStore } from "../../store/functions/auth.store";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const signUp = useAuthStore((s) => s.signUp);
+  const onGoogleSignIn = useAuthStore(s=>s.onGoogleSignIn)
 
   useEffect(() => {
     if (!confirmPwd) {
@@ -77,6 +79,23 @@ export default function SignupScreen() {
       setIsLoading(false);
     }
   };
+
+  const handleGoogleSignIn = async()=>{
+      try {
+      const res= await onGoogleSignIn();
+
+      if(!res){
+        return
+      }
+
+      router.push("../(root)/(tabs)/home");
+    } catch (err) {
+      Alert.alert("Error", "Failed to sign up. Please try again");
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView edges={["top", "bottom"]} className="px-5">
@@ -166,8 +185,8 @@ export default function SignupScreen() {
 
         <View className="mb-10 pb-10">
           <TouchableOpacity
-            className="flex flex-row justify-center items-center gap-3 rounded-md py-4 shadow-sm bg-white mb-5
-            "
+            className="flex flex-row justify-center items-center gap-3 rounded-md py-4 shadow-sm bg-white mb-5"
+            onPress={handleGoogleSignIn}
           >
             <Image
               source={require("../../assets/images/icon-auth/google_icon.png")}

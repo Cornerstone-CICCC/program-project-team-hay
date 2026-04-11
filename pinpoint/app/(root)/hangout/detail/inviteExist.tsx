@@ -2,16 +2,11 @@ import { useMyEventStore } from "@/store/event.store";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Member } from "../../members/[id]";
-
-// type Member = {
-//   userId: string,
-//   name: string,
-//   image: ImageSourcePropType,
-//   dm_id?: string,
-// }
+import { useFriendStore } from "@/store/functions/friend.store";
+import { defalutImage } from "@/constants";
 
 const InviteExist = () => {
   const router = useRouter()
@@ -20,19 +15,7 @@ const InviteExist = () => {
   }
 
   const {setMembers, members} = useMyEventStore()
-  // const [eventMember, setEventMember] = useState<Member[]>([])
 
-  // const toggleInvite = (member: Member) => {
-  //   setEventMember(prev => {
-  //     const exists = prev.some(m => m.userId === member.userId)
-  //     if(exists){
-  //       setMembers(prev.filter(m => m.userId !== member.userId))
-  //       return prev.filter(m => m.userId !== member.userId)
-  //     }
-  //     setMembers([...prev, member])
-  //     return [...prev, member]
-  //   })
-  // }
   const toggleInvite = (member: Member) => {
     const exists = members.some(m => m.userId === member.userId)
       if(exists){
@@ -46,12 +29,33 @@ const InviteExist = () => {
   const isInvited = (userId: string) => members.some(m => m.userId === userId)
 
   const [keyword, setKeyword] = useState<string>('')
-  const friendLists: Member[] = [
-    { userId: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John' },
-    { userId: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith' },
-    { userId: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry' },
-  ]
-  const filteredFriends = friendLists.filter(item => 
+  const friendStore = useFriendStore(s => s.getFriendsList)
+
+  const [friendLists, setFriendLists] = useState<{
+    friend_userId: string;
+    friend_name: string;
+    friend_image: string;
+    room_id: string;
+  }[] | null>([])
+
+  const getFriendsList = async () => {
+    const data = await friendStore()
+    if(data){
+      setFriendLists(data)
+    }
+  }
+  useEffect(() => {
+    getFriendsList()
+  }, [])
+
+  const formattedFriends: Member[] = (friendLists ?? []).map(item => ({
+    userId: item.friend_userId,
+    image: item.friend_image,
+    name: item.friend_name,
+    friend_id: item.room_id
+  }))
+
+  const filteredFriends = formattedFriends.filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
 
@@ -73,7 +77,7 @@ const InviteExist = () => {
         </View>
         <FlatList style={styles.chatList} data = {filteredFriends} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.userId} renderItem={({item}) => 
           <View style={styles.chatItem}>
-            <Image source={item.image as any} style={styles.chatImg} resizeMode="cover" />
+            <Image source={item.image ? { uri: item.image } : defalutImage.user } style={styles.chatImg} resizeMode="cover" />
             <Text style={styles.chatName}>{item.name}</Text>
             {isInvited(item.userId) ? 
               <TouchableOpacity onPress={() => toggleInvite(item)} style={styles.btnInvited}>

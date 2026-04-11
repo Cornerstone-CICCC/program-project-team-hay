@@ -20,8 +20,17 @@ type Props={
 const PlaceCard = ({place}:Props) => {
     const [googleImgUrl, setGoogleImgUrl] = useState<string>("")
 
-    // if place is not sent, then return empty card
-    if(!place){
+    useEffect(()=>{
+        if(!place) return
+
+        if(place.imgKey){
+        const url = getGoogleImgUrl(place.imgKey)
+        setGoogleImgUrl(url)
+        }
+    },[place])
+
+        // if place is not sent, then return empty card
+    if(!place ||(place&&place.address==="")){
         return(
             <View
             className='px-10 py-4'>
@@ -42,12 +51,6 @@ const PlaceCard = ({place}:Props) => {
         )
     }
 
-    useEffect(()=>{
-        if(!place.imgKey) return
-        const url = getGoogleImgUrl(place.imgKey)
-        setGoogleImgUrl(url)
-
-    },[place])
     return (
     <View
     className='px-10 py-4'>

@@ -1,7 +1,7 @@
 import { EventDetail } from '@/app/(root)/event/[id]'
 import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
-import { Link } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import { Link, useLocalSearchParams } from 'expo-router'
+import React from 'react'
 import { Platform, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 
@@ -11,12 +11,13 @@ const AvailablePreviewMap =({latitude, longitude}:{
   latitude:number,
   longitude:number
 })=>{
+  const {id} = useLocalSearchParams()
   return(
         <View
             className='py-4 w-full h-[180px] rounded-xl realtive'
             >
             <Link
-            href="/(root)/track/1"
+            href={`/(root)/track/${id}`}
             >
               {Platform.OS !== 'web'&&
                 <MapView

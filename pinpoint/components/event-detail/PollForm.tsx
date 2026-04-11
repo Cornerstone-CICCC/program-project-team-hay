@@ -1,12 +1,13 @@
 import { formatDateTime } from '@/libs/format';
 import { useMyEventStore } from '@/store/event.store';
+import { usePollStore } from '@/store/functions/poll.store';
 import { Accordion } from '@animatereactnative/accordion';
 import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Link } from 'expo-router';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import GoogleTextInput from '../GoogleTextInput';
 import DateTimeInput from '../shared/DateTimeInput';
 
@@ -27,30 +28,27 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
   const [showDatePicker, setShowDatePicker] = useState(true);
   const [msg, setMsg] = useState<string>("")
 
-  const onChange = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
-    if (event.type === 'set' && selected) {
-      setDate(selected);
-    }
-  };
 
     const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
 
-    if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
+        if (Platform.OS === 'android') 
+            return setShowDatePicker(false);  // auto-close on Android
         if (event.type === 'set' && selected) {
-            const updated = date?new Date(date):new Date()
+            console.log("selected",selected)
+            const updated = new Date(date)
             updated.setFullYear(selected.getFullYear())
             updated.setMonth(selected.getMonth())
             updated.setDate(selected.getDate())
+            console.log("update", updated)
 
             setDate(updated)
         }
     };
   
     const onTimeChange = (event: DateTimePickerEvent, selected?: Date)=>{
-    if (Platform.OS === 'android') setShowDatePicker(false);
+        if (Platform.OS === 'android') return setShowDatePicker(false);
         if (event.type === 'set' && selected) {
-            const updated = date?new Date(date):new Date()
+            const updated = new Date(date)
             updated.setHours(selected.getHours())
             updated.setMinutes(selected.getMinutes())
             setDate(updated)
@@ -70,6 +68,7 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
     }
 
     addOptions(prev=>[...prev, date])
+    setDate(new Date())
     setIsInputShown(false)
   }
 
@@ -92,10 +91,12 @@ const DateOptionInputs =({addOptions, setIsInputShown}:
                     onChange={onChange}
                 />
         )} */}
-        {showDatePicker &&<DateTimeInput
+        {showDatePicker &&
+        <DateTimeInput
         onDateChange={onDateChange}
         onTimeChange={onTimeChange}
-        type='poll'/>}
+        type='poll'
+        dateValue={date}/>}
         {msg&&
             <Text
             className='pt-2 text-red-700'>
@@ -136,28 +137,72 @@ const PlaceOptionInputs =({addOptions, setIsInputShown}:
 }
 
 
-const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, setError}:{
+const OptionLists =<T extends PollQuestion>({event_id,type,title, setQuestionDisable, setError, setIsAccordionOpen}:{
+    event_id:string,
     type:PollQuestion,
     title:string,
     setQuestionDisable:Dispatch<SetStateAction<boolean>>
     setError:Dispatch<SetStateAction<string>>
+    setIsAccordionOpen:Dispatch<SetStateAction<boolean>>
 })=>{
     type OptionLists = T extends "date" ?Date :PlaceOption
     const {setToggleEventRender} = useMyEventStore()
     const [isInputShown, setIsInputShown] = useState<boolean>(false)
     const [options, setOptions] = useState<OptionLists[]>([])
 
+    const {createNewPoll} = usePollStore()
+
     // request backend to create a poll with options
     const createPollHandler = async()=>{
         if(options.length<=1 && !title){
             return
         }
-        console.log(options)
+        console.log("options",options)
         try{
-            //POST request
+            const newPoll ={
+                title,
+                event_id,
+                type,
+            }
+
+            let pollOptions:{
+                label: string;
+                latitude?: number;
+                longitude?: number;
+                address?: string;
+                url?: string;
+                imgKey?: string;
+            }[]
+
+            if(type==="date"){
+                const dateOptions = options as Date[]
+                pollOptions= dateOptions.map(op=>({
+                    label:op.toString()
+                }))
+            }else if(type==="place"){
+                const placeOptions = options as PlaceOption[]
+                pollOptions = placeOptions.map(op=>({
+                    label:op.placeNeme,
+                    address:op.address,
+                    latitude:op.latitude,
+                    longitude:op.longitude,
+                    imgKey:op.imgKey,
+                    url:op.url
+                }))
+            }else{
+                console.log("There is no type passed")
+                return
+            }
+
+
+            // //POST request
+            const res = await createNewPoll(newPoll, pollOptions)
+
+            console.log("poll form response", res)
 
             //clear the options
             setOptions([])
+            setIsAccordionOpen(false)
 
             // toggle Event Render to triger rendering page
             setToggleEventRender()
@@ -204,18 +249,23 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
                             className='font-Lexend text-[1.2rem] mb-1'>
                                 {(option as PlaceOption).placeNeme.split(",")[0]}    
                             </Text>
-                            {/* <Text
-                            className='font-LexendLight text-md'
-                            >
-                            {(option as PlaceOption).placeNeme.split(",").slice(1,-1).join(",").trim()}
-                            </Text> */}
                             </View>
                             {(option as PlaceOption).url&&
-                            <Link
-                            className='font-Lexend text-gray-400'
-                            href={(option as PlaceOption).url as any}>
-                                See More
-                            </Link>}
+                            // <Link
+                            // href={(option as PlaceOption).url as any} asChild>
+                            //     <TouchableOpacity>
+                            //         <Text className='font-Lexend text-gray-400'>
+                            //             See More
+                            //         </Text>
+                            //     </TouchableOpacity>
+                            // </Link>
+                             <Text
+                                onPress={() => Linking.openURL((option as PlaceOption).url!)}
+                                style={{ color: '#9ca3af' }}
+                                >
+                                    See More
+                                </Text>
+                            }
                         </View>}
 
                         {/* remove btn */}
@@ -255,7 +305,7 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
                 </TouchableOpacity>)
             }
             {
-                options.length>0&&(
+                options.length>1&&(
                     <TouchableOpacity
                     disabled={options.length<=1}
                     onPress={createPollHandler}
@@ -271,11 +321,12 @@ const OptionLists =<T extends PollQuestion>({type,title, setQuestionDisable, set
     )
 }
 
-const PollForm = () => {
+const PollForm = ({id}:{id:string}) => {
     const [pollQuestion, setPollQuestion] = useState<PollQuestion|null>(null)
     const [questionDisable, setQuestionDisable] = useState<boolean>(false)
     const [question, setQuestion] = useState<string>("")
     const [error, setError] = useState<string>("")
+    const [isAccordionOpen, setIsAccordionOpen] = useState<boolean>(false)
 
     const defaultText={
             date:"What time should we meet?",
@@ -296,7 +347,12 @@ const PollForm = () => {
                 borderRadius:20
             }}
             className='py-6 px-4'>
-            <Accordion.Accordion>
+            <Accordion.Accordion
+            isOpen={isAccordionOpen}
+            onChange={(v)=>setIsAccordionOpen(v)}
+            layout={LinearTransition.duration(400)}
+            exiting={FadeOut.duration(300)}
+            style={{overflow:"hidden"}}>
                     <Accordion.Header>
                         <View
                         className='flex flex-row justify-between'>
@@ -308,82 +364,91 @@ const PollForm = () => {
                         </View>
                     </Accordion.Header>
 
-            <Accordion.Expanded>
-                <View
-                className='border-t-[#B0AAA5] py-6'>
-                    {/* poll question */}
+            <Accordion.Expanded
+            >
+                <Animated.View
+                exiting={FadeOut.duration(50)}
+                layout={LinearTransition}>
                     <View
-                    className='pb-6'>
-                        <Text
-                        className='text-lg pb-6 font-LexendSemiBold text-[#6B6560]'>
-                            POLL QUESTION
-                        </Text>
-
+                    className='border-t-[#B0AAA5] py-6'>
+                        {/* poll question */}
                         <View
-                        className='border-2 border-[#E2DDD8] rounded-2xl'>
-                            <TouchableOpacity
-                            disabled={questionDisable}
-                            onPress={()=>setPollQuestion("date")}
-                            className={`border-b-2 border-[#E2DDD8] ${pollQuestion==="date"?'bg-[rgba(9,37,104,0.5)]': "bg-[#FAFAF9]"} rounded-t-2xl`}>
-                                <Text
-                                className={`${pollQuestion==="date"?'text-white':'text-[#B0AAA5]'} font-Lexend`}
-                                style={styles.questionBox}>Date</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                            disabled={questionDisable}
-                            onPress={()=>setPollQuestion("place")}
-                            className={` ${pollQuestion==="place"?'bg-[rgba(9,37,104,0.5)]':'bg-[#FAFAF9]'} rounded-b-2xl`}>
-                                <Text
-                                className={`${pollQuestion==="place"?'text-white':'text-[#B0AAA5]'} font-Lexend`}
-                                style={styles.questionBox}>Place</Text>
-                            </TouchableOpacity>
+                        className='pb-6'>
+                            <Text
+                            className='text-lg pb-6 font-LexendSemiBold text-[#6B6560]'>
+                                POLL QUESTION
+                            </Text>
+
+                            <View
+                            className='border-2 border-[#E2DDD8] rounded-2xl'>
+                                <TouchableOpacity
+                                disabled={questionDisable}
+                                onPress={()=>setPollQuestion("date")}
+                                className={`border-b-2 border-[#E2DDD8] ${pollQuestion==="date"?'bg-[rgba(9,37,104,0.5)]': "bg-[#FAFAF9]"} rounded-t-2xl`}>
+                                    <Text
+                                    className={`${pollQuestion==="date"?'text-white':'text-[#B0AAA5]'} font-Lexend`}
+                                    style={styles.questionBox}>Date</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                disabled={questionDisable}
+                                onPress={()=>setPollQuestion("place")}
+                                className={` ${pollQuestion==="place"?'bg-[rgba(9,37,104,0.5)]':'bg-[#FAFAF9]'} rounded-b-2xl`}>
+                                    <Text
+                                    className={`${pollQuestion==="place"?'text-white':'text-[#B0AAA5]'} font-Lexend`}
+                                    style={styles.questionBox}>Place</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* question text input - showing if date or place has been chosen*/}
+                            {pollQuestion!==null&&
+                            <View
+                            className='mt-8 flex flex-row gap-2'
+                            style={styles.borderBox}>
+                                <Ionicons name="chatbubble-outline" size={20} color="#747688" />
+                                <TextInput
+                                value={question}
+                                placeholderTextColor="#ACACAC"
+                                onChangeText={setQuestion}
+                                style={styles.textInput}
+                                />
+                            </View>}
                         </View>
 
-                        {/* question text input - showing if date or place has been chosen*/}
-                        {pollQuestion!==null&&
-                        <View
-                        className='mt-8 flex flex-row gap-2'
-                        style={styles.borderBox}>
-                            <Ionicons name="chatbubble-outline" size={20} color="#747688" />
-                            <TextInput
-                            value={question}
-                            placeholderTextColor="#ACACAC"
-                            onChangeText={setQuestion}
-                            style={styles.textInput}
+                        {/* poll options */}
+                        <View>
+                            <Text
+                            className='text-lg pb-6 font-LexendSemiBold text-[#6B6560]'>
+                                POLL OPTIONS (MAX 3 OPTIONS)
+                            </Text>
+
+                            {pollQuestion==="date"?
+                            <OptionLists
+                            event_id={id}
+                            type='date'
+                            title={question}
+                            setQuestionDisable={setQuestionDisable}
+                            setError={setError}
+                            setIsAccordionOpen={setIsAccordionOpen}
+                            />:
+                            pollQuestion==="place"&&
+                            <OptionLists
+                            event_id={id}
+                            type='place'
+                            title={question}
+                            setQuestionDisable={setQuestionDisable}
+                            setError={setError}
+                            setIsAccordionOpen={setIsAccordionOpen}
                             />
+                            }
+                        </View>
+
+                        {/* Error */}
+                        {error&&
+                        <View>
+                            <Text>{error}</Text>
                         </View>}
                     </View>
-
-                    {/* poll options */}
-                    <View>
-                        <Text
-                        className='text-lg pb-6 font-LexendSemiBold text-[#6B6560]'>
-                            POLL OPTIONS (MAX 3 OPTIONS)
-                        </Text>
-
-                        {pollQuestion==="date"?
-                        <OptionLists 
-                        type='date'
-                        title={question}
-                        setQuestionDisable={setQuestionDisable}
-                        setError={setError}
-                        />:
-                        pollQuestion==="place"&&
-                        <OptionLists 
-                        type='place'
-                        title={question}
-                        setQuestionDisable={setQuestionDisable}
-                        setError={setError}
-                        />
-                        }
-                    </View>
-
-                    {/* Error */}
-                    {error&&
-                    <View>
-                        <Text>{error}</Text>
-                    </View>}
-                </View>
+                </Animated.View>
             </Accordion.Expanded>
             </Accordion.Accordion>
             </View>

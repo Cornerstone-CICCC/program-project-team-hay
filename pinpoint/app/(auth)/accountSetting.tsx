@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -9,13 +10,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as ImagePicker from "expo-image-picker";
 
 import { Feather } from "@react-native-vector-icons/feather";
-import { useAuthStore } from "../../store/functions/auth.store";
-import { uploadProfileImage } from "../../libs/supabase/storage";
-import { Image } from "expo-image";
 import MaterialIcons from "@react-native-vector-icons/material-icons";
+import { Image } from "expo-image";
+import { uploadProfileImage } from "../../libs/supabase/storage";
+import { useAuthStore } from "../../store/functions/auth.store";
 
 export default function AccountSetting() {
   const router = useRouter();
@@ -28,10 +28,13 @@ export default function AccountSetting() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+
   useEffect(() => {
     if (user?.name) {
       setName(user.name);
     }
+    console.log(user)
+
   }, [user]);
 
   useEffect(() => {}, [profileImage]);
@@ -228,7 +231,9 @@ export default function AccountSetting() {
           </Text>
         </View>
       </View>
-      <View className="mt-2 mb-8">
+      {
+        user?.login_type.toLocaleLowerCase().trim()==="email"&&
+        <View className="mt-2 mb-8">
         <TouchableOpacity
           className="flex items-center "
           onPress={() => router.push("/(auth)/changePassword")}
@@ -237,7 +242,7 @@ export default function AccountSetting() {
             Change Password?
           </Text>
         </TouchableOpacity>
-      </View>
+      </View>}
 
       <View className="mt-5">
         <TouchableOpacity

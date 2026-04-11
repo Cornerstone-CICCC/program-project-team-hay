@@ -1,7 +1,11 @@
+import { router } from "expo-router";
+import { supabase } from "../../libs/supabase/client";
+import { create } from "zustand";
+import Constants from "expo-constants";
+import * as Linking from "expo-linking";
+import { Alert } from "react-native";
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from 'expo-web-browser';
-import { create } from "zustand";
-import { supabase } from "../../libs/supabase/client";
 
 export interface User {
   id: string;
@@ -27,6 +31,10 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
+
+  findPassword: (email: string) => Promise<boolean>; // send otp
+  verifyOtp: (email: string, token: string) => Promise<boolean>; // verify otp number
+  resetPassword: (newPwd: string) => Promise<boolean>; // update password
   onGoogleSignIn:()=>Promise<string|null>;
   checkProvider:()=>Promise<string|null>
 };
@@ -151,6 +159,66 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     } catch (err) {
       console.error("Error changing password", err);
       throw err;
+    }
+  },
+  findPassword: async (email: string) => {
+    try {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(email)) {
+        alert("Please enter valid email.");
+        return false;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        console.log("Err:", error);
+        return false;
+      }
+
+      console.log("Password reset email sent!");
+      return true;
+    } catch (err) {
+      console.log("Error find password", err);
+      return false;
+    }
+  },
+  verifyOtp: async (email: string, token: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "recovery",
+      });
+
+      if (error) {
+        console.log("OTP verification failed:", error.message);
+        alert("Invalid or expired code.");
+        return false;
+      }
+
+      return !!data.session;
+    } catch (err) {
+      console.log("Error in verifyOtp:", err);
+      return false;
+    }
+  },
+  resetPassword: async (newPwd: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPwd,
+      });
+
+      if (error) {
+        Alert.alert("Password reset failed:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.log("Error in resetPassword:", err);
+      return false;
     }
   },
   onGoogleSignIn: async()=>{

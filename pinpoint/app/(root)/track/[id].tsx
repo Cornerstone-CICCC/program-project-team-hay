@@ -23,18 +23,18 @@ export interface MarkerData{
     friend_id?:string
 }
 
-export interface TrackEventDetail{
-    id: string //event id
-    name:string,
-    date:string,
-    place:{
-        place_name: string,
-        address: string,
-        latitude:number,
-        longitude:number,
-        url?:string,
-        imgKey?:string
-    },
+export interface TrackEventDetail {
+  id: string; //event id
+  name: string;
+  date: string;
+  place: {
+    place_name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    url?: string;
+    imgKey?: string;
+  };
 }
 
 const TrackingMAP = () => {
@@ -225,6 +225,7 @@ const TrackingMAP = () => {
             router.push(`/chat/${selectedMember.friend_id}` as any)
         }
     }
+  };
 
   return (
     <View
@@ -255,10 +256,10 @@ const TrackingMAP = () => {
         className='absolute top-0 w-full h-full bg-black/70 z-10'>
             <Text
             style={{
-                color:'white',
-                textAlign:'center',
-                top:'50%',
-                fontSize:20
+              color: "white",
+              textAlign: "center",
+              top: "50%",
+              fontSize: 20,
             }}
             >Tracking Pause</Text>
         </View>}
@@ -316,27 +317,43 @@ const TrackingMAP = () => {
                 }}
                 title='destination'
                 />
+              </View>
+              {/* Teardrop pointer */}
+              <View style={styles.markerPointer} />
+            </View>
+          </Marker>
+        ))}
+        {event && event.place.latitude && event.place.longitude && (
+          <>
+            <Marker
+              key="destination"
+              coordinate={{
+                latitude: event.place.latitude,
+                longitude: event.place.longitude,
+              }}
+              title="destination"
+            />
 
-                {/* direction line */}
-                {selectedMember&&
-                <MapViewDirections
+            {/* direction line */}
+            {selectedMember && (
+              <MapViewDirections
                 origin={{
-                    latitude:selectedMember.latitude,
-                    longitude:selectedMember.longitude
+                  latitude: selectedMember.latitude,
+                  longitude: selectedMember.longitude,
                 }}
                 destination={{
-                    latitude:event.place.latitude,
-                    longitude:event.place.longitude
+                  latitude: event.place.latitude,
+                  longitude: event.place.longitude,
                 }}
                 apikey={process.env.EXPO_PUBLIC_GOOGLE_API_KEY!}
-                strokeColor='#0286ff'
+                strokeColor="#0286ff"
                 strokeWidth={4}
                 mode="TRANSIT"
                 onReady={(result) => {
-                setRouteInfo({
-                    duration: Math.ceil(result.duration),   
-                    distance: result.distance,              
-                });
+                  setRouteInfo({
+                    duration: Math.ceil(result.duration),
+                    distance: result.distance,
+                  });
                 }}
                 onError={(err) => console.warn('Directions error:', err)}
                 />}
@@ -360,54 +377,54 @@ const TrackingMAP = () => {
                 </View>
                 )}
     </View>
-  )
-}
+  );
+};
 
-export default TrackingMAP
+export default TrackingMAP;
 
 const AVATAR_SIZE = 40;
 
 const styles = StyleSheet.create({
-    map:{
-        width:'100%',
-        height:'100%'
-    },
-    markerContainer: {
-    alignItems: 'center',
-    },
-    avatarRing: {
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  markerContainer: {
+    alignItems: "center",
+  },
+  avatarRing: {
     width: AVATAR_SIZE + 6,
     height: AVATAR_SIZE + 6,
     borderRadius: (AVATAR_SIZE + 6) / 2,
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    overflow: 'hidden',
+    borderColor: "#FFFFFF",
+    overflow: "hidden",
     // Shadow (iOS)
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
     // Shadow (Android)
     elevation: 8,
-    backgroundColor: '#fff',
-    },
-    avatarImage: {
+    backgroundColor: "#fff",
+  },
+  avatarImage: {
     width: AVATAR_SIZE,
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
-    },
-    markerPointer: {
+  },
+  markerPointer: {
     width: 0,
     height: 0,
     borderLeftWidth: 7,
     borderRightWidth: 7,
     borderTopWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#FFFFFF',
-    marginTop: -1,      // tuck flush under the ring
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "#FFFFFF",
+    marginTop: -1, // tuck flush under the ring
     // drop shadow on the pointer too
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

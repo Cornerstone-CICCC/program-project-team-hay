@@ -1,12 +1,19 @@
-import { useEffect, useState } from "react"
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
-import Feather from '@expo/vector-icons/Feather';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import { useEffect, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Feather from "@expo/vector-icons/Feather";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
 import { useChatStore } from "@/store/functions/chat.store";
 
-type ChatType = 'dm' | 'group' | 'past'
+type ChatType = "dm" | "group" | "past";
 
 interface ChatRoom {
   room_id: string,
@@ -38,8 +45,8 @@ const Chat = () => {
   }
 
   const handleTabChange = (tab: ChatType) => {
-    setActiveTab(tab)
-  }
+    setActiveTab(tab);
+  };
 
   useEffect(() => {
     fetchChats(activeTab)
@@ -57,25 +64,48 @@ const Chat = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.chatTab}>
-        {tabs.map(tab => {
-          const isActive = activeTab === tab.value
-          return(
-            <TouchableOpacity key={tab.value} onPress={() => handleTabChange(tab.value)} style={isActive ? styles.chatTabItemWrapCurrent : styles.chatTabItemWrap}>
-              <Text style={isActive ? styles.chatTabItemCurrent : styles.chatTabItem}>{tab.label}</Text>
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.value;
+          return (
+            <TouchableOpacity
+              key={tab.value}
+              onPress={() => handleTabChange(tab.value)}
+              style={
+                isActive
+                  ? styles.chatTabItemWrapCurrent
+                  : styles.chatTabItemWrap
+              }
+            >
+              <Text
+                style={
+                  isActive ? styles.chatTabItemCurrent : styles.chatTabItem
+                }
+              >
+                {tab.label}
+              </Text>
             </TouchableOpacity>
-          )
+          );
         })}
       </View>
       <View style={styles.chatHead}>
         <View style={styles.searchWrap}>
           <Feather name="search" size={16} color="#7C7C7C" />
-          <TextInput placeholder="Search..." placeholderTextColor='#7C7C7C' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
+          <TextInput
+            placeholder="Search..."
+            placeholderTextColor="#7C7C7C"
+            value={keyword}
+            onChangeText={setKeyword}
+            style={styles.inputSearch}
+          />
         </View>
-        {activeTab === 'dm' && 
-          <View style={styles.chatCreate} onTouchEnd={() => router.push('/chat/create')}>
+        {activeTab === "dm" && (
+          <View
+            style={styles.chatCreate}
+            onTouchEnd={() => router.push("/chat/create")}
+          >
             <AntDesign name="plus" size={24} color="white" />
           </View>
-        }
+        )}
       </View>
       <View style={styles.chatList}>
         {filteredChats.map((item) => (
@@ -83,16 +113,16 @@ const Chat = () => {
         ))}
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
-export default Chat
+export default Chat;
 
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingTop: 76,
-    backgroundColor: '#fff'
+    backgroundColor: "#fff",
   },
   chatHead: {
     justifyContent: 'space-between',
@@ -103,7 +133,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   searchWrap: {
-    backgroundColor: '#F3F3F3',
+    backgroundColor: "#F3F3F3",
     borderRadius: 24,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -119,48 +149,48 @@ const styles = StyleSheet.create({
     paddingBlock: 12,
   },
   chatCreate: {
-    backgroundColor: '#FF7600',
+    backgroundColor: "#FF7600",
     borderRadius: 20,
     width: 40,
     height: 40,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 4px 8px #3333334c',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 4px 8px #3333334c",
   },
   chatTab: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
     marginBottom: 18,
   },
   chatTabItemWrap: {
     borderRadius: 24,
-    borderStyle: 'solid',
+    borderStyle: "solid",
     borderWidth: 1,
-    borderColor: '#7c7c7c',
+    borderColor: "#7c7c7c",
     paddingBlock: 8,
     paddingHorizontal: 16,
   },
   chatTabItem: {
-    fontFamily: 'Lexend-Medium',
+    fontFamily: "Lexend-Medium",
     fontSize: 16,
-    color: '#333'
+    color: "#333",
   },
   chatTabItemWrapCurrent: {
     borderRadius: 24,
-    borderStyle: 'solid',
+    borderStyle: "solid",
     borderWidth: 1,
-    borderColor: '#092568',
-    backgroundColor: '#092568',
+    borderColor: "#092568",
+    backgroundColor: "#092568",
     paddingBlock: 8,
     paddingHorizontal: 16,
   },
   chatTabItemCurrent: {
-    fontFamily: 'Lexend-Medium',
+    fontFamily: "Lexend-Medium",
     fontSize: 16,
-    color: '#fff'
+    color: "#fff",
   },
   chatList: {
     marginBottom: 30,
   },
-})
+});

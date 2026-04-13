@@ -1,11 +1,15 @@
 import { useState } from "react"
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
-type SearchType = 'email' | 'public_code'
-const types: SearchType[] = ['email', 'public_code']
+// type SearchType = 'email' | 'public_code'
+// const types: SearchType[] = ['email', 'public_code']
+
+type SearchType = 'public_code'
+const types: SearchType[] = ['public_code']
 
 const InviteFriendType = () => {
-  const [activeType, setActiveType] = useState<SearchType>('email')
+  // const [activeType, setActiveType] = useState<SearchType>('email')
+  const [activeType, setActiveType] = useState<SearchType>('public_code')
 
   const onTypeChange = (type: SearchType) => {
     setActiveType(type)

@@ -6,37 +6,12 @@ import { useState } from "react";
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Member } from "../../members/[id]";
 import InviteFriendType from "@/components/InviteFriendType";
-
-type User = {
-  userId: string,
-  name: string,
-  image: string,
-  email: string,
-  public_code: string,
-}
-// type Member = {
-//   userId: string,
-//   name: string,
-//   image: ImageSourcePropType,
-//   dm_id?: string,
-// }
+import { useFriendStore } from "@/store/functions/friend.store";
 
 const InviteNew = () => {
   const router = useRouter()
 
-  const [eventMember, setEventMember] = useState<Member[]>([])
   const {setMembers,members} = useMyEventStore()
-  // const toggleInvite = (member: Member) => {
-  //   setEventMember(prev => {
-  //     const exists = prev.some(m => m.userId === member.userId)
-  //     if(exists){
-  //       setMembers(prev.filter(m => m.userId !== member.userId))
-  //       return prev.filter(m => m.userId !== member.userId)
-  //     }
-  //     setMembers([...prev, member])
-  //     return [...prev, member]
-  //   })
-  // }
 
   const toggleInvite = (member: Member) => {
     const exists = members.some(m => m.userId === member.userId)
@@ -48,21 +23,28 @@ const InviteNew = () => {
       }
   }
 
-  // const isInvited = (userId: string) => eventMember.some(m => m.userId === userId)
   const isInvited = (userId: string) => members.some(m => m.userId === userId)
 
   const [keyword, setKeyword] = useState<string>('')
-  const [users, setUsers] = useState<User[]>([])
-  const userLists: User[] = [
-    { userId: 'f01', image: require('../../../../assets/images/dummy02.png'), name: 'John', email: 'test01@gmail.com', public_code: '3e4r5t' },
-    { userId: 'f02', image: require('../../../../assets/images/dummy02.png'), name: 'Smith', email: 'test02@gmail.com', public_code: '2e4r5t' },
-    { userId: 'f03', image: require('../../../../assets/images/dummy02.png'), name: 'Harry', email: 'test03@gmail.com', public_code: '1e4r5t' },
-  ]
-  const foundUser = userLists.find(item => 
-    item.email === keyword || item.public_code === keyword
-  )
+  const [foundUser, setFoundUser] = useState<{
+    userId: string;
+    name: string;
+    //email: string;
+    image: string;
+    public_code: string;
+  } | null>(null)
 
-  
+  const searchUser = useFriendStore(s => s.searchUser)
+
+  const handleSearchUser = async (text: string) => {
+    setKeyword(text)
+    if(text.trim() === ''){
+      setFoundUser(null)
+      return;
+    }
+    const newMember = await searchUser(text)
+    setFoundUser(newMember)
+  }
 
   return (
     <View style={styles.bg} className="pt-[76px]">
@@ -78,7 +60,7 @@ const InviteNew = () => {
         <InviteFriendType />
         <View style={styles.searchWrap}>
           <Feather name="search" size={16} color="#7C7C7C" />
-          <TextInput placeholder="Search friend by email or public code" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={setKeyword} style={styles.inputSearch} />
+          <TextInput placeholder="Search friend by public code" placeholderTextColor='#7c7c7c' value={keyword} onChangeText={handleSearchUser} style={styles.inputSearch} />
         </View>
         {keyword === '' ? null : foundUser ? 
           <View style={styles.chatList}>

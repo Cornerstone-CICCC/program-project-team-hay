@@ -32,7 +32,7 @@ const Chat = () => {
   const tabs: { label: string, value: ChatType }[] = [
     { label: 'DM', value: 'dm' },
     { label: 'Group', value: 'group' },
-    { label: 'Past', value: 'past' },
+    { label: 'Past Events', value: 'past' },
   ]
 
   const router = useRouter()

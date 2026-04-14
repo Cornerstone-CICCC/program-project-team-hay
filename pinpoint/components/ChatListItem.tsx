@@ -4,8 +4,7 @@ import { useMyChatStore } from "@/store/chat.store"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
-
-type ChatType = 'dm' | 'group' | 'past'
+import moment from 'moment-timezone'
 
 type ChatItem = {
   room_id: string,
@@ -22,6 +21,8 @@ type Props = {
   data: ChatItem
 }
 
+const userTz = moment.tz.guess()
+
 const ChatListItem = ({ data }: Props) => {
   const router = useRouter()
   const currentChat = useMyChatStore(s => s.setCurrentRoom)
@@ -35,10 +36,13 @@ const ChatListItem = ({ data }: Props) => {
     router.push(`/chat/${data.room_id}`)
   }
 
-  const lastMsgDate = data.last_message_at ? new Date(data.last_message_at) : null
+  const lastMsgDate = data.last_message_at ? data.last_message_at : null
   const formattedDate = lastMsgDate ? (
-    `${lastMsgDate.getFullYear()}/${String(lastMsgDate.getMonth()+1).padStart(2,'0')}/${String(lastMsgDate.getDate()).padStart(2,'0')}/` +
-    `${String(lastMsgDate.getHours()).padStart(2,'0')}:${String(lastMsgDate.getMinutes()).padStart(2,'0')}`
+    moment.utc(data.last_message_at).tz(userTz).calendar(null, {
+      sameDay: 'HH:mm',
+      lastDay: '[Yesterday]',
+      sameElse: 'YYYY-MM-DD'
+    })
   ) : ''
   
   const [unreadCount, setUnreadCount] = useState<number>(0)

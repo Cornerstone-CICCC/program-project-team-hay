@@ -2,7 +2,9 @@ import { Tabs, useRouter } from "expo-router"
 import { Text, TouchableOpacity, View } from "react-native"
 import Feather from '@expo/vector-icons/Feather';
 
-const TabIcon =({ name, focused, label, createBtn = false }: { name: string, focused: boolean, label: string, createBtn?: boolean }) => {
+type FeatherIcon = React.ComponentProps<typeof Feather>['name']
+
+const TabIcon =({ name, focused, label, createBtn = false }: { name: FeatherIcon, focused: boolean, label: string, createBtn?: boolean }) => {
 
   return (
     <View className='pb-4' style={{ minWidth: 54 }}>
@@ -15,7 +17,7 @@ const TabIcon =({ name, focused, label, createBtn = false }: { name: string, foc
       >
         <Feather
           name={name}
-          size={22}
+          size={createBtn ? 28 : 22}
           color={createBtn ? '#fff' : focused ? '#FF7600' : '#333'}
         />
         {label.trim() && <Text style={{ color: focused ? '#FF7600' : '#333', fontFamily: 'Lexend-Medium', fontSize: 12, marginTop: 3 }}>{label}</Text>}
@@ -58,9 +60,9 @@ const Layout = () => {
       <Tabs.Screen
         name="hangout"
         options={{
-          title:'Hangout',
+          title:'Hangouts',
           headerShown:false,
-          tabBarIcon: ({focused}) => <TabIcon focused={focused} name='calendar' label='Hangout' />
+          tabBarIcon: ({focused}) => <TabIcon focused={focused} name='calendar' label='Hangouts' />
         }}
       />
       <Tabs.Screen
@@ -72,18 +74,28 @@ const Layout = () => {
             <TouchableOpacity
               onPress={() => router.push('/event/create-event')}
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                boxShadow: '0 4px 8px #3333334c',
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                // boxShadow: '0 4px 8px #3333334c',
+                // ios
+                shadowColor: '#333',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                // android
+                elevation: 5,
+                paddingTop: 12,
                 backgroundColor: '#FFA900',
                 marginBottom: 40,
                 alignItems: 'center',
                 justifyContent: 'center',
                 alignSelf: 'center',
-                paddingTop: 9,
-              }}>
-              <TabIcon focused={false} name='plus-square' label='' createBtn={true} />
+              }}
+            >
+              <View>
+                <TabIcon focused={false} name='plus-square' label='' createBtn={true} />
+              </View>
             </TouchableOpacity>
           )
         }}

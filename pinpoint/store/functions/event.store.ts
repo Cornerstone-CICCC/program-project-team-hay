@@ -159,6 +159,7 @@ export const useEventStore = create<Action>((set, get) => ({
         id: u.id,
         name: u.name,
         image: u.profile_image_url,
+        // isConfirmed
       })) || [];
 
     // get active polls

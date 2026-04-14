@@ -196,7 +196,7 @@ const TrackingMAP = () => {
 
         const startTrackingOthers = ()=>{
             fetchMembersLocation()
-            interval = setInterval(fetchMembersLocation, 30000)
+            interval = setInterval(fetchMembersLocation, 5000)
         }
 
         startTrackingMe()

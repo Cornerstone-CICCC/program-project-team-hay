@@ -15,7 +15,15 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Member } from "../members/[id]";
 
@@ -126,99 +134,98 @@ const EventDetail = () => {
   const { toggleEventRender } = useMyEventStore();
   const { id } = useLocalSearchParams();
   const { setUserLocation } = useMyLocationStore();
-  const {setShowPollResult, setDatePollResult, setPlacePollResult} = useMyEventStore()
+  const { setShowPollResult, setDatePollResult, setPlacePollResult } =
+    useMyEventStore();
   const [bgImg, setBgImg] = useState(images.defaultImg);
   const [hasPermission, setHasPermission] = useState(false);
   const [eventDetail, setEventDetail] = useState<null | EventDetail>();
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
-  const {createMyLocationRowForEvent} = useLocationStore()
-  const {fetchEventById}= useEventStore()
+  const { createMyLocationRowForEvent } = useLocationStore();
+  const { fetchEventById } = useEventStore();
 
   //fetching data
   useEffect(() => {
     console.log(user);
-    if(!id ||!user) return
+    if (!id || !user) return;
     //Fetching event detail from id
-    const fetchEventDetail = async()=>{
-      const eventDetail = await fetchEventById(id as string)
+    const fetchEventDetail = async () => {
+      const eventDetail = await fetchEventById(id as string);
 
-      if(!eventDetail){
-        console.log("There is no event detail with this id")
-        return
+      if (!eventDetail) {
+        console.log("There is no event detail with this id");
+        return;
       }
-      
-      // check if the user has been voted for active poll and set results 
-      if(eventDetail.activePoll){
-        if(!eventDetail.activePoll) return
-        setShowPollResult(false)
-        let results:Result[] =[]
-        eventDetail.activePoll.map(poll=>{
-          if(poll.type==="date"){
-          poll.options.map(op=>{
-            console.log("options",op)
-            results.push({
-              poll_option_id:op.option_id,
-              label:op.label,
-              voteCount:op.votes?.length??0
-            })
-              op.votes?.map(v=>{
-                  if(v.userId === user.id){
-                    console.log("you voted")
-                    setShowPollResult(true)
-                  }
-                })
-            })
-            setDatePollResult(results)
-          }else if(poll.type==="place"){
-            poll.options.map(op=>{
-            console.log("options",op)
-            results.push({
-              poll_option_id:op.option_id,
-              label:op.label,
-              address:op.address,
-              latitude:op.latitude,
-              longitude:op.longitude,
-              imgKey:op.imgKey,
-              url:op.url,
-              voteCount:op.votes?.length??0
-            })
-              op.votes?.map(v=>{
-                  if(v.userId === user.id){
-                    console.log("you voted")
-                    setShowPollResult(true)
-                  }
-                })
-            })
-            setPlacePollResult(results)
+
+      // check if the user has been voted for active poll and set results
+      if (eventDetail.activePoll) {
+        if (!eventDetail.activePoll) return;
+        setShowPollResult(false);
+        let results: Result[] = [];
+        eventDetail.activePoll.map((poll) => {
+          if (poll.type === "date") {
+            poll.options.map((op) => {
+              console.log("options", op);
+              results.push({
+                poll_option_id: op.option_id,
+                label: op.label,
+                voteCount: op.votes?.length ?? 0,
+              });
+              op.votes?.map((v) => {
+                if (v.userId === user.id) {
+                  console.log("you voted");
+                  setShowPollResult(true);
+                }
+              });
+            });
+            setDatePollResult(results);
+          } else if (poll.type === "place") {
+            poll.options.map((op) => {
+              console.log("options", op);
+              results.push({
+                poll_option_id: op.option_id,
+                label: op.label,
+                address: op.address,
+                latitude: op.latitude,
+                longitude: op.longitude,
+                imgKey: op.imgKey,
+                url: op.url,
+                voteCount: op.votes?.length ?? 0,
+              });
+              op.votes?.map((v) => {
+                if (v.userId === user.id) {
+                  console.log("you voted");
+                  setShowPollResult(true);
+                }
+              });
+            });
+            setPlacePollResult(results);
           }
-        }
-        )
+        });
       }
 
       setEventDetail({
-        id:eventDetail.id,
-        name:eventDetail.name,
-        place:eventDetail.place,
-        date:eventDetail.date,
-        members:eventDetail.members.map(mem=>({
-          userId:mem.id,
-          name:mem.name,
-          image:mem.image
+        id: eventDetail.id,
+        name: eventDetail.name,
+        place: eventDetail.place,
+        date: eventDetail.date,
+        members: eventDetail.members.map((mem) => ({
+          userId: mem.id,
+          name: mem.name,
+          image: mem.image,
         })),
-        activePoll:eventDetail.activePoll
+        activePoll: eventDetail.activePoll,
       });
-  
+
       const bgImage = fetchEventBgImage(eventDetail.name);
       setBgImg(bgImage);
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    fetchEventDetail()
+    fetchEventDetail();
   }, [id, toggleEventRender]);
 
   useEffect(() => {
-
     const requestLocation = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -227,20 +234,20 @@ const EventDetail = () => {
       }
 
       let location = await Location.getCurrentPositionAsync();
- 
+
       // check if user has user location for this event
       const result = createMyLocationRowForEvent({
-        event_id:id as string,
+        event_id: id as string,
         latitude: location.coords.latitude,
-        longitude:location.coords.longitude
-      })
-      
-      if(!result){
-        console.log("error creating location row")
-        return
+        longitude: location.coords.longitude,
+      });
+
+      if (!result) {
+        console.log("error creating location row");
+        return;
       }
 
-      console.log(result)
+      console.log(result);
 
       setUserLocation({
         latitude: location.coords.latitude,
@@ -251,14 +258,14 @@ const EventDetail = () => {
     requestLocation();
   }, []);
 
-  if(isLoading){
-    return(
-    <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, styles.horizontal]}>
-        <ActivityIndicator size="large" color="#FF7600" />
-      </SafeAreaView>
-    </SafeAreaProvider>
-    )
+  if (isLoading) {
+    return (
+      <SafeAreaProvider>
+        <SafeAreaView style={[styles.container, styles.horizontal]}>
+          <ActivityIndicator size="large" color="#FF7600" />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    );
   }
 
   if (!eventDetail) {
@@ -273,14 +280,10 @@ const EventDetail = () => {
           </Text>
           <View></View>
         </View>
-        <View
-        className="pt-16">
-          <Text
-          className="text-center">
-            Nothing To Show
-          </Text>
+        <View className="pt-16">
+          <Text className="text-center">Nothing To Show</Text>
         </View>
-    </View>
+      </View>
     );
   }
 
@@ -301,7 +304,7 @@ const EventDetail = () => {
                 resizeMode="cover"
               />
               <View className="absolute top-[4rem] flex flex-row justify-between items-center w-full px-4 py-3">
-                <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/home")}>
+                <TouchableOpacity onPress={() => router.back()}>
                   <AntDesign name="arrow-left" size={30} color="black" />
                 </TouchableOpacity>
                 <Text className="justify-self-center text-3xl font-LexendBold">
@@ -323,7 +326,10 @@ const EventDetail = () => {
                 />
               ))}
             {!(eventDetail.date && new Date() > new Date(eventDetail.date)) && ( // if current date is over, then not show the poll Form
-              <PollForm id={id as string} />
+              <PollForm
+                id={id as string}
+                activePoll={eventDetail.activePoll ?? null}
+              />
             )}
             <PlaceCard place={eventDetail.place} />
             <TrackPreview event={eventDetail} />
@@ -334,16 +340,15 @@ const EventDetail = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems:'center'
+    justifyContent: "center",
+    alignItems: "center",
   },
   horizontal: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     padding: 10,
   },
 });

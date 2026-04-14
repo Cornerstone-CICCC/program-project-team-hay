@@ -15,7 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import GoogleTextInput from "../GoogleTextInput";
 import DateTimeInput from "./DateTimeInput";
@@ -48,8 +48,18 @@ export interface Place {
 
 const EventForm = (props: Prop) => {
   const { user } = useAuthStore();
-  const { members, setMembers, clearSelectedEvent} = useMyEventStore();
-  const [error, setError]=useState<string>("")
+  const { members, setMembers, clearSelectedEvent } = useMyEventStore();
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isTimeTBD, setIsTimeTBD] = useState<boolean>(false)
+  const [error, setError] = useState<{
+    title: string;
+    date: string;
+    member: string;
+  }>({
+    title: "",
+    date: "",
+    member: "",
+  });
   const [eventForm, setEventForm] = useState<Omit<EventDetail, "id">>({
     name: "",
     date: new Date().toString(),
@@ -63,7 +73,7 @@ const EventForm = (props: Prop) => {
     },
     members: [], //add user (yourself initially)
   });
-  const {createEvent, updateEventById} = useEventStore()
+  const { createEvent, updateEventById } = useEventStore();
 
   useEffect(() => {
     // rename props to event
@@ -80,15 +90,16 @@ const EventForm = (props: Prop) => {
       };
 
       if (eventForm.members.length > 0) return;
-      let find:Member|undefined
-      let memberList:Member[]=[]
+      let find: Member | undefined;
+      let memberList: Member[] = [];
       setEventForm((prev) => {
-        find = prev.members.find(m=>m.userId===myself.userId)
-        memberList = find? prev.members:[...prev.members, myself]
-        return   {
-        ...prev,
-        members: memberList,
-      }});
+        find = prev.members.find((m) => m.userId === myself.userId);
+        memberList = find ? prev.members : [...prev.members, myself];
+        return {
+          ...prev,
+          members: memberList,
+        };
+      });
       // set myself as member
       setMembers(memberList);
       return;
@@ -114,6 +125,13 @@ const EventForm = (props: Prop) => {
         ...prev,
         members: [...members],
       }));
+
+      if (members.length > 1) {
+        setError((prev) => ({
+          ...prev,
+          member: "",
+        }));
+      }
     }
   }, [members]);
 
@@ -152,7 +170,7 @@ const EventForm = (props: Prop) => {
 
   const locationSaveHandler = (place: Place) => {
     if (!place) return;
-    console.log(place)
+    console.log(place);
     setEventForm((prev) => ({
       ...prev,
       place,
@@ -160,33 +178,42 @@ const EventForm = (props: Prop) => {
   };
 
   const submitEventForm = async () => {
-    console.log("submit", eventForm);
-    if (eventForm.name.trim() === "" 
-    // || eventForm.members.length < 2
-  ) {
-      console.log("Title is not entered or member is not added");
+    const validationErrors = {
+      title: eventForm.name.trim() === "" ? "Title cannot be empty" : "",
+      date: eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
+      member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" : "",
+    };
+
+    const hasErrors = Object.values(validationErrors).some(Boolean);
+
+    setError(validationErrors);
+
+    if (hasErrors) {
+      console.log("One of errors triggered");
       return;
     }
+    setIsLoading(true)
     console.log("submit", eventForm);
 
-    const res=  await createEvent({
-      name:eventForm.name,
-      date: eventForm.date?new Date(eventForm.date):undefined,
-      place_name:eventForm.place?.place_name?? undefined,
-      address: eventForm.place?.address?? undefined,
-      latitude:eventForm.place?.latitude?? undefined,
-      longitude:eventForm.place?.longitude?? undefined,
-      url:eventForm.place?.url?? undefined,
-      imgKey:eventForm.place?.imgKey?? undefined,
-      members: eventForm.members
-    })
+    try{
+      const res = await createEvent({
+      name: eventForm.name,
+      date: eventForm.date ? new Date(eventForm.date) : undefined,
+      place_name: eventForm.place?.place_name ?? undefined,
+      address: eventForm.place?.address ?? undefined,
+      latitude: eventForm.place?.latitude ?? undefined,
+      longitude: eventForm.place?.longitude ?? undefined,
+      url: eventForm.place?.url ?? undefined,
+      imgKey: eventForm.place?.imgKey ?? undefined,
+      members: eventForm.members,
+    });
 
-    if(!res){
-      console.log("Error creating event")
-      return
+    if (!res) {
+      console.log("Error creating event");
+      return;
     }
 
-    const event_id = res.id
+    const event_id = res.id;
 
     //clearing the members
     setMembers([]);
@@ -203,42 +230,65 @@ const EventForm = (props: Prop) => {
       },
       members: [],
     });
+    setIsLoading(false)
+    router.push(`/(root)/event/${event_id}`);
+    }catch(error){
+      console.log(error)
+      setIsLoading(false)
+    }
 
-    router.push(`/(root)/event/${event_id}`)
   };
 
   const updateEvent = async () => {
-    console.log("update", eventForm)
+    console.log("update", eventForm);
 
-    if(!props.eventDetail) return
-    const id = props.eventDetail.id
-    const updates={
-      name:eventForm.name,
-      date: eventForm.date? new Date(eventForm.date): undefined,
-      place_nane: eventForm.place?.place_name,
-      address:eventForm.place?.address,
-      latitude:eventForm.place?.latitude,
-      longitude:eventForm.place?.longitude,
-      url:eventForm.place?.url,
-      imgKey:eventForm.place?.imgKey,
-      members:eventForm.members
+    if (!props.eventDetail) return;
+    const id = props.eventDetail.id;
+
+    const validationErrors = {
+      title: eventForm.name.trim() === "" ? "Title cannot be empty" : "",
+      date: eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
+      member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" : "",
+    };
+
+    const hasErrors = Object.values(validationErrors).some(Boolean);
+
+    setError(validationErrors);
+
+    if (hasErrors) {
+      console.log("One of errors triggered");
+      return;
     }
-    // update backend
-    const res = updateEventById(
-      id,
-      updates
-    )
-    if(!res){
-      console.log("error updating")
-      return
+    setIsLoading(true)
+    try{
+        const updates = {
+          name: eventForm.name,
+          date: eventForm.date ? new Date(eventForm.date) : undefined,
+          place_nane: eventForm.place?.place_name,
+          address: eventForm.place?.address,
+          latitude: eventForm.place?.latitude,
+          longitude: eventForm.place?.longitude,
+          url: eventForm.place?.url,
+          imgKey: eventForm.place?.imgKey,
+          members: eventForm.members,
+        };
+        // update backend
+        const res = updateEventById(id, updates);
+        if (!res) {
+          console.log("error updating");
+          return;
+        }
+        console.log(res);
+        clearSelectedEvent();
+        router.push(`/(root)/event/${id}`);
+    }catch(error){
+      console.log(error)
+      setIsLoading(false)
     }
-    console.log(res)
-    clearSelectedEvent();
-    router.push(`/(root)/event/${id}`)
   };
 
   return (
-    <View className="pt-12 flex flex-col gap-10">
+    <View className="pt-12 flex flex-col gap-6">
       <View>
         <Text style={styles.headText}>Title</Text>
         <TextInput
@@ -246,6 +296,12 @@ const EventForm = (props: Prop) => {
           placeholder="Enter hangout title"
           placeholderTextColor="#ACACAC"
           onChangeText={(text) => {
+            if (text.trim() !== "") {
+              setError((prev) => ({
+                ...prev,
+                title: "",
+              }));
+            }
             setEventForm((prev) => ({
               ...prev,
               name: text,
@@ -253,6 +309,10 @@ const EventForm = (props: Prop) => {
           }}
           style={styles.textIput}
         />
+        <Text
+        style={styles.errorText}>
+          {error.title}
+        </Text>
       </View>
 
       {/* Location */}
@@ -290,11 +350,39 @@ const EventForm = (props: Prop) => {
           eventForm={eventForm}
           onDateChange={onDateChange}
           onTimeChange={onTimeChange}
+          isTimeTBD={isTimeTBD}
         />
-        
+
+        <View
+        className="flex flex-row gap-2 pt-3 px-1">
+          <TouchableOpacity
+        onPress={() => {
+            if (isTimeTBD) {
+                setIsTimeTBD(false);
+            } else {
+                setIsTimeTBD(true);
+                setEventForm(prev => ({ ...prev, date: undefined }));
+            }
+        }}
+    >
+        <View
+            style={{ borderColor: "grey" }}
+            className='w-[18px] aspect-square rounded-full border border-[#848484] flex items-center justify-center'
+        >
+            {isTimeTBD && (
+                <View className='w-[12px] aspect-square rounded-full bg-[#848484]' />
+            )}
+        </View>
+    </TouchableOpacity>
+          <Text>
+              Not decided yet
+          </Text>
+
+        </View>
+
         <Text
-        className="text-md text-red-700 text-center pt-3">
-          {error}
+        style={styles.errorText}>
+          {error.date}
         </Text>
       </View>
       {/* Friends  */}
@@ -333,24 +421,31 @@ const EventForm = (props: Prop) => {
             <AntDesign name="plus" size={30} color="#092568" />
           </TouchableOpacity>
         </View>
+
+        <Text
+        style={styles.errorText}>
+          {error.member}
+        </Text>
       </View>
 
       {props.eventDetail ? (
         <TouchableOpacity
+          disabled={isLoading}
           onPress={updateEvent}
           className="py-4 bg-[#FF7600] rounded-2xl"
         >
           <Text className="text-white text-xl text-center font-LexendMedium">
-            Save
+            {isLoading?"Saving...":"Save"}
           </Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
+          disabled={isLoading}
           onPress={submitEventForm}
           className="py-4 bg-[#FF7600] rounded-2xl"
         >
           <Text className="text-white text-xl text-center font-LexendMedium">
-            Create
+            {isLoading?"Creating...":"Create"}
           </Text>
         </TouchableOpacity>
       )}
@@ -366,7 +461,7 @@ const styles = StyleSheet.create({
     fontWeight: "medium",
     fontSize: 23,
     color: "#595959",
-    paddingBottom: 15,
+    paddingBottom: 10,
   },
 
   textIput: {
@@ -406,7 +501,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 2,
     paddingVertical: 2,
-    height:60,
+    height: 60,
     width: "100%",
     marginBottom: 8,
     zIndex: 100,
@@ -419,4 +514,9 @@ const styles = StyleSheet.create({
     borderColor: "rgba(130,130,130,0.7)",
     borderWidth: 1,
   },
+  errorText:{
+    paddingTop:16,
+    color:'#b91c1c',
+    fontSize:14
+  }
 });

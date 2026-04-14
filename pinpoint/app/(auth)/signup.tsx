@@ -70,8 +70,11 @@ export default function SignupScreen() {
       await signUp(email, password, name);
       // logging user in
 
-      // after logging in, direct user to home
-      router.push("../(root)/(tabs)/home");
+      router.push({
+        pathname: "/(auth)/signupOtp",
+        params: { email: email },
+      });
+      
     } catch (err) {
       Alert.alert("Error", "Failed to sign up. Please try again");
       console.error(err);
@@ -197,15 +200,6 @@ export default function SignupScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row justify-center items-center gap-3 rounded-md py-4 bg-black">
-            <Image
-              source={require("../../assets/images/icon-auth/apple_icon.png")}
-              style={{ width: 20, height: 20 }}
-            />
-            <Text className="text-white font-LexendSemiBold text-lg">
-              Continue with Apple
-            </Text>
-          </TouchableOpacity>
         </View>
 
         <TouchableOpacity

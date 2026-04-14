@@ -9,7 +9,7 @@ interface EventOverview {
   address?: string;
 }
 
-type EventFilter = "upcoming" | "today" | "tomorrow" | "week" | "past";
+type EventFilter = "upcoming" | "today" | "tomorrow" | "week" | "past"; // add "invited"
 
 type Action = {
   getEventList: (

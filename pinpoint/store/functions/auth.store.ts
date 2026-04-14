@@ -3,6 +3,10 @@ import * as WebBrowser from "expo-web-browser";
 import { Alert } from "react-native";
 import { create } from "zustand";
 import { supabase } from "../../libs/supabase/client";
+import { useRouter } from "expo-router";
+
+
+const router = useRouter()
 
 export interface User {
   id: string;
@@ -28,12 +32,12 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
-
   findPassword: (email: string) => Promise<boolean>; // send otp
   verifyOtp: (email: string, token: string) => Promise<boolean>; // verify otp number
   resetPassword: (newPwd: string) => Promise<boolean>; // update password
   onGoogleSignIn: () => Promise<string | null>;
   checkProvider: () => Promise<string | null>;
+  verifySignUpOtp: (email: string, token: string) => Promise<boolean>
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -106,10 +110,7 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       throw error;
     }
 
-    if (data.user) {
-      const profile = await get().fetchUserProfile(data.user.id);
-      set({ user: profile });
-    }
+    
   },
   updateUser: async (userData: Partial<User>) => {
     const user = get().user;
@@ -193,6 +194,21 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         console.log("OTP verification failed:", error.message);
         alert("Invalid or expired code.");
         return false;
+      }
+
+      if(data.user) {
+        const provider = data.user.app_metadata.provider
+
+        if(provider !== 'email'){
+          Alert.alert("Social Account Detected", 
+          `This account is linked with ${provider}. Please sign in using your ${provider} account, as password reset is not available for social logins.`,
+          [{ text: "OK" }]
+          )
+
+          await supabase.auth.signOut()
+          router.push("/(auth)/login")
+          return false
+        }
       }
 
       return !!data.session;
@@ -330,4 +346,24 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       return null;
     }
   },
+  verifySignUpOtp: async(email, token) => {
+    try{
+      const {data, error} = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "signup"
+      })
+      if(error) throw error
+
+      if (data.user) {
+        const profile = await get().fetchUserProfile(data.user.id);
+        set({ user: profile });
+        return true
+      }
+      return false
+    }catch(err){
+      console.error("verify SignUp Otp Error", err)
+      return false
+    }
+  }
 }));

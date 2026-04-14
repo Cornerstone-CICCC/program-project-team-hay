@@ -20,7 +20,8 @@ interface EventOverview {
   date?: string;
   address?: string;
 }
-type EventFilter = "upcoming" | "today" | "tomorrow" | "week" | "past";
+// type EventFilter = 'invited' | "upcoming" | "today" | "tomorrow" | "week" | "past";
+type EventFilter =  "upcoming" | "today" | "tomorrow" | "week" | "past";
 type TabState = {
   events: EventOverview[];
   lastCursor: string | null;
@@ -30,6 +31,7 @@ const Hangout = () => {
   const event = useEventListStore()
 
   const tabs: { label: string; value: EventFilter }[] = [
+    // { label: 'Need actions', value: 'invited' },
     { label: "Upcoming", value: "upcoming" },
     { label: "Today", value: "today" },
     { label: "Tomorrow", value: "tomorrow" },
@@ -44,6 +46,7 @@ const Hangout = () => {
   const [hangoutsByTab, setHangoutsByTab] = useState<
     Record<EventFilter, TabState>
   >({
+    // invited: { events: [], lastCursor: null },
     upcoming: { events: [], lastCursor: null },
     today: { events: [], lastCursor: null },
     tomorrow: { events: [], lastCursor: null },

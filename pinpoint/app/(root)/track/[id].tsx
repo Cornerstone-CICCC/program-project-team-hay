@@ -169,65 +169,141 @@ const TrackingMAP = () => {
       setAvailable(true);
     }
 
-    // updating my location to backend
-    const userLocation = {
-      event_id: id as string,
-      latitude: userLatitude,
-      longitude: userLongitude,
-    };
-    updateMyLocation(userLocation);
+    //Geting destination latitude and logitude and set it to place and initial region
+    //Setting markers on map 
+    useEffect(()=>{
+        // make sure the user allow us to locate
+        const requestLocation = async()=>{
+            let {status} = await Location.requestForegroundPermissionsAsync()
+            if(status!=='granted'){
+            return
+            }
+    
+            let location =await Location.getCurrentPositionAsync()
+            setUserLocation({
+            latitude:location.coords.latitude,
+            longitude:location.coords.longitude,
+            })
+        }      
+        requestLocation()
 
-    fetchMembersLocation();
-  }, [id, userLatitude, userLongitude, isTrackAvailable]);
+        if(!id||!userLatitude || !userLongitude) return
+        console.log(id)
 
-  //fetching all people's location every 30s after isTrackavailable until everyone arrives or user close
-  useEffect(() => {
-    if (!event || !available) return;
+        // Fetch event data with location
+        const fetchDestinationDetail = async()=>{
+            const data = await fetchLocationDetailByID(id as string)
 
-    let subscriber: Location.LocationSubscription;
-    let interval: number;
+            if(!data){
+                console.log("No event location detail")
+                return
+            }
+            console.log("location",data.place)
+            // fetch location and set to setEvent
+            setEvent(data)
+            // calculate initial Region for map
+            const initialRegion = calculateRegion({
+                userLatitude,
+                userLongitude,
+                destinationLatitude: data.place.latitude,
+                destinationLongitude: data.place.longitude
+            })
 
-    //start
-    const startTrackingMe = async () => {
-      subscriber = await Location.watchPositionAsync(
-        {
-          timeInterval: 3000,
-          distanceInterval: 10,
-        },
-        (location) => {
-          setUserLocation({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          });
-        },
-      );
-    };
+            console.log("initial region", initialRegion)
 
-    const startTrackingOthers = () => {
-      fetchMembersLocation();
-      interval = setInterval(fetchMembersLocation, 30000);
-    };
+            setRegion(initialRegion)
+        }
 
-    startTrackingMe();
-    startTrackingOthers();
+        fetchDestinationDetail()
+        
+        // const data ={
+        // id: "1",
+        // name: "Coffee Meetup",
+        // date: "2026-03-23T10:00",
+        // place:{
+        //     place_name: "Startbucks Coffee Company",
+        //     address: "West Pender Street, Vancouver, BC, Canada",
+        //     latitude:49.28463,
+        //     longitude:-123.1151,
+        //     url:"https://maps.google.com/?cid=1502409917068404389",
+        //     imgKey:'ATCDNfVapP_-XKGN0BYKcnl9NhZMg9WgA0RmeHFqX1zlnr-HVeOTZ-Aw8AijXxpnUXIEVmruHq5QH3NUkpAkeGtCiSHvkw1_vsxYFWCdsEM-2Cq6fFGa3jL-ybRal_Ov2QhfqXUrWx-rlUoJ1u2Q2p3VRZCZuh45rLUNXB-VSQS4bXYcHHkbgKzVfuKoLqtseNT3LWwEUxj7qjU4R83qi0Iwxg1udk_Qr1lJo76_Y7gXi4Ub8Tnqw728alXwm79vxGlEjtseQL_Pd1c3Y2YqHXPXsNwoTbYD3ata0OJW2SYnYyJyZM9L9E3ieJh1owZZJU3dQn8nwZLcOasSRHfi2qCzwBChinx3eEkVMtKq71c7cNvQdCWeeK0gQr3Njhdt33Ddrtj4grIZJm-3AMsR9jqSWygGVDNIU7fou9vGehVwpHJNQw'
+        // },
+        // }
 
-    return () => {
-      subscriber?.remove();
-      clearInterval(interval);
-    };
-  }, [isTrackAvailable, event, available]);
+        // // check if the time is track available if not redirect back
+        // const isTrackAvailable = useIsTrackAvailable(data.date)
+        if(!isTrackAvailable){
+            console.log("Cannot track right now")
+        }else{
+            setAvailable(true)
+        }
 
-  useEffect(() => {
-    console.log("routeInfo", routeInfo);
-    console.log("selectedMember", selectedMember);
-  }, [routeInfo, selectedMember]);
+        // updating my location to backend
+        const userLocation ={
+            event_id: id as string,
+            latitude: userLatitude,
+            longitude: userLongitude
+        }
+        updateMyLocation(userLocation)
 
-  const handleMessage = async () => {
-    // if selected member does not have friend_id
-    if (!selectedMember?.friend_id) {
-      // create friend by sending userId and friend_userId
-    } else {
-      router.push(`/chat/${selectedMember.friend_id}` as any);
+        fetchMembersLocation()
+
+    },[id, userLatitude, userLongitude, isTrackAvailable])
+
+   //fetching all people's location every 30s after isTrackavailable until everyone arrives or user close
+    useEffect(()=>{
+
+        if(!event || !available) return
+
+        let subscriber: Location.LocationSubscription
+        let interval:number
+
+        //start
+        const startTrackingMe = async()=>{
+            subscriber = await Location.watchPositionAsync(
+                {
+                    timeInterval:3000,
+                    distanceInterval:10
+                },
+                (location)=>{
+                    setUserLocation({
+                        latitude:location.coords.latitude,
+                        longitude:location.coords.longitude
+                    })
+                }
+            )
+        }
+
+        const startTrackingOthers = ()=>{
+            fetchMembersLocation()
+            interval = setInterval(fetchMembersLocation, 5000)
+        }
+
+        startTrackingMe()
+        startTrackingOthers()
+
+        return ()=>{
+            subscriber?.remove()
+            clearInterval(interval)
+        }
+    },[isTrackAvailable, event, available])
+
+    useEffect(()=>{
+        console.log("routeInfo", routeInfo)
+        console.log("selectedMember", selectedMember)
+    },[routeInfo, selectedMember])
+
+
+
+
+    const handleMessage= async()=>{
+        
+        // if selected member does not have friend_id
+        if(!selectedMember?.friend_id){
+            // create friend by sending userId and friend_userId
+        }else{
+            router.push(`/chat/${selectedMember.friend_id}` as any)
+        }
     }
   };
 

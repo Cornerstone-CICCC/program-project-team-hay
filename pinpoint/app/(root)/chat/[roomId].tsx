@@ -17,8 +17,8 @@ type Message = {
 }
 
 export const options = {
-  headerShown: false
-}
+  headerShown: false,
+};
 
 const Chatroom = () => {
   const router = useRouter()
@@ -99,15 +99,15 @@ const Chatroom = () => {
   const userId = useAuth?.id
   const event_id = type === 'group' ? room_id : null
   const goToEventDetail = () => {
-    router.push(`/event/${event_id}`)
-  }
+    router.push(`/event/${event_id}`);
+  };
 
   const [message, setMessage] = useState<string>('')
 
   return (
     <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.bg} className="pt-14">
         <View style={styles.roomHead}>
@@ -144,7 +144,7 @@ const Chatroom = () => {
             <TextInput
               multiline
               placeholder="Type message here..."
-              placeholderTextColor='#7C7C7C'
+              placeholderTextColor="#7C7C7C"
               value={message}
               onChangeText={setMessage}
               style={styles.inputMsg}
@@ -154,126 +154,123 @@ const Chatroom = () => {
             </View>
           </View>
         </View>
-        
       </View>
     </KeyboardAvoidingView>
-  )
-}
+  );
+};
 
-export default Chatroom
+export default Chatroom;
 
 const styles = StyleSheet.create({
   bg: {
-    backgroundColor: '#FF7600',
+    backgroundColor: "#FF7600",
     flex: 1,
-    position: 'relative'
+    position: "relative",
   },
   roomHead: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
     paddingBlock: 18,
     paddingHorizontal: 14,
   },
   roomName: {
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: "Montserrat-Bold",
     fontSize: 22,
-    color: '#fff'
+    color: "#fff",
   },
   roomMain: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 20,
     paddingTop: 28,
     marginBottom: 80,
-    flex: 1
+    flex: 1,
   },
   msgWrap: {
     gap: 16,
   },
   msgFrom: {
-    display: 'flex',
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
     gap: 12,
-    maxWidth: '80%',
+    maxWidth: "80%",
     marginBottom: 16,
   },
   msgImg: {
     width: 56,
     height: 56,
     borderRadius: 56 / 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   msgFromTxtWrap: {
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
   msgFromTxt: {
-    backgroundColor: '#F3F3F3',
-    fontFamily: 'Lexend-Regular',
+    backgroundColor: "#F3F3F3",
+    fontFamily: "Lexend-Regular",
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     padding: 14,
     borderRadius: 30,
     borderTopLeftRadius: 0,
   },
   msgTime: {
-    fontFamily: 'Lexend-Medium',
+    fontFamily: "Lexend-Medium",
     fontSize: 12,
-    color: '#7C7C7C',
+    color: "#7C7C7C",
     marginTop: 5,
   },
-  msgToTxtWrap: {
-
-  },
+  msgToTxtWrap: {},
   msgTo: {
-    maxWidth: '80%',
-    marginLeft: 'auto',
+    maxWidth: "80%",
+    marginLeft: "auto",
     marginBottom: 16,
   },
   msgToTxt: {
-    backgroundColor: '#092568',
-    fontFamily: 'Lexend-Regular',
+    backgroundColor: "#092568",
+    fontFamily: "Lexend-Regular",
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     padding: 14,
     borderRadius: 30,
-    borderBottomRightRadius: 0
+    borderBottomRightRadius: 0,
   },
   roomBottom: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     padding: 20,
     zIndex: 50,
-    width: '100%',
-    backgroundColor: '#fff'
+    width: "100%",
+    backgroundColor: "#fff",
   },
   sendWrap: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 28,
     paddingHorizontal: 14,
     paddingBlock: 7,
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 7,
-    boxShadow: '0 0 14px 3px rgba(51, 51, 51, .12)',
-    width: '100%',
+    boxShadow: "0 0 14px 3px rgba(51, 51, 51, .12)",
+    width: "100%",
   },
   inputMsg: {
     flex: 1,
     fontSize: 16,
   },
   sendIcon: {
-    backgroundColor: '#FFA900',
+    backgroundColor: "#FFA900",
     width: 40,
     height: 40,
     borderRadius: 40 / 2,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }
-})
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

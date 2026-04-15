@@ -1,7 +1,12 @@
 import { makeRedirectUri } from "expo-auth-session";
-import * as WebBrowser from 'expo-web-browser';
+import * as WebBrowser from "expo-web-browser";
+import { Alert } from "react-native";
 import { create } from "zustand";
 import { supabase } from "../../libs/supabase/client";
+import { useRouter } from "expo-router";
+
+
+const router = useRouter()
 
 export interface User {
   id: string;
@@ -27,8 +32,12 @@ type Action = {
     oldPwd: string,
     newPwd: string,
   ) => Promise<void>;
-  onGoogleSignIn:()=>Promise<string|null>;
-  checkProvider:()=>Promise<string|null>
+  findPassword: (email: string) => Promise<boolean>; // send otp
+  verifyOtp: (email: string, token: string) => Promise<boolean>; // verify otp number
+  resetPassword: (newPwd: string) => Promise<boolean>; // update password
+  onGoogleSignIn: () => Promise<string | null>;
+  checkProvider: () => Promise<string | null>;
+  verifySignUpOtp: (email: string, token: string) => Promise<boolean>
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -101,10 +110,7 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       throw error;
     }
 
-    if (data.user) {
-      const profile = await get().fetchUserProfile(data.user.id);
-      set({ user: profile });
-    }
+    
   },
   updateUser: async (userData: Partial<User>) => {
     const user = get().user;
@@ -153,111 +159,211 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       throw err;
     }
   },
-  onGoogleSignIn: async()=>{
-        try {
-          const redirectTo = makeRedirectUri()
-    
-          console.log('Redirect URI:', redirectTo)
-    
-          // 1. Ask Supabase for the Google login URL
-          const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo,
-              skipBrowserRedirect: true, // we manually open the browser below
-            },
-          })
-    
-          console.log("data",data)
-    
-          if (error) {
-            console.log(error)
-            return null
-          }
-    
-          // 2. Open Google login page in browser
-          const result = await WebBrowser.openAuthSessionAsync(
-            data?.url ?? '',
-            redirectTo
-          )
-    
-          // 3. After user logs in, Google redirects back to your app
-          if (result.type !== 'success'){
-            return null
-          }
-            // const url = new URL(result.url)
-            // console.log("url",url)
-            const params = new URLSearchParams(result.url.split('#')[1])
-    
-            // 4. Extract tokens from the URL
-            const access_token = params.get('access_token')
-            const refresh_token = params.get('refresh_token')
+  findPassword: async (email: string) => {
+    try {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-            // console.log("access_token",access_token)
-            // console.log("refresh_token",refresh_token)
-    
-            if (access_token && refresh_token) {
-              // 5. Set the session in Supabase
-              const data = await supabase.auth.setSession({
-                access_token,
-                refresh_token,
-              })
-    
-              if (data.error){
-                console.log("session error")
-                return null
-              }
-    
-              const {data:{user}} = await supabase.auth.getUser()
-              console.log("data",data)
-    
-              if(!user){
-                console.log("No User found in session")
-                return null
-              }
-              const userId = user.id
-              const profile = await get().fetchUserProfile(userId);
-
-              if(!profile){
-                console.log("Error getting profile")
-                return null
-              }
-              set({ user: {
-                id:profile.id,
-                email:profile.email,
-                name:profile.name,
-                public_code:profile.public_code,
-                login_type:user.app_metadata.provider ??"email",
-                profileImage:profile.profileImage,
-                onboardingCompleted:profile.onboardingCompleted
-              } });
-
-              console.log('Signed in successfully! set User info')
-              return 'Signed in successfully! set User info'
-            }else{
-              return null
-            }
-        } catch (error) {
-          console.log('Error signing in with Google:', error)
-          return null
-        }
-  },
-  checkProvider:async()=>{
-    try{
-      const {data:{user}} = await supabase.auth.getUser()
-
-      if(!user){
-        console.log("Logged in user not found")
-        return null
+      if (!emailRegex.test(email)) {
+        alert("Please enter valid email.");
+        return false;
       }
 
-      const provider = user.app_metadata.provider as string
-      
-      return provider
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
 
-    }catch(e){
-      console.log('Error getting provoder', e)
-      return null
+      if (error) {
+        console.log("Err:", error);
+        return false;
+      }
+
+      console.log("Password reset email sent!");
+      return true;
+    } catch (err) {
+      console.log("Error find password", err);
+      return false;
+    }
+  },
+  verifyOtp: async (email: string, token: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "recovery",
+      });
+
+      if (error) {
+        console.log("OTP verification failed:", error.message);
+        alert("Invalid or expired code.");
+        return false;
+      }
+
+      if(data.user) {
+        const provider = data.user.app_metadata.provider
+
+        if(provider !== 'email'){
+          Alert.alert("Social Account Detected", 
+          `This account is linked with ${provider}. Please sign in using your ${provider} account, as password reset is not available for social logins.`,
+          [{ text: "OK" }]
+          )
+
+          await supabase.auth.signOut()
+          router.push("/(auth)/login")
+          return false
+        }
+      }
+
+      return !!data.session;
+    } catch (err) {
+      console.log("Error in verifyOtp:", err);
+      return false;
+    }
+  },
+  resetPassword: async (newPwd: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPwd,
+      });
+
+      if (error) {
+        Alert.alert("Password reset failed:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.log("Error in resetPassword:", err);
+      return false;
+    }
+  },
+  onGoogleSignIn: async () => {
+    try {
+      const redirectTo = makeRedirectUri();
+
+      console.log("Redirect URI:", redirectTo);
+
+      // 1. Ask Supabase for the Google login URL
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true, // we manually open the browser below
+        },
+      });
+
+      console.log("data", data);
+
+      if (error) {
+        console.log(error);
+        return null;
+      }
+
+      // 2. Open Google login page in browser
+      const result = await WebBrowser.openAuthSessionAsync(
+        data?.url ?? "",
+        redirectTo,
+      );
+
+      // 3. After user logs in, Google redirects back to your app
+      if (result.type !== "success") {
+        return null;
+      }
+      // const url = new URL(result.url)
+      // console.log("url",url)
+      const params = new URLSearchParams(result.url.split("#")[1]);
+
+      // 4. Extract tokens from the URL
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+
+      // console.log("access_token",access_token)
+      // console.log("refresh_token",refresh_token)
+
+      if (access_token && refresh_token) {
+        // 5. Set the session in Supabase
+        const data = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+
+        if (data.error) {
+          console.log("session error");
+          return null;
+        }
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        console.log("data", data);
+
+        if (!user) {
+          console.log("No User found in session");
+          return null;
+        }
+        const userId = user.id;
+        const profile = await get().fetchUserProfile(userId);
+
+        if (!profile) {
+          console.log("Error getting profile");
+          return null;
+        }
+        set({
+          user: {
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+            public_code: profile.public_code,
+            login_type: user.app_metadata.provider ?? "email",
+            profileImage: profile.profileImage,
+            onboardingCompleted: profile.onboardingCompleted,
+          },
+        });
+
+        console.log("Signed in successfully! set User info");
+        return "Signed in successfully! set User info";
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.log("Error signing in with Google:", error);
+      return null;
+    }
+  },
+  checkProvider: async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.log("Logged in user not found");
+        return null;
+      }
+
+      const provider = user.app_metadata.provider as string;
+
+      return provider;
+    } catch (e) {
+      console.log("Error getting provoder", e);
+      return null;
+    }
+  },
+  verifySignUpOtp: async(email, token) => {
+    try{
+      const {data, error} = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "signup"
+      })
+      if(error) throw error
+
+      if (data.user) {
+        const profile = await get().fetchUserProfile(data.user.id);
+        set({ user: profile });
+        return true
+      }
+      return false
+    }catch(err){
+      console.error("verify SignUp Otp Error", err)
+      return false
     }
   }
 }));

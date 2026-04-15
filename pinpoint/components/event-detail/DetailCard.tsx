@@ -1,71 +1,79 @@
-import { EventDetail } from "@/app/(root)/event/[id]";
-import { Member } from "@/app/(root)/members/[id]";
-import { defalutImage } from "@/constants";
-import { useMyEventStore } from "@/store/event.store";
-import { useAuthStore } from "@/store/functions/auth.store";
-import { useFriendStore } from "@/store/functions/friend.store";
-import Feather from "@expo/vector-icons/Feather";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Link, router } from "expo-router";
-import React from "react";
-import {
-    Image,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { EventDetail } from '@/app/(root)/event/[id]';
+import { Member } from '@/app/(root)/members/[id]';
+import { defalutImage } from '@/constants';
+import { useMyChatStore } from '@/store/chat.store';
+import { useMyEventStore } from '@/store/event.store';
+import { useAuthStore } from '@/store/functions/auth.store';
+import { useFriendStore } from '@/store/functions/friend.store';
+import Feather from '@expo/vector-icons/Feather';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Link, router } from 'expo-router';
+import React from 'react';
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const DetailCard = ({ event }: { event: EventDetail }) => {
-  const { user } = useAuthStore();
-  const { createDmRoom } = useFriendStore();
-  const { setSelectedEvent } = useMyEventStore();
-  let dateTime;
-  let day;
-  let month;
-  let year;
-  let wod;
-  let hour;
-  let mins;
+const DetailCard = ({event}:{event:EventDetail}) => {
+    const {user} = useAuthStore()
+    const {createDmRoom} = useFriendStore()
+    const {setSelectedEvent} = useMyEventStore()
+    let dateTime
+    let day
+    let month 
+    let year 
+    let wod 
+    let hour 
+    let mins
 
-  if (event.date) {
-    dateTime = new Date(event.date);
-    day = dateTime.getDate();
-    month = dateTime.toLocaleString("en-CA", { month: "long" });
-    year = dateTime.getFullYear();
-    wod = new Intl.DateTimeFormat("en-CA", { weekday: "long" }).format(
-      dateTime,
-    );
-    hour = dateTime.getHours();
-    mins = dateTime.getMinutes();
-  }
-
-  const handleDirectDmRoom = async (item: Member) => {
-    let friend_id;
-
-    if (item.friend_id === user?.id) {
-      console.log("You cannot message yourself");
-      return;
+    if(event.date){
+        dateTime = new Date(event.date)
+        day = dateTime.getDate()
+        month = dateTime.toLocaleString("en-CA", { month: "long" })
+        year = dateTime.getFullYear()
+        wod = new Intl.DateTimeFormat("en-CA", { weekday: "long"}).format(dateTime)
+        hour = dateTime.getHours()
+        mins = dateTime.getMinutes()
     }
 
-    if (!item.friend_id) {
-      //create friend
-      const data = await createDmRoom(item.userId);
+    const currentChat = useMyChatStore(s => s.setCurrentRoom)
 
-      if (!data) {
-        console.log("Error getting new dm room id");
-        return;
+    const handleDirectDmRoom = async(item:Member)=>{
+      let friend_id;
+
+      if(item.friend_id===user?.id){
+        console.log("You cannot message yourself")
+        return
       }
+
+      if(!item.friend_id){
+        //create friend
+        const data = await createDmRoom(item.userId)
+
+        if(!data){
+          console.log("Error getting new dm room id")
+          return
+        }
 
       friend_id = data.friend_id;
     } else {
       friend_id = item.friend_id;
     }
+      currentChat({
+        room_id: friend_id,
+        type: 'dm',
+        name: item.name
+      })
+      router.push(`/chat/${friend_id}` as any)
+    }
 
-    router.push(`/chat/${friend_id}` as any);
-  };
+    const goToGroupChat = async () => {
+        currentChat({
+            room_id: event.id,
+            type: 'group',
+            name: event.name
+        })
+        router.push(`/chat/${event.id}` as any)
+    }
+
   return (
     <View className="px-9 py-6 flex gap-8">
       <View className="w-full flex flex-row justify-end">
@@ -189,9 +197,12 @@ const DetailCard = ({ event }: { event: EventDetail }) => {
         </View>
       </View>
 
-      <TouchableOpacity onPress={() => router.push(`/chat/${event.id}` as any)}>
-        <Text className="text-lg text-center font-LexendSemiBold">
-          Message in Group
+
+      <TouchableOpacity
+      onPress={()=>goToGroupChat()}>
+        <Text
+        className='text-lg text-center font-LexendSemiBold'>
+            Message in Group
         </Text>
       </TouchableOpacity>
     </View>

@@ -7,6 +7,7 @@ import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "reac
 import { Member } from "../../members/[id]";
 import InviteFriendType from "@/components/InviteFriendType";
 import { useFriendStore } from "@/store/functions/friend.store";
+import { defalutImage } from "@/constants";
 
 const InviteNew = () => {
   const router = useRouter()
@@ -65,7 +66,7 @@ const InviteNew = () => {
         {keyword === '' ? null : foundUser ? 
           <View style={styles.chatList}>
             <View style={styles.chatItem}>
-              <Image source={foundUser.image as any} style={styles.chatImg} resizeMode="cover" />
+              <Image source={foundUser.image ? { uri: foundUser.image } : defalutImage.user } style={styles.chatImg} resizeMode="cover" />
               <Text style={styles.chatName}>{foundUser.name}</Text>
               {isInvited(foundUser.userId) ? 
                 <TouchableOpacity onPress={() => toggleInvite(foundUser)} style={styles.btnInvited}>

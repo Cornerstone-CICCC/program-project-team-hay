@@ -28,6 +28,7 @@ export interface EventDetail {
     id: string;
     name: string;
     image: string;
+    isConfirmed?: boolean
   }[];
   activePoll?: ActivePoll[];
 }

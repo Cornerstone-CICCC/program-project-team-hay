@@ -85,7 +85,8 @@ export const useEventListStore = create<Action>((set, get) => ({
         query = query.order("id", {ascending: true})
       }else {
         if (filter === "upcoming") {
-          query = query.gte("date", format(now));
+          query = query.or(`date.gte.${format(now)},date.is.null` );
+          query = query.order("date", {ascending: true, nullsFirst: true})
         } else{
           query = query.not("date", "is", null)
           if (filter === "today") {

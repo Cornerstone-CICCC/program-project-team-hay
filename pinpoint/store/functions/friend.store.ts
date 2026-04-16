@@ -14,19 +14,17 @@ type Action = {
   } | null>;
 
   checkIfWeAreFriend: (
-    //userId: string,
     friend_userId: string,
   ) => Promise<{ friend_id: string } | null>;
 
   searchUser: (
     keyword: string,
-    //type: Type,
   ) => Promise<{
     userId: string;
     name: string;
-    //email: string;
     image: string;
     public_code: string;
+    friendId: string | null
   } | null>;
 
   getFriendsList: () //userId: string
@@ -127,21 +125,35 @@ export const useFriendStore = create<Action>((set, get) => ({
     name: string;
     image: string;
     public_code: string;
+    friendId: string | null
   } | null> => {
     const myId = useAuthStore.getState().user?.id;
+    if(!myId) return null
 
-    const query = supabase
+    const { data: userProfile, error: selectUserProErr } = await supabase
       .from("profiles")
       .select("id, name, public_code, profile_image_url")
-      .eq("public_code", keyword);
-
-    // except myself
-    if (myId) query.neq("id", myId);
-
-    const { data: userProfile, error: selectUserProErr } = await query.single();
+      .eq("public_code", keyword)
+      .neq("id", myId)
+      .maybeSingle()
 
     if (!userProfile || selectUserProErr) {
       console.log("Error searching user", selectUserProErr);
+      return null;
+    }
+
+    const user1 = myId < userProfile.id ? myId : userProfile.id;
+    const user2 = myId < userProfile.id? userProfile.id : myId
+
+    const { data: friendData, error: selectFriendIdErr } = await supabase
+      .from("friend")
+      .select("id")
+      .eq("user_id", user1)
+      .eq("friend_user_id", user2)
+      .maybeSingle();
+
+    if (selectFriendIdErr) {
+      console.log("Error getting friend id", selectUserProErr);
       return null;
     }
 
@@ -150,6 +162,7 @@ export const useFriendStore = create<Action>((set, get) => ({
       name: userProfile.name,
       image: userProfile.profile_image_url,
       public_code: userProfile.public_code,
+      friendId: friendData ? friendData.id : null
     };
 
     console.log(details);

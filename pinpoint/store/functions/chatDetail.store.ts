@@ -49,7 +49,7 @@ export const useChatDetailStore = create<Action>((set, get) => ({
         .select("id, friend_id, content, sender_id, created_at")
         .eq("friend_id", room_id)
         .order("created_at", { ascending: false })
-        .limit(30);
+        .limit(20);
     } else {
       query = supabase
         .from("group_message")

@@ -11,6 +11,7 @@ type Props={
     onDateChange:(event: DateTimePickerEvent, selected?: Date)=>void
     onTimeChange:(event: DateTimePickerEvent, selected?: Date)=>void
     type?:"poll"|"new" |"edit"
+    isTimeTBD?:boolean
 }
 
 const DateTimeInput = ({
@@ -19,6 +20,7 @@ const DateTimeInput = ({
     onTimeChange,
     dateValue,
     type,
+    isTimeTBD,
 }:Props) => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -64,19 +66,22 @@ const DateTimeInput = ({
                         )}
                     </View>
                           
-                    {(showDatePicker||Platform.OS!=="android")&&
-                    <DateTimePicker
-                        value={dateValue ??new Date(eventForm?.date ?? new Date())}
-                        mode="date"
-                        display="default"
-                        minimumDate={ new Date()}
-                        onChange={(e, date)=>{
-                            if(!date) return
-                            setShowDatePicker(false)
-                            console.log(date)
-                            setDateAndroid(date)
-                            onDateChange(e,date)}}
-                    />}
+                    <View style={{ opacity: isTimeTBD ? 0 : 1 }} pointerEvents={isTimeTBD ? 'none' : 'auto'}>
+                        <DateTimePicker
+                            value={dateValue ?? new Date(eventForm?.date ?? new Date())}
+                            mode="date"
+                            disabled={isTimeTBD ?? false}
+                            display="compact"
+                            themeVariant="light"
+                            minimumDate={new Date()}
+                            onChange={(e, date) => {
+                                if (!date) return;
+                                setShowDatePicker(false);
+                                setDateAndroid(date);
+                                onDateChange(e, date);
+                            }}
+                        />
+                    </View>
                 </View>
             </View>
 
@@ -106,19 +111,21 @@ const DateTimeInput = ({
                         </TouchableOpacity>
                         )}
                     </View>
-                    {(showDatePicker||Platform.OS!=="android")&&
-                    <DateTimePicker
-                        value={dateValue?? new Date(eventForm?.date ?? new Date())}
-                        mode="time"
-                        display="default"
-                        minimumDate={new Date()}
-                        onChange={(e,date)=>{
-                            if(!date) return
-                            setShowTimePicker(false)
-                            setDateAndroid(date)
-                            onTimeChange(e, date)
-                        }}
-                    />}
+                    <View style={{ opacity: isTimeTBD ? 0 : 1 }} pointerEvents={isTimeTBD ? 'none' : 'auto'}>
+                        <DateTimePicker
+                            value={dateValue ?? new Date(eventForm?.date ?? new Date())}
+                            mode="time"
+                            disabled={isTimeTBD ?? false}
+                            display="default"
+                            themeVariant="light"
+                            onChange={(e, date) => {
+                                if (!date) return;
+                                setShowTimePicker(false);
+                                setDateAndroid(date);
+                                onTimeChange(e, date);
+                            }}
+                        />
+                    </View>
                 </View>
             </View>
             </View>

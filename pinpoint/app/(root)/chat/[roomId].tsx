@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { FlatList, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
@@ -7,6 +7,8 @@ import { useAuthStore, User } from "@/store/functions/auth.store";
 import { useMyChatStore } from "@/store/chat.store";
 import { useChatDetailStore } from "@/store/functions/chatDetail.store";
 import { defalutImage } from "@/constants";
+import moment from 'moment-timezone'
+import { EventDetail, useEventStore } from "@/store/functions/event.store";
 
 type Message = {
   id: string,
@@ -16,22 +18,9 @@ type Message = {
   created_at: string,
 }
 
-export const options = {
-  headerShown: false,
-};
-
 const Chatroom = () => {
   const router = useRouter()
-  const useAuth = useAuthStore(s => s.user);
-  const currentChat = useMyChatStore(s => s.currentRoom)
-
-  const room_id = currentChat?.room_id
-  const type = currentChat?.type
-  const name = currentChat?.name
   const chatDetail = useChatDetailStore()
-
-  console.log(room_id, type, name)
-
   const { 
     messages,
     getAllMessages,
@@ -39,34 +28,67 @@ const Chatroom = () => {
     subscribeRoom,
     unsubscribeRoom
   } = chatDetail
-  
-  const chatMessages = room_id ? messages[room_id] || [] : []
 
-  useEffect(() => {
-    if(!room_id || !type) return
+  //　for sender_id
+  const useAuth = useAuthStore(s => s.user);
+  const userId = useAuth?.id
 
-    getAllMessages(room_id, type)
-    subscribeRoom(room_id, type)
+  // for current Room
+  const currentChat = useMyChatStore(s => s.currentRoom)
+  const room_id = currentChat?.room_id
+  const type = currentChat?.type
+  const name = currentChat?.name
+  console.log(room_id, type, name)
 
-    return () => {
-      unsubscribeRoom(room_id)
-    }
-  }, [room_id, type])
+  // for user's timeline
+  const userTz = moment.tz.guess()
 
+  // send message
+  const [message, setMessage] = useState<string>('')
   const handleSendMsg = async () => {
     if(!message.trim() || !room_id || !type) return
+    if(isPast) return
 
     await sendMessage({
       room_id,
       type,
       message
     })
-
     setMessage('')
   }
 
+  // store the all messages
+  const prevRef = useRef<Message[]>([])
+  const chatMessages = useMemo(() => {
+    if(!room_id) return prevRef.current
+
+    const existing = messages[room_id]
+    if(!existing || existing.length === 0) {
+      return []
+    }
+
+    return [...existing].reverse()
+  }, [messages, room_id])
+
+  useEffect(() => {
+    if(!room_id || !type) return
+
+    const fetchAllMsg = async () => {
+      await getAllMessages(room_id, type)
+      subscribeRoom(room_id, type)
+    }
+    fetchAllMsg()
+
+    return () => {
+      unsubscribeRoom(room_id)
+    }
+  }, [room_id, type])
+
+
+  // for fetching user info (image)
   const fetchProfile = useAuthStore(s => s.fetchUserProfile);
   const [users, setUsers] = useState<Record<string, User>>({})
+
   useEffect(() => {
     const fetchUsers = async () => {
       const targetUserIds = [...new Set(chatMessages.map(m => m.sender_id))]
@@ -86,23 +108,109 @@ const Chatroom = () => {
     }
   }, [chatMessages])
 
+  // for fetching the user image
   const getImageSource = (item: Message) => {
     const target = users[item.sender_id]
-
     if(target?.profileImage){
       return { uri: target.profileImage }
     }
-
     return defalutImage.user
   }
 
-  const userId = useAuth?.id
+  // for router
   const event_id = type === 'group' ? room_id : null
   const goToEventDetail = () => {
     router.push(`/event/${event_id}`);
   };
 
-  const [message, setMessage] = useState<string>('')
+  // for loading more
+  const isFirstLoadRef = useRef(true)
+
+  useEffect(() => {
+    if(!chatMessages.length) return
+    if(isFirstLoadRef.current){
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToEnd({ animated: false })
+      })
+      isFirstLoadRef.current = false
+    }
+  }, [chatMessages.length])
+
+  const flatListRef = useRef<FlatList>(null)
+  const [loadingMore, setLoadingMore] = useState<boolean>(false)
+  const [hasMore, setHasMore] = useState<boolean>(true)
+
+  const loadMore = async () => {
+    if(!room_id || !type || loadingMore || !hasMore) return
+    setLoadingMore(true)
+
+    try{
+      const current = chatMessages;
+      if(current.length === 0) return
+
+      const oldestMsg = current[current.length - 1]
+
+      const olderMsgs = await getAllMessages(
+        room_id,
+        type,
+        oldestMsg.created_at
+      )
+
+      if(!olderMsgs){
+        setHasMore(false)
+        setLoadingMore(false)
+        return
+      }
+
+      if(olderMsgs.length < 20){
+        setHasMore(false)
+      }
+
+      if(olderMsgs.length === 0){
+        setHasMore(false)
+        setLoadingMore(false)
+        return
+      }
+
+      const merged = [...olderMsgs, ...current]
+
+      const unique = Array.from(
+        new Map(merged.map(m => [m.id, m])).values()
+      )
+
+      const sorted = unique.sort(
+        (a, b) => 
+          new Date(a.created_at).getTime() - 
+          new Date(b.created_at).getTime()
+      )
+      useChatDetailStore.setState((state) => ({
+        messages: {
+          ...state.messages,
+          [room_id]: sorted,
+        }
+      }))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  // for judging the past
+  const fetchEvent = useEventStore(s => s.fetchEventById)
+  const [event, setEvent] = useState<EventDetail | null>(null)
+  useEffect(() => {
+    if(!room_id || type !== 'group') return
+    const fetch = async () => {
+      const res = await fetchEvent(room_id)
+      setEvent(res)
+    }
+    fetch()
+  }, [room_id, type])
+  const isPast = 
+    type === 'group'
+      ? (event?.date
+        ? moment().isAfter(moment(event.date).endOf('day'))
+        : true)
+      : false
 
   return (
     <KeyboardAvoidingView
@@ -122,36 +230,59 @@ const Chatroom = () => {
         </View>
 
         <View style={styles.roomMain}>
-          <FlatList inverted data={[...chatMessages].reverse()} keyboardShouldPersistTaps="handled" keyExtractor={(item) => item.id} renderItem={({item}) => {
-            const isMine = item.sender_id === userId
-            const msgDate = new Date(item.created_at)
-            const formattedDate = `${msgDate.getFullYear()}/${String(msgDate.getMonth()+1).padStart(2,'0')}/${String(msgDate.getDate()).padStart(2,'0')}/` +
-              `${String(msgDate.getHours()).padStart(2,'0')}:${String(msgDate.getMinutes()).padStart(2,'0')}`
-            return (
-              <View style={isMine ? styles.msgTo : styles.msgFrom}>
-                {!isMine && <Image source={getImageSource(item)} style={styles.msgImg} resizeMode="cover" />}
-                <View style={isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
-                  <Text style={isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.message}</Text>
-                  <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{formattedDate}</Text>
+          <FlatList
+            data={chatMessages}
+            inverted
+            contentContainerStyle={{
+              flexGrow: 1,
+            }}
+            ref={flatListRef}
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={() => {
+              if(isFirstLoadRef.current){
+                flatListRef.current?.scrollToEnd({ animated: false})
+                isFirstLoadRef.current = false
+              }
+            }}
+            onEndReached={() => {
+              if(!loadingMore && hasMore) loadMore()
+            }}
+            onEndReachedThreshold={0.5}
+            style={styles.msgWrap}
+            keyExtractor={(item) => item.id}
+            renderItem={({item}) => {
+              const isMine = item.sender_id === userId
+
+              const msgDate = item.created_at
+              const formattedDate = moment.utc(msgDate).tz(userTz).format('HH:mm')
+
+              return (
+                <View style={isMine ? styles.msgTo : styles.msgFrom}>
+                  {!isMine && <Image source={getImageSource(item)} style={styles.msgImg} resizeMode="cover" />}
+                  <View style={isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
+                    <Text style={isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.message}</Text>
+                    <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{formattedDate}</Text>
+                  </View>
                 </View>
-              </View>
-            )
-          }}/>
+              )
+            }}
+          />
         </View>
 
-        <View style={styles.roomBottom}>
-          <View style={styles.sendWrap}>
+        <View style={styles.roomBottom} pointerEvents={isPast ? 'none' : 'auto'}>
+          <View style={isPast ? styles.sendWrapOff : styles.sendWrap}>
             <TextInput
               multiline
-              placeholder="Type message here..."
+              placeholder={isPast ? `You can't send messages...` : "Type message here..."}
               placeholderTextColor="#7C7C7C"
               value={message}
               onChangeText={setMessage}
               style={styles.inputMsg}
+              editable={!isPast}
             />
-            <View style={styles.sendIcon}>
-              <Feather name="send" size={24} color="#fff" onPress={handleSendMsg} />
-            </View>
+            <TouchableOpacity style={styles.sendIcon} onPress={isPast ? undefined : handleSendMsg} disabled={isPast} >
+              <Feather name="send" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -190,7 +321,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   msgWrap: {
-    gap: 16,
+    // marginBottom: 'auto'
   },
   msgFrom: {
     display: "flex",
@@ -259,6 +390,20 @@ const styles = StyleSheet.create({
     gap: 7,
     boxShadow: "0 0 14px 3px rgba(51, 51, 51, .12)",
     width: "100%",
+  },
+  sendWrapOff: {
+    backgroundColor: "#fff",
+    borderRadius: 28,
+    paddingHorizontal: 14,
+    paddingBlock: 7,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 7,
+    boxShadow: "0 0 14px 3px rgba(51, 51, 51, .3)",
+    width: "100%",
+    opacity: 0.4,
   },
   inputMsg: {
     flex: 1,

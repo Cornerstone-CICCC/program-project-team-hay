@@ -12,7 +12,7 @@ export interface User {
   onboardingCompleted?: boolean;
 }
 
-interface EventDetail {
+export interface EventDetail {
   id: string;
   name: string;
   date: string;

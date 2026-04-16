@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -39,19 +40,23 @@ const Chat = () => {
   const [keyword, setKeyword] = useState<string>('')
   const chatList = chat.rooms
   const [activeTab, setActiveTab] = useState<ChatType>('dm')
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const fetchChats = async (tab: ChatType) => {
+    setIsLoading(true)
     await chat.getChatList(tab)
+    setIsLoading(false)
   }
 
   const handleTabChange = (tab: ChatType) => {
     setActiveTab(tab);
+    fetchChats(tab)
   };
 
   useEffect(() => {
+    chat.subscribeChatList(activeTab)
     fetchChats(activeTab)
 
-    chat.subscribeChatList(activeTab)
     return () => {
       chat.unsubscribeChatList()
     }
@@ -108,9 +113,15 @@ const Chat = () => {
         )}
       </View>
       <View style={styles.chatList}>
-        {filteredChats.map((item) => (
-          <ChatListItem key={item.room_id} data={item} />
-        ))}
+        {isLoading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="small" color="#FF7600" />
+          </View>
+        ) : (
+          filteredChats.map((item) => (
+            <ChatListItem key={item.room_id} data={item} />
+          ))
+        )}
       </View>
     </ScrollView>
   );
@@ -119,6 +130,9 @@ const Chat = () => {
 export default Chat;
 
 const styles = StyleSheet.create({
+  loadingBox: {
+    marginTop: 30,
+  },
   container: {
     paddingHorizontal: 20,
     paddingTop: 76,

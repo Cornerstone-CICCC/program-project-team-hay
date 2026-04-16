@@ -62,7 +62,7 @@ const Hangout = () => {
     setIsLoading(true)
 
     const data = await event.getEventList(tab)
-    console.log(data)
+    
     if(!data) {
       setIsLoading(false)
       return
@@ -76,6 +76,7 @@ const Hangout = () => {
       },
     }));
 
+    console.log(`🔥data:`,data)
     setIsLoading(false)
   };
 

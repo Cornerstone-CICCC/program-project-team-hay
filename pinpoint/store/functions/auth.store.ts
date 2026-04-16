@@ -38,6 +38,7 @@ type Action = {
   onGoogleSignIn: () => Promise<string | null>;
   checkProvider: () => Promise<string | null>;
   verifySignUpOtp: (email: string, token: string) => Promise<boolean>
+  resendSignUpOtp: (email: string) => Promise<boolean>
 };
 
 export const useAuthStore = create<State & Action>((set, get) => ({
@@ -355,7 +356,7 @@ export const useAuthStore = create<State & Action>((set, get) => ({
       })
       if(error) throw error
 
-      if (data.user) {
+      if (data.user && data.session) {
         const profile = await get().fetchUserProfile(data.user.id);
         set({ user: profile });
         return true
@@ -364,6 +365,20 @@ export const useAuthStore = create<State & Action>((set, get) => ({
     }catch(err){
       console.error("verify SignUp Otp Error", err)
       return false
+    }
+  },
+  resendSignUpOtp: async(email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error("Error resending OTP:", err);
+      return false;
     }
   }
 }));

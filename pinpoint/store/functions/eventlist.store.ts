@@ -84,10 +84,11 @@ export const useEventListStore = create<Action>((set, get) => ({
       if(filter === "invited") {
         query = query.order("id", {ascending: true})
       }else {
-        query = query.not("date", "is", null)
         if (filter === "upcoming") {
           query = query.gte("date", format(now));
-        } else if (filter === "today") {
+        } else{
+          query = query.not("date", "is", null)
+          if (filter === "today") {
           query = query.gte("date", format(now)).lte("date", format(endOfToday));
         } else if (filter === "tomorrow") {
           query = query
@@ -98,6 +99,7 @@ export const useEventListStore = create<Action>((set, get) => ({
         } else if (filter === "past") {
           query = query.lt("date", format(now));
         } 
+        }
         query = query.order("id", { ascending: true });
 
       }

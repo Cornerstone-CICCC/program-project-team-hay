@@ -44,7 +44,6 @@ export const useLocationStore = create<Action>((set, get) => ({
   }): Promise<UserLocation | boolean | null> => {
     try {
       // //check if a location row of the user is already existed
-
       const currentUser = useAuthStore.getState().user;
       if (!currentUser) throw new Error("Authentication required");
 
@@ -144,11 +143,24 @@ export const useLocationStore = create<Action>((set, get) => ({
       const currentUser = useAuthStore.getState().user;
       if (!currentUser) throw new Error("Authentication required");
 
+      const {data: confirmedMembers, error: ueErr} = await supabase.from("user_event")
+      .select("user_id")
+      .eq("event_id", event_id)
+      .eq("is_confirmed", true)
+
+      if(ueErr || !confirmedMembers || confirmedMembers.length === 0 ) {
+        console.log("No confirmed members found or error:", ueErr);
+        return [];
+      }
+
+      const confirmedUserIds = confirmedMembers.map(m => m.user_id)
+
       // 1. get all members' location
       const { data: locations, error: selectLocErr } = await supabase
         .from("location")
         .select("*")
-        .eq("event_id", event_id);
+        .eq("event_id", event_id)
+        .in("user_id", confirmedUserIds)
 
       if (selectLocErr || !locations || locations.length === 0) {
         console.log("Error selecting locations ", selectLocErr);
@@ -196,7 +208,7 @@ export const useLocationStore = create<Action>((set, get) => ({
         })
         .filter((item): item is MarkerData => item !== null);
 
-      // console.log(details);
+       console.log(details);
       return details;
     } catch (error) {
       console.log(error);

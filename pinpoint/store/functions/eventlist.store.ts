@@ -9,7 +9,7 @@ interface EventOverview {
   address?: string;
 }
 
-type EventFilter = "upcoming" | "today" | "tomorrow" | "week" | "past"; // add "invited"
+type EventFilter = "upcoming" | "today" | "tomorrow" | "week" | "past" | "invited"; // add "invited"
 
 type Action = {
   getEventList: (
@@ -38,11 +38,14 @@ export const useEventListStore = create<Action>((set, get) => ({
         console.error("No User ID provided");
         return null;
       }
+      
+      const isConfirmedFilter = filter === "invited" ? false : true
 
       const { data: userEvents, error: selectUserEventsErr } = await supabase
         .from("user_event")
-        .select("event_id")
-        .eq("user_id", finalUserId);
+        .select("*")
+        .eq("user_id", finalUserId)
+        .eq("is_confirmed", isConfirmedFilter)
 
       if (!userEvents || selectUserEventsErr) {
         console.log("Error selecting user's events", selectUserEventsErr);
@@ -76,24 +79,32 @@ export const useEventListStore = create<Action>((set, get) => ({
         .from("event")
         .select("id, name, date, address")
         .in("id", eventIds)
-        .not("date", "is", null)
         .limit(8);
 
-      if (filter === "upcoming") {
-        query = query.gte("date", format(now));
-      } else if (filter === "today") {
-        query = query.gte("date", format(now)).lte("date", format(endOfToday));
-      } else if (filter === "tomorrow") {
-        query = query
-          .gte("date", format(startOfTmr))
-          .lte("date", format(endOfTmr));
-      } else if (filter === "week") {
-        query = query.gte("date", format(now)).lte("date", format(endOfWeek));
-      } else if (filter === "past") {
-        query = query.lt("date", format(now));
-      }
+      if(filter === "invited") {
+        query = query.order("id", {ascending: true})
+      }else {
+        if (filter === "upcoming") {
+          query = query.gte("date", format(now));
+        } else{
+          query = query.not("date", "is", null)
+          if (filter === "today") {
+          query = query.gte("date", format(now)).lte("date", format(endOfToday));
+        } else if (filter === "tomorrow") {
+          query = query
+            .gte("date", format(startOfTmr))
+            .lte("date", format(endOfTmr));
+        } else if (filter === "week") {
+          query = query.gte("date", format(now)).lte("date", format(endOfWeek));
+        } else if (filter === "past") {
+          query = query.lt("date", format(now));
+        } 
+        }
+        query = query.order("id", { ascending: true });
 
-      query = query.order("id", { ascending: true });
+      }
+      
+
 
       if (cursor) {
         query = query.gt("id", cursor);

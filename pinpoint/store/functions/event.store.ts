@@ -79,6 +79,8 @@ interface Member {
 }
 
 type Action = {
+  acceptEvent: (event_id: string) => Promise<boolean>
+  declineEvent: (event_id: string) => Promise<boolean>
   fetchEventById: (event_id: string) => Promise<EventDetail | null>;
   fetchLocationDetailByID: (
     event_id: string,
@@ -116,6 +118,58 @@ type Action = {
 };
 
 export const useEventStore = create<Action>((set, get) => ({
+
+  acceptEvent: async(event_id: string): Promise<boolean> => {
+    try{
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser) throw new Error("Authentication required");
+
+      const {data: userEvent, error: ueSelectErr} = await supabase
+        .from("user_event")
+        .update({
+          is_confirmed: true
+        })
+        .eq("event_id", event_id)
+        .eq("user_id", currentUser.id)
+        .select("*")
+        .single()
+
+      if (ueSelectErr) {
+        console.error("Error accepting invitation:", ueSelectErr);
+        return false;
+      }
+
+      return !!userEvent
+
+    }catch(err){
+      console.error("Error in acceptEvent:", err);
+      return false; 
+    }
+
+  },
+  declineEvent: async(event_id: string): Promise<boolean> => {
+    try{
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser) throw new Error("Authentication required");
+
+      const {data: userEvent, error: ueDeleteErr} = await supabase
+        .from("user_event")
+        .delete()
+        .eq("event_id", event_id)
+        .eq("user_id", currentUser.id)
+
+      if (ueDeleteErr) {
+        console.error("Error declining invitation:", ueDeleteErr);
+        return false;
+      }
+
+      return true
+
+    }catch(err){
+      console.error("Error in decline:", err);
+      return false; 
+    }
+  },
   fetchEventById: async (event_id: string): Promise<EventDetail | null> => {
     const { data: event, error } = await supabase
       .from("event")
@@ -130,7 +184,7 @@ export const useEventStore = create<Action>((set, get) => ({
 
     const { data: userId, error: selectUsersErr } = await supabase
       .from("user_event")
-      .select("user_id")
+      .select("*")
       .eq("event_id", event.id);
 
     if (selectUsersErr || !userId) {
@@ -155,12 +209,15 @@ export const useEventStore = create<Action>((set, get) => ({
     }
 
     const members =
-      users.map((u) => ({
+      users.map((u) =>{
+        const userEventRel = userId.find(rel => rel.user_id === u.id)
+        return{
         id: u.id,
         name: u.name,
         image: u.profile_image_url,
-        // isConfirmed
-      })) || [];
+        isConfirmed: userEventRel.is_confirmed || false
+      }
+    }) || [];
 
     // get active polls
     const { data: activePolls, error: selectPollsErr } = await supabase
@@ -370,14 +427,21 @@ export const useEventStore = create<Action>((set, get) => ({
       }
 
       // chekc if the members are unique (myself + member param)
-      const uniqueMemberIds = new Set(newEvent.members.map((m) => m.userId));
-      uniqueMemberIds.add(currentUser.id);
+      const uniqueMemberIds = Array.from(new Set(newEvent.members.map((m) => m.userId).filter(id => id !== currentUser.id)));
 
-      // create user_event rows
-      const rows = Array.from(uniqueMemberIds).map((uid) => ({
-        user_id: uid,
-        event_id: event.id,
-      }));
+      // create user_event rows for members
+      const rows = [
+        {
+          user_id: currentUser.id,
+          event_id: event.id,
+          is_confirmed: true
+        }, 
+        ...uniqueMemberIds.map((uid) => ({
+          user_id: uid,
+          event_id: event.id,
+          is_confirmed: false
+        }))
+      ]
 
       // insert
       const { error: userEventError } = await supabase

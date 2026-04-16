@@ -19,18 +19,6 @@ import { useEventStore } from "../../store/functions/event.store";
 import { useLocationStore } from "../../store/functions/location.store";
 
 export default function TestFile() {
-  const messages = useChatDetailStore((s) => s.messages);
-  const subscribeRoom = useChatDetailStore((s) => s.subscribeRoom);
-  const unsubscribeRoom = useChatDetailStore((s) => s.unsubscribeRoom);
-  // const sendMessage = useChatDetailStore((s) => s.sendMessage);
-  // const getAllMessages = useChatDetailStore((s) => s.getAllMessages);
-
-  const room_id = "12";
-  const type = "dm";
-  const userId = "";
-  const roomMessages = messages[room_id] || [];
-
-  const [input, setInput] = useState("");
 
   const fetchEventById = useEventStore((s) => s.fetchEventById);
   const fetchLocationDetailByID = useEventStore(
@@ -39,6 +27,10 @@ export default function TestFile() {
   const getMemberListByEventId = useEventStore((s) => s.getMemberListByEventId);
   const createEvent = useEventStore((s) => s.createEvent);
   const updateEventById = useEventStore((s) => s.updateEventById);
+
+  // decline , accept
+  const declineEvent = useEventStore(s => s.declineEvent)
+  const acceptEvent = useEventStore(s => s.acceptEvent)
 
   // Poll
   const createNewPoll = usePollStore((s) => s.createNewPoll);
@@ -80,16 +72,34 @@ export default function TestFile() {
   const searchUser = useFriendStore((s) => s.searchUser);
   const getFriendsList = useFriendStore((s) => s.getFriendsList);
 
+  const declineUserEvent = async() => {
+    try {
+      await declineEvent("83");
+    } catch (err) {
+      console.log("decline event Error", err);
+    }
+  }
+
+  const acceptUserEvent = async() => {
+    try {
+      await acceptEvent("83");
+    } catch (err) {
+      console.log(" accept event Error", err);
+    }
+  }
+
+
   // O
   const handleCreateEvent = async () => {
     try {
       await createEvent({
-        name: "event_test3",
+        name: "event_1",
         members: [
-          { userId: "4819f143-2298-42a4-a48f-f45fc4621fef" },
-          { userId: "b5d9b267-3adb-427d-a7c9-1f0f1fe77cd3" },
+          { userId: "d1e8f352-24a6-4539-a081-8c10570978f7" },
+          { userId: "a5eb7254-a330-4bd8-bd63-990320618e0b" },
+          { userId: "8d3c5225-56bf-40a3-8335-4b097de6ed97" },
         ],
-        date: new Date("2026-04-04T15:00:00Z"),
+        date: new Date("2026-04-22T15:00:00Z"),
       });
     } catch (err) {
       console.log("create Event Error", err);
@@ -119,7 +129,7 @@ export default function TestFile() {
   // o
   const handleFetchEventById = async () => {
     try {
-      await fetchEventById("40");
+      await fetchEventById("80");
     } catch (err) {
       console.log("create fetch event by id Error", err);
     }
@@ -128,7 +138,7 @@ export default function TestFile() {
   // O
   const handleFetchLocationById = async () => {
     try {
-      await fetchLocationDetailByID("40");
+      await fetchLocationDetailByID("82");
     } catch (err) {
       console.log("create fetch location by id Error", err);
     }
@@ -185,8 +195,9 @@ export default function TestFile() {
   const handleCreateMyLocation = async () => {
     try {
       await createMyLocation({
-        event_id: "40",
-        latitude: 34923092834092,
+        event_id: "82",
+        latitude: 49.2791998890076,
+        longitude: -123.122033732453
       });
     } catch (err) {
       console.log("create my location error", err);
@@ -210,7 +221,7 @@ export default function TestFile() {
   // O
   const handleGetAllMembersLocation = async () => {
     try {
-      await getAllMembersLocation("40");
+      await getAllMembersLocation("82");
     } catch (err) {
       console.log(" get all member's location Error", err);
     }
@@ -219,7 +230,7 @@ export default function TestFile() {
   // O
   const handleCreateDmRoom = async () => {
     try {
-      await createDmRoom("b5d9b267-3adb-427d-a7c9-1f0f1fe77cd3");
+      await createDmRoom("781237cf-5ca2-44aa-9df8-ea1dc15b1377");
     } catch (err) {
       console.log("create a row for the friend table", err);
     }
@@ -264,7 +275,7 @@ export default function TestFile() {
   // o
   const handleSearchUser = async () => {
     try {
-      await searchUser("62243079");
+      await searchUser("f90c8225");
     } catch (err) {
       console.log("Search User Error", err);
     }
@@ -304,7 +315,7 @@ export default function TestFile() {
   // o
   const handleGetEventList = async () => {
     try {
-      await getEventList("tomorrow");
+      await getEventList("invited");
     } catch (err) {
       console.log("Get event list Error", err);
     }
@@ -468,24 +479,6 @@ export default function TestFile() {
 
         <TouchableOpacity
           className="flex flex-row justify-center items-center gap-3 rounded-md py-2 bg-black "
-          onPress={handleGetAllMessages}
-        >
-          <Text className="font-LexendSemiBold text-lg text-white px-5">
-            Get All messages
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="flex flex-row justify-center items-center gap-3 rounded-md py-2 bg-black "
-          onPress={handleGetChatList}
-        >
-          <Text className="font-LexendSemiBold text-lg text-white px-5">
-            Get chat list
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="flex flex-row justify-center items-center gap-3 rounded-md py-2 bg-black "
           onPress={handleGetEventList}
         >
           <Text className="font-LexendSemiBold text-lg text-white px-5">
@@ -493,34 +486,21 @@ export default function TestFile() {
           </Text>
         </TouchableOpacity>
 
-        <View style={{ flex: 1 }}>
-          <FlatList
-            data={roomMessages}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <Text>
-                {item.sender_id === userId ? "Me" : "Friend"}: {item.message}
-              </Text>
-            )}
-          />
-
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            placeholder="Type a message..."
-            style={{ borderWidth: 1, padding: 8, margin: 8 }}
-          />
-          <TouchableOpacity onPress={handleSendMessage}>
-            <Text>Send</Text>
-          </TouchableOpacity>
-        </View>
-
         <TouchableOpacity
           className="flex flex-row justify-center items-center gap-3 rounded-md py-2 bg-black "
-          onPress={() => router.push("/(auth)/testChat")}
+          onPress={declineUserEvent}
         >
           <Text className="font-LexendSemiBold text-lg text-white px-5">
-            Test Chat file
+            Decline invitation
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          className="flex flex-row justify-center items-center gap-3 rounded-md py-2 bg-black "
+          onPress={acceptUserEvent}
+        >
+          <Text className="font-LexendSemiBold text-lg text-white px-5">
+            Accept invitation
           </Text>
         </TouchableOpacity>
       </View>

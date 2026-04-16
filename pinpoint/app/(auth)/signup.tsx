@@ -26,6 +26,7 @@ export default function SignupScreen() {
   const signUp = useAuthStore((s) => s.signUp);
   const onGoogleSignIn = useAuthStore(s=>s.onGoogleSignIn)
 
+
   useEffect(() => {
     if (!confirmPwd) {
       setPwdError("");

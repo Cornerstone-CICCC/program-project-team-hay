@@ -22,6 +22,7 @@ export default function VerifySignupOtp() {
 
   const VerifySignupOtp = useAuthStore((s) => s.verifySignUpOtp);
   const findPassword = useAuthStore((s) => s.findPassword);
+  const resendSignUpOtp = useAuthStore(s => s.resendSignUpOtp)
 
   const ref = useBlurOnFulfill({ value: otp, cellCount: CELL_COUNT });
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
@@ -43,8 +44,14 @@ export default function VerifySignupOtp() {
   };
 
   const handleResend = async () => {
-    await findPassword(email);
-    Alert.alert("Success", "OTP has been resent to your email.");
+    const success = await resendSignUpOtp(email);
+
+    if(success) {
+      Alert.alert("Success", "A new verification code has been sent to your email.")
+    }else{
+      Alert.alert("Error", "Failed to resend code. Please try again later.")
+    }
+    
   };
 
   return (

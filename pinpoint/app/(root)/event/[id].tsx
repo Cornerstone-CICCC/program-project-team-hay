@@ -156,6 +156,7 @@ const EventDetail = () => {
         console.log("There is no event detail with this id");
         return;
       }
+      console.log("eventDetail",eventDetail)
 
       // check if the user has been voted for active poll and set results
       if (eventDetail.activePoll) {
@@ -204,18 +205,23 @@ const EventDetail = () => {
         });
       }
 
+      const members = eventDetail.members
+
       setEventDetail({
         id: eventDetail.id,
         name: eventDetail.name,
         place: eventDetail.place,
         date: eventDetail.date,
-        members: eventDetail.members.map((mem) => ({
+        members: members.map((mem) => ({
           userId: mem.id,
           name: mem.name,
           image: mem.image,
+          isConfirmed:mem.isConfirmed
         })),
         activePoll: eventDetail.activePoll,
       });
+
+      
 
       const bgImage = fetchEventBgImage(eventDetail.name);
       setBgImg(bgImage);
@@ -223,7 +229,7 @@ const EventDetail = () => {
     };
 
     fetchEventDetail();
-  }, [id, toggleEventRender]);
+  }, [id]);
 
   useEffect(() => {
     const requestLocation = async () => {
@@ -272,7 +278,7 @@ const EventDetail = () => {
     return (
       <View className="font-Lexend p-10">
         <View className="absolute top-[4rem] flex flex-row justify-between items-center w-full px-4 py-3">
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() =>router.push("/(root)/(tabs)/hangout")}>
             <AntDesign name="arrow-left" size={30} color="black" />
           </TouchableOpacity>
           <Text className="justify-self-center text-3xl font-LexendBold">
@@ -304,7 +310,7 @@ const EventDetail = () => {
                 resizeMode="cover"
               />
               <View className="absolute top-[4rem] flex flex-row justify-between items-center w-full px-4 py-3">
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={() =>router.push("/(root)/(tabs)/hangout")}>
                   <AntDesign name="arrow-left" size={30} color="black" />
                 </TouchableOpacity>
                 <Text className="justify-self-center text-3xl font-LexendBold">

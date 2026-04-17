@@ -1,20 +1,31 @@
+import InviteFriendType from "@/components/InviteFriendType";
 import { useMyEventStore } from "@/store/event.store";
+import { useFriendStore } from "@/store/functions/friend.store";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Member } from "../../members/[id]";
-import InviteFriendType from "@/components/InviteFriendType";
-import { useFriendStore } from "@/store/functions/friend.store";
 
 const InviteNew = () => {
   const router = useRouter()
+  const {createDmRoom} = useFriendStore()
 
   const {setMembers,members} = useMyEventStore()
 
-  const toggleInvite = (member: Member) => {
+  const toggleInvite = async(member: Member) => {
+    console.log("toggle invite", member)
+    if(!member.friend_id){
+      const data = await createDmRoom(member.userId)
+
+      if(!data){
+        console.log("Unable to add a member to friends")
+        return
+      }
+    }
     const exists = members.some(m => m.userId === member.userId)
+
       if(exists){
         setMembers(members.filter(m => m.userId !== member.userId))
         return

@@ -345,7 +345,7 @@ export const useEventStore = create<Action>((set, get) => ({
   ): Promise<Member[] | null> => {
     const { data: users, error: selectUsersErr } = await supabase
       .from("user_event")
-      .select("user_id")
+      .select("*")
       .eq("event_id", event_id);
 
     if (!users || selectUsersErr) {
@@ -373,12 +373,13 @@ export const useEventStore = create<Action>((set, get) => ({
     const details = await Promise.all(
       userProfiles.map(async (u) => {
         const result = await useFriendStore.getState().checkIfWeAreFriend(u.id);
-
+        const userEventRel = users.find(rel => rel.user_id === u.id)
         return {
           userId: u.id,
           image: u.profile_image_url,
           name: u.name,
           friend_id: result?.friend_id ?? undefined,
+          isConfirmed: userEventRel.is_confirmed || false
         };
       }),
     );

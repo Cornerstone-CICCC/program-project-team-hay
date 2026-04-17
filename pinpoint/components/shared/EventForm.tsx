@@ -33,19 +33,6 @@ export interface Place {
   imgKey?: string;
 }
 
-// export interface EventForm{
-//     name:string,
-//     date:Date,
-//     place:Place,
-//     members:{
-//     id:string,
-//     name:string,
-//     image:string
-//     }[]
-// }
-
-// reuse this form for create and edit
-
 const EventForm = (props: Prop) => {
   const { user } = useAuthStore();
   const { members, setMembers, clearSelectedEvent } = useMyEventStore();
@@ -74,6 +61,7 @@ const EventForm = (props: Prop) => {
     members: [], //add user (yourself initially)
   });
   const { createEvent, updateEventById } = useEventStore();
+  const {setToggleEventRender} = useMyEventStore()
 
   useEffect(() => {
     // rename props to event
@@ -106,6 +94,7 @@ const EventForm = (props: Prop) => {
     }
 
     //if it is edit then, set the form based on the prop and set the member store
+    if(!event.date) setIsTimeTBD(true)
     setMembers(event.members);
     setEventForm({
       name: event.name,
@@ -169,8 +158,9 @@ const EventForm = (props: Prop) => {
   };
 
   const locationSaveHandler = (place: Place) => {
+    console.log("location 1", place)
     if (!place) return;
-    console.log(place);
+    console.log("location save",place);
     setEventForm((prev) => ({
       ...prev,
       place,
@@ -180,7 +170,7 @@ const EventForm = (props: Prop) => {
   const submitEventForm = async () => {
     const validationErrors = {
       title: eventForm.name.trim() === "" ? "Title cannot be empty" : "",
-      date: eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
+      date: !isTimeTBD&&eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
       member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" : "",
     };
 
@@ -242,12 +232,15 @@ const EventForm = (props: Prop) => {
   const updateEvent = async () => {
     console.log("update", eventForm);
 
-    if (!props.eventDetail) return;
+    if (!props.eventDetail) {
+      console.log("no event id found")
+      return
+    };
     const id = props.eventDetail.id;
 
     const validationErrors = {
       title: eventForm.name.trim() === "" ? "Title cannot be empty" : "",
-      date: eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
+      date: !isTimeTBD&&eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
       member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" : "",
     };
 
@@ -273,12 +266,13 @@ const EventForm = (props: Prop) => {
           members: eventForm.members,
         };
         // update backend
-        const res = updateEventById(id, updates);
+        const res = await updateEventById(id, updates);
         if (!res) {
           console.log("error updating");
           return;
         }
-        console.log(res);
+        console.log("update response",res);
+        setToggleEventRender()
         clearSelectedEvent();
         router.push(`/(root)/event/${id}`);
     }catch(error){
@@ -364,16 +358,16 @@ const EventForm = (props: Prop) => {
                 setEventForm(prev => ({ ...prev, date: undefined }));
             }
         }}
-    >
-        <View
-            style={{ borderColor: "grey" }}
-            className='w-[18px] aspect-square rounded-full border border-[#848484] flex items-center justify-center'
-        >
-            {isTimeTBD && (
-                <View className='w-[12px] aspect-square rounded-full bg-[#848484]' />
-            )}
-        </View>
-    </TouchableOpacity>
+          >
+              <View
+                  style={{ borderColor: "grey" }}
+                  className='w-[18px] aspect-square rounded-full border border-[#848484] flex items-center justify-center'
+              >
+                  {isTimeTBD && (
+                      <View className='w-[12px] aspect-square rounded-full bg-[#848484]' />
+                  )}
+              </View>
+          </TouchableOpacity>
           <Text>
               Not decided yet
           </Text>

@@ -4,17 +4,21 @@ import { defalutImage } from '@/constants';
 import { useMyChatStore } from '@/store/chat.store';
 import { useMyEventStore } from '@/store/event.store';
 import { useAuthStore } from '@/store/functions/auth.store';
+import { useEventStore } from '@/store/functions/event.store';
 import { useFriendStore } from '@/store/functions/friend.store';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, router } from 'expo-router';
-import React from 'react';
-import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 
 const DetailCard = ({event}:{event:EventDetail}) => {
+  const [isConfirmed, setIsComfirmed] = useState<boolean>(false)
     const {user} = useAuthStore()
     const {createDmRoom} = useFriendStore()
+    const {acceptEvent,declineEvent} = useEventStore()
     const {setSelectedEvent} = useMyEventStore()
     let dateTime
     let day
@@ -23,6 +27,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
     let wod 
     let hour 
     let mins
+
 
     if(event.date){
         dateTime = new Date(event.date)
@@ -33,7 +38,14 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         hour = dateTime.getHours()
         mins = dateTime.getMinutes()
     }
-
+    
+    // set initial confirm state
+    useEffect(()=>{
+      const members = event.members
+      const me = members.find(m=>m.userId===user?.id)
+      const isConfirm = me?.isConfirmed ?? false
+      setIsComfirmed(isConfirm)
+    },[event, user])
     const currentChat = useMyChatStore(s => s.setCurrentRoom)
 
     const handleDirectDmRoom = async(item:Member)=>{
@@ -66,6 +78,9 @@ const DetailCard = ({event}:{event:EventDetail}) => {
     }
 
     const goToGroupChat = async () => {
+
+      if(!isConfirmed) return
+
         currentChat({
             room_id: event.id,
             type: 'group',
@@ -74,10 +89,57 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         router.push(`/chat/${event.id}` as any)
     }
 
+    const handleGoing=async()=>{
+      const res = await acceptEvent(event.id)
+
+      if(!res){
+        console.log("Fail to update")
+        return
+      }
+      // update isConfirmed status in backend
+      setIsComfirmed(true)
+    }
+
+    const handleDecline= async()=>{
+      // remove user from event_user backend
+      const res = await declineEvent(event.id)
+
+      if(!res){
+        console.log("Failed to decline event")
+        return
+      }
+
+      // redirect use to home as they are not allow to access the event anymore
+      router.push("/(root)/(tabs)/home")
+    }
+
+    const showAlert=()=>{
+        Alert.alert(
+            'Warning',
+            `Do you want to decline this hangout invite?`,
+            [
+                {
+                    text:'Cancel',
+                    onPress:()=>console.log("cancel pressed"),
+                    style:'cancel'
+                },
+                {
+                    text:"Continue",
+                    onPress:()=> {
+                        console.log("Proceed to update")
+                        handleDecline()
+                    },
+                }
+            ]
+        )
+    }
+
+    useEffect(()=>{console.log(isConfirmed)},[isConfirmed])
+
   return (
     <View className="px-9 py-6 flex gap-8">
       <View className="w-full flex flex-row justify-end">
-        {!(event.date && new Date() > new Date(event.date)) && (
+        {(!event.date || new Date() <= new Date(event.date)) && isConfirmed?(
           <TouchableOpacity
             onPress={() => {
               console.log("Detail Card event", event);
@@ -85,8 +147,26 @@ const DetailCard = ({event}:{event:EventDetail}) => {
               router.push("/event/edit-event");
             }}
           >
-            <Feather name="edit" size={18} color="black" />
+            <Feather name="edit" size={24} color="black" />
           </TouchableOpacity>
+        ):(
+          <View
+          className='flex flex-row gap-4 items-center'>
+            <Text className='text-[16px]'>
+              Going?
+            </Text>
+            <View
+            className='flex flex-row gap-8'>
+              <TouchableOpacity
+              onPress={handleGoing}>
+                <Feather name="check" size={24} color="green" />
+              </TouchableOpacity>
+              <TouchableOpacity
+              onPress={showAlert}>
+                <Feather name="x" size={24} color="red" />
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
       </View>
       {/* Event Name */}
@@ -137,7 +217,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
             <Text className="font-LexendMedium text-[20px] w-[90%]">
               {event.place.place_name ?? "TBD"}
             </Text>
-            <Text className="text-[#747688] text-lg w-[90%] text-wrap">
+            <Text className="text-[#747688] text-lg w-[100%] text-wrap">
               {event.place.address}
             </Text>
           </View>
@@ -158,7 +238,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         <Text className="font-MontserratSemiBold text-[20px] pb-6">
           Members
         </Text>
-        <View className=" flex flex-row gap-12 items-center">
+        <View className=" flex flex-row gap-10 items-center">
           <View className="flex flex-row gap-1">
             {event.members.length > 3
               ? event.members.slice(0, 3).map((m) => (
@@ -189,22 +269,23 @@ const DetailCard = ({event}:{event:EventDetail}) => {
                 ))}
           </View>
 
-          {event.members.length > 3 && (
+          {/* {event.members.length > 3 && ( */}
             <Link href={`/members/${event.id}`}>
               <Text>See More</Text>
             </Link>
-          )}
+          {/* )} */}
         </View>
       </View>
 
 
-      <TouchableOpacity
-      onPress={()=>goToGroupChat()}>
+      {isConfirmed&&<TouchableOpacity
+      onPress={()=>
+      goToGroupChat()}>
         <Text
         className='text-lg text-center font-LexendSemiBold'>
             Message in Group
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity>}
     </View>
   );
 };

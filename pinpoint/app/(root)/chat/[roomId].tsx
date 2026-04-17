@@ -58,26 +58,36 @@ const Chatroom = () => {
   }
 
   // store the all messages
-  const prevRef = useRef<Message[]>([])
-  const chatMessages = useMemo(() => {
-    if(!room_id) return prevRef.current
+  const [chatMessages, setChatMessages] = useState<Message[]>([])
 
-    const existing = messages[room_id]
-    if(!existing || existing.length === 0) {
-      return []
-    }
+  // const prevRef = useRef<Message[]>([])
+  // const chatMessages = useMemo(() => {
+  //   if(!room_id) return prevRef.current
 
-    return [...existing].reverse()
-  }, [messages, room_id])
+  //   const existing = messages[room_id]
+  //   if(!existing) return prevRef.current
+
+  //   const result = [...existing].reverse()
+  //   return result
+  // }, [messages, room_id])
 
   useEffect(() => {
     if(!room_id || !type) return
 
     const fetchAllMsg = async () => {
-      await getAllMessages(room_id, type)
+      const data = await getAllMessages(room_id, type)
+      if(data){
+        const sorted = data.sort(
+          (a, b) => 
+            new Date(a.created_at).getTime() -
+            new Date(b.created_at).getTime()
+        )
+        setChatMessages(sorted)
+      }
       subscribeRoom(room_id, type)
     }
     fetchAllMsg()
+    console.log(`🔥Initial Fetch ${chatMessages}`)
 
     return () => {
       unsubscribeRoom(room_id)
@@ -140,7 +150,7 @@ const Chatroom = () => {
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
   const [hasMore, setHasMore] = useState<boolean>(true)
 
-  const loadMore = async () => {
+  const loadMore2 = async () => {
     if(!room_id || !type || loadingMore || !hasMore) return
     setLoadingMore(true)
 
@@ -193,6 +203,58 @@ const Chatroom = () => {
       setLoadingMore(false)
     }
   }
+
+  const loadMore = async () => {
+    if (chatMessages.length === 0 || !room_id || !type) return
+    const oldest = chatMessages[0]
+    const older = await getAllMessages(
+      room_id,
+      type,
+      oldest.created_at
+    )
+    if (!older) return
+    setChatMessages(prev => {
+      const merged = [...older.reverse(), ...prev]
+      const unique = Array.from(
+        new Map(merged.map(m => [m.id, m])).values()
+      )
+      return unique
+      // return unique.sort(
+      //   (a, b) =>
+      //     new Date(a.created_at).getTime() -
+      //     new Date(b.created_at).getTime()
+      // )
+      console.log(`🔥Load more all ${merged}`)
+    })
+    
+  }
+
+  useEffect(() => {
+    if (!room_id) return
+
+    const unsub = useChatDetailStore.subscribe((state) => {
+      const newMsgs = state.messages[room_id]
+      if (!newMsgs) return
+
+      setChatMessages(prev => {
+        const merged = [...prev, ...newMsgs]
+
+        const unique = Array.from(
+          new Map(merged.map(m => [m.id, m])).values()
+        )
+
+        return unique.sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() -
+            new Date(b.created_at).getTime()
+        )
+      })
+    })
+
+    return () => {
+      unsub()
+    }
+  }, [room_id, type])
 
   // for judging the past
   const fetchEvent = useEventStore(s => s.fetchEventById)

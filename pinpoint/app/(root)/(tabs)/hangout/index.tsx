@@ -21,8 +21,7 @@ interface EventOverview {
   date?: string;
   address?: string;
 }
-// type EventFilter = 'invited' | "upcoming" | "today" | "tomorrow" | "week" | "past";
-type EventFilter =  "upcoming" | "today" | "tomorrow" | "week" | "past";
+type EventFilter = 'invited' | "upcoming" | "today" | "tomorrow" | "week" | "past";
 type TabState = {
   events: EventOverview[];
   lastCursor: string | null;
@@ -32,7 +31,7 @@ const Hangout = () => {
   const event = useEventListStore()
 
   const tabs: { label: string; value: EventFilter }[] = [
-    // { label: 'Need actions', value: 'invited' },
+    { label: 'Need actions', value: 'invited' },
     { label: "Upcoming", value: "upcoming" },
     { label: "Today", value: "today" },
     { label: "Tomorrow", value: "tomorrow" },
@@ -42,13 +41,13 @@ const Hangout = () => {
 
   const router = useRouter();
   const [keyword, setKeyword] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<EventFilter>("upcoming");
+  const [activeTab, setActiveTab] = useState<EventFilter>("invited");
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [hangoutsByTab, setHangoutsByTab] = useState<
     Record<EventFilter, TabState>
   >({
-    // invited: { events: [], lastCursor: null },
+    invited: { events: [], lastCursor: null },
     upcoming: { events: [], lastCursor: null },
     today: { events: [], lastCursor: null },
     tomorrow: { events: [], lastCursor: null },
@@ -82,11 +81,10 @@ const Hangout = () => {
 
   const handleTabChange = (tab: EventFilter) => {
     setActiveTab(tab);
-    fetchEvents(tab)
   };
-  // useEffect(() => {
-  //   fetchEvents(activeTab);
-  // }, [activeTab]);
+  useEffect(() => {
+    fetchEvents(activeTab);
+  }, [activeTab]);
 
   const filteredHangouts = hangoutsByTab[activeTab].events.filter((item) =>
     item.name.toLowerCase().includes(keyword.toLowerCase()),

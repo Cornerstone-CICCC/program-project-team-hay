@@ -117,6 +117,8 @@ const Chat = () => {
           <View style={styles.loadingBox}>
             <ActivityIndicator size="small" color="#FF7600" />
           </View>
+        ) : filteredChats.length === 0 ? (
+          <Text style={styles.noData}>No chat yet</Text>
         ) : (
           filteredChats.map((item) => (
             <ChatListItem key={item.room_id} data={item} />
@@ -132,6 +134,12 @@ export default Chat;
 const styles = StyleSheet.create({
   loadingBox: {
     marginTop: 30,
+  },
+  noData: {
+    fontFamily: "Lexend-Regular",
+    fontSize: 16,
+    color: "#7c7c7c",
+    paddingBlock: 20,
   },
   container: {
     paddingHorizontal: 20,

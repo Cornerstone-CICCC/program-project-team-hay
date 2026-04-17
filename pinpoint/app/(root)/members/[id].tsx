@@ -6,6 +6,8 @@ import { useFriendStore } from '@/store/functions/friend.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Feather from '@expo/vector-icons/Feather';
 import { router, useLocalSearchParams } from 'expo-router';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -128,12 +130,12 @@ const MemberList = () => {
                       {item.name}
                     </Text>
                   <View>
-                    {item.isConfirmed
-                    ?<View className='flex flex-row gap-2 items-center py-1 px-2 bg-green-100 w-[95px] rounded-lg'>
-                      <Feather name="check" size={14} color="green" />
+                    {!item.isConfirmed
+                    ?<View className='flex flex-row items-center py-1 px-2 bg-red-100 w-[125px] rounded-lg'>
+                      <EvilIcons name="question" size={20} color="red" />
                       <Text
-                      className='font-bold text-green-700 text-[11px]'>
-                        Confirmed
+                      className='font-bold text-red-700 text-[11px]'>
+                        Waiting Response
                       </Text>
                     </View>:<View className='py-1 px-2'/>}
                   </View>

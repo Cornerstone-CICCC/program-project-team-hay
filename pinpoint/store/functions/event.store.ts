@@ -113,6 +113,9 @@ type Action = {
       imgKey?: string;
       members: {
         userId: string;
+        isConfirmed?: boolean
+        image?: string | null
+        name?: string
       }[];
     },
   ) => Promise<Omit<EventDetail, "activePoll"> | null>;
@@ -513,6 +516,9 @@ export const useEventStore = create<Action>((set, get) => ({
       imgKey?: string;
       members: {
         userId: string;
+        isConfirmed?: boolean;
+        image?: string | null
+        name?: string
       }[];
     },
   ): Promise<Omit<EventDetail, "activePoll"> | null> => {
@@ -582,12 +588,15 @@ export const useEventStore = create<Action>((set, get) => ({
       return null;
     }
 
+    const memberStatusMap = new Map(updates.members.map(m => [m.userId, m.isConfirmed]));
+
     const uniqueMemberIds = new Set(updates.members.map((m) => m.userId));
     uniqueMemberIds.add(currentUser.id);
 
     const rows = Array.from(uniqueMemberIds).map((uid) => ({
       user_id: uid,
       event_id: eventId,
+      is_confirmed: uid === currentUser.id? true: (memberStatusMap.get(uid) ?? false)
     }));
 
     const { error: insertRowErr } = await supabase
@@ -621,6 +630,7 @@ export const useEventStore = create<Action>((set, get) => ({
         id: u.id,
         name: u.name,
         image: u.profile_image_url,
+        isConfirmed: rows.find(r => r.user_id === u.id)?.is_confirmed ?? false
       })) || [];
 
     const detail = {

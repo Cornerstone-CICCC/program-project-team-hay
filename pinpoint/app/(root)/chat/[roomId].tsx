@@ -87,7 +87,7 @@ const Chatroom = () => {
       subscribeRoom(room_id, type)
     }
     fetchAllMsg()
-    console.log(`🔥Initial Fetch ${chatMessages}`)
+    console.log(`🔥Initial Fetch`, chatMessages)
 
     return () => {
       unsubscribeRoom(room_id)
@@ -140,7 +140,7 @@ const Chatroom = () => {
     if(!chatMessages.length) return
     if(isFirstLoadRef.current){
       requestAnimationFrame(() => {
-        flatListRef.current?.scrollToEnd({ animated: false })
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: false })
       })
       isFirstLoadRef.current = false
     }
@@ -149,60 +149,6 @@ const Chatroom = () => {
   const flatListRef = useRef<FlatList>(null)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
   const [hasMore, setHasMore] = useState<boolean>(true)
-
-  const loadMore2 = async () => {
-    if(!room_id || !type || loadingMore || !hasMore) return
-    setLoadingMore(true)
-
-    try{
-      const current = chatMessages;
-      if(current.length === 0) return
-
-      const oldestMsg = current[current.length - 1]
-
-      const olderMsgs = await getAllMessages(
-        room_id,
-        type,
-        oldestMsg.created_at
-      )
-
-      if(!olderMsgs){
-        setHasMore(false)
-        setLoadingMore(false)
-        return
-      }
-
-      if(olderMsgs.length < 20){
-        setHasMore(false)
-      }
-
-      if(olderMsgs.length === 0){
-        setHasMore(false)
-        setLoadingMore(false)
-        return
-      }
-
-      const merged = [...olderMsgs, ...current]
-
-      const unique = Array.from(
-        new Map(merged.map(m => [m.id, m])).values()
-      )
-
-      const sorted = unique.sort(
-        (a, b) => 
-          new Date(a.created_at).getTime() - 
-          new Date(b.created_at).getTime()
-      )
-      useChatDetailStore.setState((state) => ({
-        messages: {
-          ...state.messages,
-          [room_id]: sorted,
-        }
-      }))
-    } finally {
-      setLoadingMore(false)
-    }
-  }
 
   const loadMore = async () => {
     if (chatMessages.length === 0 || !room_id || !type) return
@@ -214,7 +160,7 @@ const Chatroom = () => {
     )
     if (!older) return
     setChatMessages(prev => {
-      const merged = [...older.reverse(), ...prev]
+      const merged = [...older, ...prev]
       const unique = Array.from(
         new Map(merged.map(m => [m.id, m])).values()
       )
@@ -294,7 +240,7 @@ const Chatroom = () => {
         <View style={styles.roomMain}>
           <FlatList
             data={chatMessages}
-            inverted
+            // inverted
             contentContainerStyle={{
               flexGrow: 1,
             }}

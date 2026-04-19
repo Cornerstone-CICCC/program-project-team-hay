@@ -93,10 +93,6 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
             },
             }}
         onPress={(data, details=null)=>{
-            // console.log("data",data.description)
-            // console.log("details",details?.geometry.location.lat,details?.geometry.location.lng)
-            // console.log("website", details?.url)
-            // console.log("photo", (details as any)?.photos?.[0]?.photo_reference)
             const placeArr = data.description.split(",")
             const place ={
                 place_name:placeArr[0],
@@ -107,7 +103,7 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
                 imgKey:(details as any)?.photos?.[0]?.photo_reference
             }
             setPlaceInfo(place)
-            if(type==="new" && setNewLocation){
+            if(setNewLocation){
                 setNewLocation(place)
             }
         }}

@@ -104,10 +104,12 @@ const EventForm = (props: Prop) => {
     });
   }, [user]);
 
+  useEffect(()=>{
+    console.log("eventform,date", eventForm.date)
+
+  },[isTimeTBD])
   // update members to eventForm
   useEffect(() => {
-    console.log("eventForm", eventForm.members);
-    console.log("memberStore", members);
     // when the member is one, which is yourself, and store update is done on the above useEffect dep user
     if (members.length > 0) {
       setEventForm((prev) => ({
@@ -257,7 +259,7 @@ const EventForm = (props: Prop) => {
         const updates = {
           name: eventForm.name,
           date: eventForm.date ? new Date(eventForm.date) : undefined,
-          place_nane: eventForm.place?.place_name,
+          place_name: eventForm.place?.place_name,
           address: eventForm.place?.address,
           latitude: eventForm.place?.latitude,
           longitude: eventForm.place?.longitude,
@@ -265,6 +267,7 @@ const EventForm = (props: Prop) => {
           imgKey: eventForm.place?.imgKey,
           members: eventForm.members,
         };
+        console.log("send updates", updates)
         // update backend
         const res = await updateEventById(id, updates);
         if (!res) {

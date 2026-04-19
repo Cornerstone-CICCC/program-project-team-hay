@@ -1,8 +1,10 @@
 import { defalutImage } from "@/constants";
 import { useIsTrackAvailable } from "@/hooks/useIsTrackAvailable";
 import { calculateRegion } from "@/libs/map";
+import { useMyChatStore } from "@/store/chat.store";
 import { useAuthStore } from "@/store/functions/auth.store";
 import { useEventStore } from "@/store/functions/event.store";
+import { useFriendStore } from "@/store/functions/friend.store";
 import { useLocationStore } from "@/store/functions/location.store";
 import { useMyLocationStore } from "@/store/location.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -62,6 +64,8 @@ const TrackingMAP = () => {
   const [available, setAvailable] = useState(false);
 
   const { fetchLocationDetailByID } = useEventStore();
+  const currentChat = useMyChatStore(s => s.setCurrentRoom)
+  const {createDmRoom} = useFriendStore()
   const { updateMyLocation, getAllMembersLocation } = useLocationStore();
   const { user } = useAuthStore();
 
@@ -89,7 +93,7 @@ const TrackingMAP = () => {
 
     const details = await getAllMembersLocation(id as string);
 
-    // console.log("details",details)
+    console.log("details",details)
 
     if (!details) {
       console.log("There is no data for members location");
@@ -172,35 +176,35 @@ const TrackingMAP = () => {
 
         if(!event || !available) return
 
-        let subscriber: Location.LocationSubscription
+        // let subscriber: Location.LocationSubscription
         let interval:number
 
-        //start
-        const startTrackingMe = async()=>{
-            subscriber = await Location.watchPositionAsync(
-                {
-                    timeInterval:3000,
-                    distanceInterval:10
-                },
-                (location)=>{
-                    setUserLocation({
-                        latitude:location.coords.latitude,
-                        longitude:location.coords.longitude
-                    })
-                }
-            )
-        }
+        // //start
+        // const startTrackingMe = async()=>{
+        //     subscriber = await Location.watchPositionAsync(
+        //         {
+        //             timeInterval:5000,
+        //             distanceInterval:10
+        //         },
+        //         (location)=>{
+        //             setUserLocation({
+        //                 latitude:location.coords.latitude,
+        //                 longitude:location.coords.longitude
+        //             })
+        //         }
+        //     )
+        // }
 
         const startTrackingOthers = ()=>{
             fetchMembersLocation()
             interval = setInterval(fetchMembersLocation, 5000)
         }
 
-        startTrackingMe()
+        // startTrackingMe()
         startTrackingOthers()
 
         return ()=>{
-            subscriber?.remove()
+            // subscriber?.remove()
             clearInterval(interval)
         }
     },[isTrackAvailable, event, available])
@@ -211,13 +215,41 @@ const TrackingMAP = () => {
     },[routeInfo, selectedMember])
 
     const handleMessage= async()=>{
-        
-        // if selected member does not have friend_id
-        if(!selectedMember?.friend_id){
-            // create friend by sending userId and friend_userId
-        }else{
-            router.push(`/chat/${selectedMember.friend_id}` as any)
+        let friend_id;
+
+        if(!selectedMember){
+          console.log("no member selected")
+          return
         }
+
+        if(selectedMember.friend_id===user?.id){
+          console.log("You cannot message yourself")
+          return
+        }
+    
+        // if selected member does not have friend_id
+        if(!selectedMember.friend_id){
+            // create friend by sending userId and friend_userId
+            if(!selectedMember) return
+
+            const data = await createDmRoom(selectedMember.userId)
+    
+            if(!data){
+              console.log("Error getting new dm room id")
+              return
+            }
+    
+          friend_id = data.friend_id;
+            
+        }else{
+          friend_id = selectedMember.friend_id
+        }
+        currentChat({
+          room_id: friend_id,
+          type: 'dm',
+          name: selectedMember.name
+        })
+        router.push(`/chat/${friend_id}` as any)
     }
 
   return (

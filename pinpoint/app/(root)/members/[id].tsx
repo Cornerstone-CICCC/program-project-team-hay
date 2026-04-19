@@ -1,18 +1,24 @@
 import { defalutImage } from '@/constants';
+import { useMyEventStore } from '@/store/event.store';
 import { useAuthStore } from '@/store/functions/auth.store';
 import { useEventStore } from '@/store/functions/event.store';
 import { useFriendStore } from '@/store/functions/friend.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Feather from '@expo/vector-icons/Feather';
 import { router, useLocalSearchParams } from 'expo-router';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export interface Member{
     userId:string,
     image?:string,
     name:string,
     friend_id?:string 
+    isConfirmed?:boolean
 }
 const MemberList = () => {
     const {id} = useLocalSearchParams()
@@ -20,24 +26,33 @@ const MemberList = () => {
     const [members, setMembers] = useState<Member[]>([])
     const {getMemberListByEventId} = useEventStore()
     const {createDmRoom} = useFriendStore()
+    const [isLoading, setIsLoading] = useState(true);
+    const {toggleEventRender} = useMyEventStore()
 
     useEffect(()=>{
-      if(!id) return
+      if(!id) {
+        setIsLoading(false)
+        return
+      }
         // fetch members
         const fetchMember = async()=>{
+          try{
           const data =await getMemberListByEventId(id as string)
 
           if(!data){
             console.log("Error fetching members")
             return
           }
-          console.log(data)
 
           setMembers(data)
+        }finally{
+          setIsLoading(false)
         }
+      }
 
         fetchMember()
-    },[id])
+        
+    },[id,toggleEventRender])
 
     // redirect to dm chat room, if dm_id not exist, then create a new dm row
     const handleRedirectToDMRoom = async(item:Member)=>{
@@ -63,6 +78,17 @@ const MemberList = () => {
       }
 
       router.push(`/chat/${friend_id}` as any)
+    }
+
+    console.log("isLoading state:", isLoading)
+    if (isLoading) {
+      return (
+        <SafeAreaProvider>
+          <SafeAreaView style={[styles.container, styles.horizontal]}>
+            <ActivityIndicator size="large" color="#FF7600" />
+          </SafeAreaView>
+        </SafeAreaProvider>
+      );
     }
   return (
     <View
@@ -97,10 +123,23 @@ const MemberList = () => {
                 source={item.image ?{uri:item.image}:defalutImage.user}
                 resizeMode='cover'
                 />
-              <Text
-              style={styles.chatName}>
-                {item.name}
-              </Text>
+                <View
+                className='gap-3'>
+                    <Text
+                    style={styles.chatName}>
+                      {item.name}
+                    </Text>
+                  <View>
+                    {!item.isConfirmed
+                    ?<View className='flex flex-row items-center py-1 px-2 bg-red-100 w-[125px] rounded-lg'>
+                      <EvilIcons name="question" size={20} color="red" />
+                      <Text
+                      className='font-bold text-red-700 text-[11px]'>
+                        Waiting Response
+                      </Text>
+                    </View>:<View className='py-1 px-2'/>}
+                  </View>
+                </View>
             </View>
 
             {item.userId!==user?.id
@@ -183,5 +222,15 @@ const styles = StyleSheet.create({
   btntext: {
     textAlign: 'center',
     color: '#7C7C7C'
-  }
-})
+  },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  horizontal: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 10,
+  },
+});

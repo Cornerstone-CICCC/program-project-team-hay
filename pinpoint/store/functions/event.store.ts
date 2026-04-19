@@ -113,6 +113,9 @@ type Action = {
       imgKey?: string;
       members: {
         userId: string;
+        isConfirmed?: boolean
+        image?: string | null
+        name?: string
       }[];
     },
   ) => Promise<Omit<EventDetail, "activePoll"> | null>;
@@ -345,7 +348,7 @@ export const useEventStore = create<Action>((set, get) => ({
   ): Promise<Member[] | null> => {
     const { data: users, error: selectUsersErr } = await supabase
       .from("user_event")
-      .select("user_id")
+      .select("*")
       .eq("event_id", event_id);
 
     if (!users || selectUsersErr) {
@@ -373,12 +376,13 @@ export const useEventStore = create<Action>((set, get) => ({
     const details = await Promise.all(
       userProfiles.map(async (u) => {
         const result = await useFriendStore.getState().checkIfWeAreFriend(u.id);
-
+        const userEventRel = users.find(rel => rel.user_id === u.id)
         return {
           userId: u.id,
           image: u.profile_image_url,
           name: u.name,
           friend_id: result?.friend_id ?? undefined,
+          isConfirmed: userEventRel.is_confirmed || false
         };
       }),
     );
@@ -512,6 +516,9 @@ export const useEventStore = create<Action>((set, get) => ({
       imgKey?: string;
       members: {
         userId: string;
+        isConfirmed?: boolean;
+        image?: string | null
+        name?: string
       }[];
     },
   ): Promise<Omit<EventDetail, "activePoll"> | null> => {
@@ -581,12 +588,15 @@ export const useEventStore = create<Action>((set, get) => ({
       return null;
     }
 
+    const memberStatusMap = new Map(updates.members.map(m => [m.userId, m.isConfirmed]));
+
     const uniqueMemberIds = new Set(updates.members.map((m) => m.userId));
     uniqueMemberIds.add(currentUser.id);
 
     const rows = Array.from(uniqueMemberIds).map((uid) => ({
       user_id: uid,
       event_id: eventId,
+      is_confirmed: uid === currentUser.id? true: (memberStatusMap.get(uid) ?? false)
     }));
 
     const { error: insertRowErr } = await supabase
@@ -620,6 +630,7 @@ export const useEventStore = create<Action>((set, get) => ({
         id: u.id,
         name: u.name,
         image: u.profile_image_url,
+        isConfirmed: rows.find(r => r.user_id === u.id)?.is_confirmed ?? false
       })) || [];
 
     const detail = {

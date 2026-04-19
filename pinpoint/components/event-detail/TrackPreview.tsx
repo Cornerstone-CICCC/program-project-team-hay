@@ -1,7 +1,8 @@
 import { EventDetail } from '@/app/(root)/event/[id]'
 import { useIsTrackAvailable } from '@/hooks/useIsTrackAvailable'
+import { useAuthStore } from '@/store/functions/auth.store'
 import { Link, useLocalSearchParams } from 'expo-router'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Platform, StyleSheet, Text, View } from 'react-native'
 import MapView, { Marker, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps'
 
@@ -50,9 +51,10 @@ const AvailablePreviewMap =({latitude, longitude}:{
 }
 
 
-const UnavailablePreviewMap =({latitude, longitude}:{
+const UnavailablePreviewMap =({latitude, longitude, isConfirmed}:{
   latitude:number,
   longitude:number
+  isConfirmed:boolean
 })=>{
   return (
           <View
@@ -91,7 +93,7 @@ const UnavailablePreviewMap =({latitude, longitude}:{
         className={`absolute top-4 w-full h-full bg-black/70 z-10 items-center justify-center ${Platform.OS !== "android" &&"rounded-2xl"}`}>
           <Text
           className='text-white text-center'>
-            Tracking is available 1 hr before meetup time
+            {isConfirmed?"Tracking is available 1 hr before meetup time":"You need to join to use tracking"}
           </Text>
           </View>
       </View>
@@ -99,6 +101,15 @@ const UnavailablePreviewMap =({latitude, longitude}:{
 }
 
 const TrackPreview = ({event}:{event:EventDetail}) => {
+  const [isConfirmed, setIsComfirmed] = useState<boolean>(true)
+  const {user} = useAuthStore()
+
+    useEffect(()=>{
+      const members = event.members
+      const me = members.find(m=>m.userId===user?.id)
+      const isConfirm = me?.isConfirmed ?? false
+      setIsComfirmed(isConfirm)
+    },[event, user])
 
   // if date-time and location is not defined then 
   if(!event.date || !event.place){
@@ -122,8 +133,10 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
     </View>
     )
   }
+
   const isTrackAvailable = useIsTrackAvailable(event.date)
   console.log(isTrackAvailable)
+
 
   // //check if it is a hour before start time every minute
   // useEffect(()=>{
@@ -151,14 +164,15 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
       <Text>
         This service is only available on mobile
       </Text>:
-      isTrackAvailable?
+      isTrackAvailable&&isConfirmed?
         <AvailablePreviewMap
         longitude={event.place.longitude} 
         latitude={event.place.latitude}
         />:
         <UnavailablePreviewMap 
         longitude={event.place.longitude} 
-        latitude={event.place.latitude}/>
+        latitude={event.place.latitude}
+        isConfirmed={isConfirmed}/>
       }
     </View>
   )

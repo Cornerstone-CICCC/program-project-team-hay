@@ -26,7 +26,12 @@ const DateTimeInput = ({
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [dateAndroid, setDateAndroid] = useState<Date | null>(new Date())
 
+    const today = new Date()
+    const nextWeek = new Date(today)
+    nextWeek.setDate(today.getDate()+7)
+
     useEffect(()=>{
+        console.log("event date in date time",eventForm?.date)
         if(!eventForm?.date) return
         setDateAndroid(new Date(eventForm.date))
 
@@ -68,7 +73,7 @@ const DateTimeInput = ({
                           
                     <View style={{ opacity: isTimeTBD ? 0 : 1 }} pointerEvents={isTimeTBD ? 'none' : 'auto'}>
                         <DateTimePicker
-                            value={dateValue ?? new Date(eventForm?.date ?? new Date())}
+                            value={dateValue ?? new Date(eventForm?.date ?? nextWeek)}
                             mode="date"
                             disabled={isTimeTBD ?? false}
                             display="compact"
@@ -113,7 +118,7 @@ const DateTimeInput = ({
                     </View>
                     <View style={{ opacity: isTimeTBD ? 0 : 1 }} pointerEvents={isTimeTBD ? 'none' : 'auto'}>
                         <DateTimePicker
-                            value={dateValue ?? new Date(eventForm?.date ?? new Date())}
+                            value={dateValue ?? new Date(eventForm?.date ?? nextWeek)}
                             mode="time"
                             disabled={isTimeTBD ?? false}
                             display="default"

@@ -17,7 +17,7 @@ import { Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from
 const DetailCard = ({event}:{event:EventDetail}) => {
   const [isConfirmed, setIsComfirmed] = useState<boolean>(false)
     const {user} = useAuthStore()
-    const {createDmRoom} = useFriendStore()
+    const {createDmRoom,checkIfWeAreFriend} = useFriendStore()
     const {acceptEvent,declineEvent} = useEventStore()
     const {setSelectedEvent} = useMyEventStore()
     let dateTime
@@ -43,9 +43,13 @@ const DetailCard = ({event}:{event:EventDetail}) => {
     useEffect(()=>{
       const members = event.members
       const me = members.find(m=>m.userId===user?.id)
+      console.log("me",me)
       const isConfirm = me?.isConfirmed ?? false
+      console.log("isConfirmed", isConfirm)
       setIsComfirmed(isConfirm)
     },[event, user])
+
+
     const currentChat = useMyChatStore(s => s.setCurrentRoom)
 
     const handleDirectDmRoom = async(item:Member)=>{
@@ -57,15 +61,19 @@ const DetailCard = ({event}:{event:EventDetail}) => {
       }
 
       if(!item.friend_id){
-        //create friend
-        const data = await createDmRoom(item.userId)
+        const friendRow = await checkIfWeAreFriend(item.userId)
+        if(!friendRow){
+          //create friend
+          const data = await createDmRoom(item.userId)
 
-        if(!data){
-          console.log("Error getting new dm room id")
-          return
+          if(!data){
+            console.log("Error getting new dm room id")
+            return
+          }
+          friend_id = data.friend_id;
+        }else{
+          friend_id=friendRow.friend_id
         }
-
-      friend_id = data.friend_id;
     } else {
       friend_id = item.friend_id;
     }
@@ -134,12 +142,11 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         )
     }
 
-    useEffect(()=>{console.log(isConfirmed)},[isConfirmed])
 
   return (
     <View className="px-9 py-6 flex gap-8">
       <View className="w-full flex flex-row justify-end">
-        {(!event.date || new Date() <= new Date(event.date)) && isConfirmed?(
+        {(!event.date || new Date() <= new Date(event.date)) ? isConfirmed?(
           <TouchableOpacity
             onPress={() => {
               console.log("Detail Card event", event);
@@ -167,7 +174,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        ):<View/>}
       </View>
       {/* Event Name */}
       <View className="pb-4">
@@ -256,6 +263,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
                 ))
               : event.members.map((m) => (
                   <TouchableOpacity
+                    disabled={m.userId === user?.id}
                     onPress={() => handleDirectDmRoom(m)}
                     key={m.userId}
                   >

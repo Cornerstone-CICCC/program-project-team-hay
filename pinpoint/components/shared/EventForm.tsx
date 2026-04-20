@@ -38,6 +38,7 @@ const EventForm = (props: Prop) => {
   const { members, setMembers, clearSelectedEvent } = useMyEventStore();
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isTimeTBD, setIsTimeTBD] = useState<boolean>(false)
+  const [isPlaceTBD, setIsPlaceTBD] = useState<boolean>(true)
   const [error, setError] = useState<{
     title: string;
     date: string;
@@ -47,9 +48,12 @@ const EventForm = (props: Prop) => {
     date: "",
     member: "",
   });
+  const today = new Date()
+  const nextWeek = new Date(today)
+  nextWeek.setDate(today.getDate()+7)
   const [eventForm, setEventForm] = useState<Omit<EventDetail, "id">>({
     name: "",
-    date: new Date().toString(),
+    date: nextWeek.toString(),
     place: {
       place_name: "",
       address: "",
@@ -105,9 +109,12 @@ const EventForm = (props: Prop) => {
   }, [user]);
 
   useEffect(()=>{
-    console.log("eventform,date", eventForm.date)
+    const place = eventForm.place
+    if(place&&place.address!==""&& place.place_name!==""&&place.latitude!==0&&place.longitude!==0){
+      setIsPlaceTBD(false)
+    }
 
-  },[isTimeTBD])
+  },[eventForm])
   // update members to eventForm
   useEffect(() => {
     // when the member is one, which is yourself, and store update is done on the above useEffect dep user
@@ -117,7 +124,7 @@ const EventForm = (props: Prop) => {
         members: [...members],
       }));
 
-      if (members.length > 1) {
+      if (members.length > 1 && members.length <11) {
         setError((prev) => ({
           ...prev,
           member: "",
@@ -173,7 +180,7 @@ const EventForm = (props: Prop) => {
     const validationErrors = {
       title: eventForm.name.trim() === "" ? "Title cannot be empty" : "",
       date: !isTimeTBD&&eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
-      member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" : "",
+      member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" :eventForm.members.length >11?"Cannot create hangout for more than 10 people": "",
     };
 
     const hasErrors = Object.values(validationErrors).some(Boolean);
@@ -243,7 +250,7 @@ const EventForm = (props: Prop) => {
     const validationErrors = {
       title: eventForm.name.trim() === "" ? "Title cannot be empty" : "",
       date: !isTimeTBD&&eventForm.date && new Date(eventForm.date) < new Date() ? "Cannot create past hangout" : "",
-      member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" : "",
+       member: eventForm.members.length < 2 ? "Cannot create hangout for just yourself" :eventForm.members.length >11?"Cannot create hangout for more than 10 people": "",
     };
 
     const hasErrors = Object.values(validationErrors).some(Boolean);
@@ -287,7 +294,7 @@ const EventForm = (props: Prop) => {
   return (
     <View className="pt-12 flex flex-col gap-6">
       <View>
-        <Text style={styles.headText}>Title</Text>
+        <Text style={styles.headText}>Title<Text className="text-red-500">*</Text></Text>
         <TextInput
           value={eventForm?.name}
           placeholder="Enter hangout title"
@@ -339,6 +346,40 @@ const EventForm = (props: Prop) => {
             )}
           </View>
         </View>
+
+        <View
+        className="flex flex-row gap-2 px-1">
+          <TouchableOpacity
+        onPress={() => {
+            if (isPlaceTBD) {
+                setIsPlaceTBD(false);
+            } else {
+                setIsPlaceTBD(true);
+                const undefinedPlace ={
+                    place_name:"",
+                    address: "",
+                    latitude: 0,
+                    longitude: 0,
+                    url: undefined,
+                    imgKey:  undefined,
+                }
+                setEventForm(prev => ({ ...prev, place: undefinedPlace }));
+            }
+        }}
+          >
+              <View
+                  style={{ borderColor: "grey" }}
+                  className='w-[18px] aspect-square rounded-full border border-[#848484] flex items-center justify-center'
+              >
+                  {isPlaceTBD && (
+                      <View className='w-[12px] aspect-square rounded-full bg-[#848484]' />
+                  )}
+              </View>
+          </TouchableOpacity>
+          <Text>
+              Not decided yet
+          </Text>
+        </View>
       </View>
 
       <View>
@@ -374,7 +415,6 @@ const EventForm = (props: Prop) => {
           <Text>
               Not decided yet
           </Text>
-
         </View>
 
         <Text
@@ -384,7 +424,13 @@ const EventForm = (props: Prop) => {
       </View>
       {/* Friends  */}
       <View>
-        <Text style={styles.headText}>Members</Text>
+        <View
+        style={{paddingBottom:10}}
+        className="flex flex-row items-center gap-4">
+          <Text style={styles.headText}>Members<Text className="text-red-500">*</Text></Text>
+          <Text
+          style={styles.subText}>MAX 10 PEOPLE</Text>
+        </View>
         <View className="flex flex-row gap-4 items-center justify-between px-4">
           {eventForm && eventForm.members.length > 0 && (
             <View className="flex flex-row gap-2">
@@ -458,7 +504,12 @@ const styles = StyleSheet.create({
     fontWeight: "medium",
     fontSize: 23,
     color: "#595959",
-    paddingBottom: 10,
+  },
+  subText: {
+    fontFamily: "Montserrat",
+    fontWeight: "medium",
+    fontSize: 14,
+    color: "#595959",
   },
 
   textIput: {
@@ -500,7 +551,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     height: 60,
     width: "100%",
-    marginBottom: 8,
+    marginBottom: 5,
     zIndex: 100,
     overflow: "visible",
   },
@@ -512,7 +563,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   errorText:{
-    paddingTop:16,
+    paddingTop:14,
     color:'#b91c1c',
     fontSize:14
   }

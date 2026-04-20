@@ -4,11 +4,10 @@ import { useAuthStore } from '@/store/functions/auth.store';
 import { useEventStore } from '@/store/functions/event.store';
 import { useFriendStore } from '@/store/functions/friend.store';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import Feather from '@expo/vector-icons/Feather';
-import { router, useLocalSearchParams } from 'expo-router';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
+import { router, useLocalSearchParams } from 'expo-router';
 
+import { useMyChatStore } from '@/store/chat.store';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -54,6 +53,7 @@ const MemberList = () => {
         
     },[id,toggleEventRender])
 
+    const currentChat = useMyChatStore(s => s.setCurrentRoom)
     // redirect to dm chat room, if dm_id not exist, then create a new dm row
     const handleRedirectToDMRoom = async(item:Member)=>{
       let friend_id;
@@ -76,7 +76,11 @@ const MemberList = () => {
       }else{
         friend_id= item.friend_id
       }
-
+      currentChat({
+        room_id: friend_id,
+        type: 'dm',
+        name: item.name
+      })
       router.push(`/chat/${friend_id}` as any)
     }
 

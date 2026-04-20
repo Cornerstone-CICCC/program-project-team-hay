@@ -51,21 +51,10 @@ const PlaceCard = ({place}:Props) => {
         )
     }
 
-    return (
-    <View
-    className='px-10 py-4'>
-      <Text
-      className='font-MontserratSemiBold text-[20px]'>
-        Place Information
-      </Text>
-      <Link
-      href={place.url as any}
-      >
+    const content= (
         <View
         className='pt-6 pb-2 flex flex-row gap-4'>
             {place.imgKey?
-            // <View
-            // className='w-[80px] aspect-square'>
                 <Image
                 source={{
                     uri:googleImgUrl
@@ -75,7 +64,6 @@ const PlaceCard = ({place}:Props) => {
                 resizeMode='cover'
                 className='rounded-2xl'
                 />
-            // </View>
             :<View
             className='w-[90px] aspect-square bg-slate-500'/>
             }
@@ -95,7 +83,19 @@ const PlaceCard = ({place}:Props) => {
                 </View>
             </View>
         </View>
-        </Link>
+        )
+
+    return (
+    <View
+    className='px-10 py-4'>
+      <Text
+      className='font-MontserratSemiBold text-[20px]'>
+        Place Information
+      </Text>
+      {place.url?
+      <Link
+      href={place.url as any}>{content}</Link>:
+      <View>{content}</View>}
 
       {/* Map preview */}
       <View

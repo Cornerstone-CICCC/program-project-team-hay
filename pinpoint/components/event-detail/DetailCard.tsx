@@ -43,9 +43,13 @@ const DetailCard = ({event}:{event:EventDetail}) => {
     useEffect(()=>{
       const members = event.members
       const me = members.find(m=>m.userId===user?.id)
+      console.log("me",me)
       const isConfirm = me?.isConfirmed ?? false
+      console.log("isConfirmed", isConfirm)
       setIsComfirmed(isConfirm)
     },[event, user])
+
+
     const currentChat = useMyChatStore(s => s.setCurrentRoom)
 
     const handleDirectDmRoom = async(item:Member)=>{
@@ -134,12 +138,11 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         )
     }
 
-    useEffect(()=>{console.log(isConfirmed)},[isConfirmed])
 
   return (
     <View className="px-9 py-6 flex gap-8">
       <View className="w-full flex flex-row justify-end">
-        {(!event.date || new Date() <= new Date(event.date)) && isConfirmed?(
+        {(!event.date || new Date() <= new Date(event.date)) ? isConfirmed?(
           <TouchableOpacity
             onPress={() => {
               console.log("Detail Card event", event);
@@ -167,7 +170,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        ):<View/>}
       </View>
       {/* Event Name */}
       <View className="pb-4">

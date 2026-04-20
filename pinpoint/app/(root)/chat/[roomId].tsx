@@ -57,43 +57,10 @@ const Chatroom = () => {
     setMessage('')
   }
 
-  // store the all messages
+  // ui state
   const [chatMessages, setChatMessages] = useState<Message[]>([])
-
-  // const prevRef = useRef<Message[]>([])
-  // const chatMessages = useMemo(() => {
-  //   if(!room_id) return prevRef.current
-
-  //   const existing = messages[room_id]
-  //   if(!existing) return prevRef.current
-
-  //   const result = [...existing].reverse()
-  //   return result
-  // }, [messages, room_id])
-
-  useEffect(() => {
-    if(!room_id || !type) return
-
-    const fetchAllMsg = async () => {
-      const data = await getAllMessages(room_id, type)
-      if(data){
-        const sorted = data.sort(
-          (a, b) => 
-            new Date(a.created_at).getTime() -
-            new Date(b.created_at).getTime()
-        )
-        setChatMessages(sorted)
-      }
-      subscribeRoom(room_id, type)
-    }
-    fetchAllMsg()
-    console.log(`🔥Initial Fetch ${chatMessages}`)
-
-    return () => {
-      unsubscribeRoom(room_id)
-    }
-  }, [room_id, type])
-
+  const [hasMore, setHasMore] = useState<boolean>(true)
+  const [loadingMore, setLoadingMore] = useState<boolean>(false)
 
   // for fetching user info (image)
   const fetchProfile = useAuthStore(s => s.fetchUserProfile);
@@ -118,7 +85,7 @@ const Chatroom = () => {
     }
   }, [chatMessages])
 
-  // for fetching the user image
+  // for fetching the user image/name
   const getImageSource = (item: Message) => {
     const target = users[item.sender_id]
     if(target?.profileImage){
@@ -126,135 +93,16 @@ const Chatroom = () => {
     }
     return defalutImage.user
   }
+  const getSenderName = (item: Message) => {
+    const target = users[item.sender_id]
+    return target.name
+  }
 
   // for router
   const event_id = type === 'group' ? room_id : null
   const goToEventDetail = () => {
     router.push(`/event/${event_id}`);
   };
-
-  // for loading more
-  const isFirstLoadRef = useRef(true)
-
-  useEffect(() => {
-    if(!chatMessages.length) return
-    if(isFirstLoadRef.current){
-      requestAnimationFrame(() => {
-        flatListRef.current?.scrollToEnd({ animated: false })
-      })
-      isFirstLoadRef.current = false
-    }
-  }, [chatMessages.length])
-
-  const flatListRef = useRef<FlatList>(null)
-  const [loadingMore, setLoadingMore] = useState<boolean>(false)
-  const [hasMore, setHasMore] = useState<boolean>(true)
-
-  const loadMore2 = async () => {
-    if(!room_id || !type || loadingMore || !hasMore) return
-    setLoadingMore(true)
-
-    try{
-      const current = chatMessages;
-      if(current.length === 0) return
-
-      const oldestMsg = current[current.length - 1]
-
-      const olderMsgs = await getAllMessages(
-        room_id,
-        type,
-        oldestMsg.created_at
-      )
-
-      if(!olderMsgs){
-        setHasMore(false)
-        setLoadingMore(false)
-        return
-      }
-
-      if(olderMsgs.length < 20){
-        setHasMore(false)
-      }
-
-      if(olderMsgs.length === 0){
-        setHasMore(false)
-        setLoadingMore(false)
-        return
-      }
-
-      const merged = [...olderMsgs, ...current]
-
-      const unique = Array.from(
-        new Map(merged.map(m => [m.id, m])).values()
-      )
-
-      const sorted = unique.sort(
-        (a, b) => 
-          new Date(a.created_at).getTime() - 
-          new Date(b.created_at).getTime()
-      )
-      useChatDetailStore.setState((state) => ({
-        messages: {
-          ...state.messages,
-          [room_id]: sorted,
-        }
-      }))
-    } finally {
-      setLoadingMore(false)
-    }
-  }
-
-  const loadMore = async () => {
-    if (chatMessages.length === 0 || !room_id || !type) return
-    const oldest = chatMessages[0]
-    const older = await getAllMessages(
-      room_id,
-      type,
-      oldest.created_at
-    )
-    if (!older) return
-    setChatMessages(prev => {
-      const merged = [...older.reverse(), ...prev]
-      const unique = Array.from(
-        new Map(merged.map(m => [m.id, m])).values()
-      )
-      return unique
-      // return unique.sort(
-      //   (a, b) =>
-      //     new Date(a.created_at).getTime() -
-      //     new Date(b.created_at).getTime()
-      // )
-      console.log(`🔥Load more all ${merged}`)
-    })
-    
-  }
-
-  useEffect(() => {
-    if (!room_id) return
-
-    const unsub = useChatDetailStore.subscribe((state) => {
-      const newMsgs = state.messages[room_id]
-      if (!newMsgs) return
-
-      setChatMessages(prev => {
-        const merged = [...prev, ...newMsgs]
-
-        const unique = Array.from(
-          new Map(merged.map(m => [m.id, m])).values()
-        )
-
-        return unique.sort(
-          (a, b) =>
-            new Date(a.created_at).getTime() -
-            new Date(b.created_at).getTime()
-        )
-      })
-    })
-
-    return () => {
-      unsub()
-    }
-  }, [room_id, type])
 
   // for judging the past
   const fetchEvent = useEventStore(s => s.fetchEventById)
@@ -273,6 +121,76 @@ const Chatroom = () => {
         ? moment().isAfter(moment(event.date).endOf('day'))
         : true)
       : false
+
+
+  // formatted message
+  const normalizeMessages = (msgs: Message[]) => {
+    const unique = Array.from(
+      new Map(msgs.map(m => [m.id, m])).values()
+    )
+    return unique.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() -
+        new Date(a.created_at).getTime()
+    )
+  }
+
+  // firstload
+  const fetchAllMsg = async () => {
+    if(!room_id || !type) return
+    const data = await getAllMessages(room_id, type)
+    if(data){
+      setChatMessages(normalizeMessages(data))
+    }
+    subscribeRoom(room_id, type)
+  }
+
+  // loadmore
+  const loadMore = async () => {
+    if(!hasMore || loadingMore) return
+    if(!chatMessages.length || !room_id || !type) return
+
+    setLoadingMore(true)
+
+    const oldest = chatMessages[chatMessages.length - 1]
+    console.log('🔥oldest Msg', oldest)
+    const older = await getAllMessages(
+      room_id,
+      type,
+      oldest.created_at
+    )
+    if(!older || older.length === 0){
+      setHasMore(false)
+      setLoadingMore(false)
+      return
+    }
+    setChatMessages(prev => 
+      normalizeMessages([...prev, ...older])
+    )
+    setLoadingMore(false)
+  }
+
+  // firstload trigger
+  useEffect(() => {
+    if(!room_id || !type) return
+    fetchAllMsg()
+    return () => {
+      unsubscribeRoom(room_id)
+    }
+  }, [room_id, type])
+
+  // foe new
+  useEffect(() => {
+    if(!room_id) return
+    const unsub = useChatDetailStore.subscribe((state) => {
+      const newMsgs = state.messages[room_id]
+      if(!newMsgs) return
+      setChatMessages(prev => 
+        normalizeMessages([...prev, ...newMsgs])
+      )
+    })
+    return () => unsub()
+  }, [room_id])
 
   return (
     <KeyboardAvoidingView
@@ -298,14 +216,7 @@ const Chatroom = () => {
             contentContainerStyle={{
               flexGrow: 1,
             }}
-            ref={flatListRef}
             keyboardShouldPersistTaps="handled"
-            onContentSizeChange={() => {
-              if(isFirstLoadRef.current){
-                flatListRef.current?.scrollToEnd({ animated: false})
-                isFirstLoadRef.current = false
-              }
-            }}
             onEndReached={() => {
               if(!loadingMore && hasMore) loadMore()
             }}
@@ -322,6 +233,7 @@ const Chatroom = () => {
                 <View style={isMine ? styles.msgTo : styles.msgFrom}>
                   {!isMine && <Image source={getImageSource(item)} style={styles.msgImg} resizeMode="cover" />}
                   <View style={isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
+                    {type === 'group' && !isMine && <Text>{getSenderName(item)}</Text>}
                     <Text style={isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.message}</Text>
                     <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{formattedDate}</Text>
                   </View>
@@ -384,6 +296,7 @@ const styles = StyleSheet.create({
   },
   msgWrap: {
     // marginBottom: 'auto'
+    // paddingBottom: 60,
   },
   msgFrom: {
     display: "flex",

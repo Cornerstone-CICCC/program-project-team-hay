@@ -31,6 +31,7 @@ const DateTimeInput = ({
     nextWeek.setDate(today.getDate()+7)
 
     useEffect(()=>{
+        console.log("event date in date time",eventForm?.date)
         if(!eventForm?.date) return
         setDateAndroid(new Date(eventForm.date))
 
@@ -77,7 +78,7 @@ const DateTimeInput = ({
                             disabled={isTimeTBD ?? false}
                             display="compact"
                             themeVariant="light"
-                            minimumDate={nextWeek}
+                            minimumDate={new Date()}
                             onChange={(e, date) => {
                                 if (!date) return;
                                 setShowDatePicker(false);

@@ -17,7 +17,7 @@ import { Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from
 const DetailCard = ({event}:{event:EventDetail}) => {
   const [isConfirmed, setIsComfirmed] = useState<boolean>(false)
     const {user} = useAuthStore()
-    const {createDmRoom} = useFriendStore()
+    const {createDmRoom,checkIfWeAreFriend} = useFriendStore()
     const {acceptEvent,declineEvent} = useEventStore()
     const {setSelectedEvent} = useMyEventStore()
     let dateTime
@@ -61,15 +61,19 @@ const DetailCard = ({event}:{event:EventDetail}) => {
       }
 
       if(!item.friend_id){
-        //create friend
-        const data = await createDmRoom(item.userId)
+        const friendRow = await checkIfWeAreFriend(item.userId)
+        if(!friendRow){
+          //create friend
+          const data = await createDmRoom(item.userId)
 
-        if(!data){
-          console.log("Error getting new dm room id")
-          return
+          if(!data){
+            console.log("Error getting new dm room id")
+            return
+          }
+          friend_id = data.friend_id;
+        }else{
+          friend_id=friendRow.friend_id
         }
-
-      friend_id = data.friend_id;
     } else {
       friend_id = item.friend_id;
     }
@@ -259,6 +263,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
                 ))
               : event.members.map((m) => (
                   <TouchableOpacity
+                    disabled={m.userId === user?.id}
                     onPress={() => handleDirectDmRoom(m)}
                     key={m.userId}
                   >

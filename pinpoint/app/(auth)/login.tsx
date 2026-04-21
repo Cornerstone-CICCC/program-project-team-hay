@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPwd, setShowPwd] = useState(false);
+  const [showPwd, setShowPwd] = useState(true);
 
   const signIn = useAuthStore((s) => s.signIn);
   const onGoogleSignIn = useAuthStore((s)=>s.onGoogleSignIn)

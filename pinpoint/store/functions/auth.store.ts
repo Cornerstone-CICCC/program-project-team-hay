@@ -148,7 +148,9 @@ export const useAuthStore = create<State & Action>((set, get) => ({
         email,
         password: oldPwd,
       });
-      if (error) throw error;
+      if (error) {
+        console.log("Error with password")
+      };
 
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPwd,

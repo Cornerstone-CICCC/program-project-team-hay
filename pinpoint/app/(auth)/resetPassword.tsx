@@ -58,6 +58,16 @@ export default function ResetPassword() {
   };
 
   const handleResetPassword = async () => {
+
+    if (!newPwd || !confirmPwd) {
+        Alert.alert("Not Available", "Please enter all the fiels first");
+    }
+
+    if(!validatePassword(newPwd)){
+      Alert.alert("Error", "New password does not meet the requirements");
+      return
+    }
+
     if (newPwd !== confirmPwd)  {
       Alert.alert("Error", "New password and confirm password do not match");
       return;
@@ -66,16 +76,9 @@ export default function ResetPassword() {
     setIsLoading(true);
     
     try {
-
-      if (!newPwd || !confirmPwd) {
-        Alert.alert("Not Available", "Please enter all the fiels first");
-      }
-
       const success = await resetPassword(newPwd);
       if (success) {
-        Alert.alert("Success", "Password updated successfully!", [
-          { text: "OK", onPress: () => router.push("/(auth)/login") },
-        ]);
+        router.push("/(auth)/login")
       }
     } catch (err) {
       Alert.alert("Error", "Failed to reset password");
@@ -112,7 +115,7 @@ export default function ResetPassword() {
                 placeholder="Input your password"
                 placeholderTextColor={"#BCBCBC"}
                 autoComplete="password"
-                secureTextEntry={showNewPwd}
+                secureTextEntry={!showNewPwd}
                 className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
                 value={newPwd}
                 onChangeText={setNewPwd}
@@ -142,7 +145,7 @@ export default function ResetPassword() {
                 placeholder="Input your password"
                 placeholderTextColor={"#BCBCBC"}
                 autoComplete="password"
-                secureTextEntry={showConfirmPwd}
+                secureTextEntry={!showConfirmPwd}
                 className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
                 value={confirmPwd}
                 onChangeText={handleConfirmChange}

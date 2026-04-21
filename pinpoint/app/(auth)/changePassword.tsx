@@ -51,7 +51,7 @@ export default function ChangePassword() {
     const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!])[A-Za-z\d~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!]{8,}$/
     return regex.test(pw)
   }
-
+  
 
   const handleConfirmChange = (text: string) => {
     setConfirmPwd(text);
@@ -64,6 +64,17 @@ export default function ChangePassword() {
   };
 
   const handleChangepassword = async () => {
+
+    if (!oldPwd || !newPwd || !confirmPwd) {
+      Alert.alert("Not Available", "Please enter all the fiels first");
+      return
+    }
+
+    if(!validatePassword(newPwd)){
+      Alert.alert("Error", "New password does not meet the requirements");
+      return
+    }
+
     if (newPwd !== confirmPwd) {
       Alert.alert("Error", "New password and confirm password do not match");
       return;
@@ -71,9 +82,7 @@ export default function ChangePassword() {
 
     setIsLoading(true);
     try {
-      if (!oldPwd || !newPwd || !confirmPwd) {
-        Alert.alert("Not Available", "Please enter all the fiels first");
-      }
+      
 
       if (user?.login_type !== "email") {
         Alert.alert(
@@ -175,14 +184,14 @@ export default function ChangePassword() {
           </View>
 
           <View className="flex mb-5">
-            <Text className="text-lg font-Lexend">Confirm new password</Text>
+            <Text className="text-lg font-Lexend">Confirm password</Text>
             <View className="relative justify-center">
               <TextInput
                 placeholder="Input your password"
                 placeholderTextColor={"#BCBCBC"}
                 autoComplete="password"
                 secureTextEntry={!showConfirmPwd}
-                className={`h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]`}
+                className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
                 value={confirmPwd}
                 onChangeText={handleConfirmChange}
               ></TextInput>

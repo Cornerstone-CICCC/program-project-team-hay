@@ -528,7 +528,7 @@ export const useEventStore = create<Action>((set, get) => ({
 
     if (updates.name !== undefined) updatePayload.name = updates.name;
     if (updates.date !== undefined)
-      updatePayload.date = updates.date.toISOString();
+      updatePayload.date = updates.date.toISOString(); 
     if (updates.place_name !== undefined)
       updatePayload.place_name = updates.place_name;
     if (updates.address !== undefined) updatePayload.address = updates.address;

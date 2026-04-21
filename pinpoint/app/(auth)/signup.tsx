@@ -20,6 +20,7 @@ export default function SignupScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPwd, setConfirmPwd] = useState<string>("");
+  const [newPwdErr, setNewPwdError] = useState<string>("")
   const [pwdError, setPwdError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,17 +29,23 @@ export default function SignupScreen() {
 
 
   useEffect(() => {
-    if (!confirmPwd) {
-      setPwdError("");
-      return;
+    if(password && !validatePassword(password)) {
+      setNewPwdError("Password must be 8+ chars, with uppercase, number and symbol")
+    }else{
+      setNewPwdError("")
     }
 
-    if (confirmPwd !== password) {
+    if (confirmPwd && confirmPwd !== password) {
       setPwdError("Passwords do not match");
     } else {
       setPwdError("");
     }
   }, [password, confirmPwd]);
+
+  const validatePassword = (pw: string) => {
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!])[A-Za-z\d~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!]{8,}$/
+    return regex.test(pw)
+  }
 
   const handleConfirmPwd = (text: string) => {
     setConfirmPwd(text);
@@ -144,6 +151,11 @@ export default function SignupScreen() {
             value={password}
             onChangeText={setPassword}
           ></TextInput>
+          {newPwdErr ? (
+              <Text className="text-red-500 mt-1 text-sm font-Lexend">
+                {newPwdErr}
+              </Text>
+            ) : null}
         </View>
 
         <View className="flex mb-3">
@@ -153,7 +165,7 @@ export default function SignupScreen() {
             placeholderTextColor={"#BCBCBC"}
             autoComplete="password"
             secureTextEntry
-            className={`border border-solid rounded-md text-base font-Lexend py-4 ps-3 mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]`}
+            className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
             value={confirmPwd}
             onChangeText={handleConfirmPwd}
           ></TextInput>
@@ -165,7 +177,7 @@ export default function SignupScreen() {
         </View>
 
         <TouchableOpacity
-          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6"
+          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6 mt-6"
           onPress={handleSignUp}
         >
           {isLoading ? (

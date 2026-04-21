@@ -33,15 +33,28 @@ export default function AccountSetting() {
     if (user?.name) {
       setName(user.name);
     }
-    console.log(user)
 
   }, [user]);
 
   useEffect(() => {}, [profileImage]);
 
   const handleUpdate = async () => {
+
+    if(!name || name.trim() === ""){
+      Alert.alert("Error", "Nmae is required")
+      
+      if (user?.name) {
+        setName(user.name);
+      }
+
+      setIsEditing(false)
+      return
+
+    }
+
     setIsEditing(false);
     setIsLoading(true);
+
     try {
       if (!user) {
         throw new Error("User not authenticated");
@@ -61,6 +74,8 @@ export default function AccountSetting() {
         }
       }
 
+      
+
       const updateData: any = {
         name: name,
       };
@@ -71,18 +86,7 @@ export default function AccountSetting() {
 
       // Update profile
       await updateUser(updateData);
-      Alert.alert(
-        "Successfully Updated",
-        "Your changes have been saved successfully",
-        [
-          {
-            text: "OK",
-            onPress: () => console.log("OK Pressed"),
-          },
-        ],
-        { cancelable: false },
-      );
-      // router.replace("/");
+      
     } catch (err) {
       Alert.alert(
         "Error",

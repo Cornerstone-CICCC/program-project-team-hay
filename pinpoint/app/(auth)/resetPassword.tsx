@@ -11,28 +11,41 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function ResetPassword() {
   const router = useRouter();
 
   const [newPwd, setNewPwd] = useState<string>("");
   const [confirmPwd, setConfirmPwd] = useState<string>("");
-  const [pwdError, setPwdError] = useState<string>("");
+  const [newPwdErr, setNewPwdError] = useState<string>("") // to see if the password is valid
+  const [pwdError, setPwdError] = useState<string>(""); // see if newpwd and confirmPwd match
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   const resetPassword = useAuthStore((s) => s.resetPassword);
 
-  const user = useAuthStore((s) => s.user);
-  const changePassword = useAuthStore((s) => s.changePassword);
-  const findPassword = useAuthStore((s) => s.findPassword);
-
   useEffect(() => {
+
+    if(newPwd && !validatePassword(newPwd)) {
+      setNewPwdError("Password must be 8+ chars, with uppercase, number and symbol")
+    }else{
+      setNewPwdError("")
+    }
+
     if (confirmPwd && newPwd !== confirmPwd) {
       setPwdError("Passwords do not match");
     } else {
       setPwdError("");
     }
   }, [newPwd, confirmPwd]);
+
+  const validatePassword = (pw: string) => {
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!])[A-Za-z\d~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!]{8,}$/
+    return regex.test(pw)
+  }
 
   const handleConfirmChange = (text: string) => {
     setConfirmPwd(text);
@@ -45,19 +58,27 @@ export default function ResetPassword() {
   };
 
   const handleResetPassword = async () => {
-    if (newPwd !== confirmPwd) return;
-    if (newPwd.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
-      return;
+
+    if (!newPwd || !confirmPwd) {
+        Alert.alert("Not Available", "Please enter all the fiels first");
     }
 
+    if(!validatePassword(newPwd)){
+      Alert.alert("Error", "New password does not meet the requirements");
+      return
+    }
+
+    if (newPwd !== confirmPwd)  {
+      Alert.alert("Error", "New password and confirm password do not match");
+      return;
+    }
+  
     setIsLoading(true);
+    
     try {
       const success = await resetPassword(newPwd);
       if (success) {
-        Alert.alert("Success", "Password updated successfully!", [
-          { text: "OK", onPress: () => router.push("/(auth)/login") },
-        ]);
+        router.push("/(auth)/login")
       }
     } catch (err) {
       Alert.alert("Error", "Failed to reset password");
@@ -89,28 +110,58 @@ export default function ResetPassword() {
         <View className="mb-7">
           <View className="flex mb-5">
             <Text className="text-lg font-Lexend">New Password</Text>
-            <TextInput
-              placeholder="Input your password"
-              placeholderTextColor={"#BCBCBC"}
-              autoComplete="password"
-              secureTextEntry
-              className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
-              value={newPwd}
-              onChangeText={setNewPwd}
-            ></TextInput>
+            <View>
+              <TextInput
+                placeholder="Input your password"
+                placeholderTextColor={"#BCBCBC"}
+                autoComplete="password"
+                secureTextEntry={!showNewPwd}
+                className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+                value={newPwd}
+                onChangeText={setNewPwd}
+              ></TextInput>
+              <TouchableOpacity
+                className="absolute top-6 right-3"
+                onPress={() => setShowNewPwd(!showNewPwd)}
+              >
+                <Ionicons
+                  name={showNewPwd ? "eye-outline" : "eye-off-outline"} 
+                  size={24} 
+                  color="black" 
+                />
+              </TouchableOpacity> 
+            </View>
+            {newPwdErr ? (
+              <Text className="text-red-500 mt-1 text-sm font-Lexend">
+                {newPwdErr}
+              </Text>
+            ) : null}
           </View>
 
           <View className="flex mb-5">
             <Text className="text-lg font-Lexend">Confirm new password</Text>
-            <TextInput
-              placeholder="Input your password"
-              placeholderTextColor={"#BCBCBC"}
-              autoComplete="password"
-              secureTextEntry
-              className={`border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]`}
-              value={confirmPwd}
-              onChangeText={handleConfirmChange}
-            ></TextInput>
+            <View>
+              <TextInput
+                placeholder="Input your password"
+                placeholderTextColor={"#BCBCBC"}
+                autoComplete="password"
+                secureTextEntry={!showConfirmPwd}
+                className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+                value={confirmPwd}
+                onChangeText={handleConfirmChange}
+              ></TextInput>
+              <TouchableOpacity
+                className="absolute top-6 right-3"
+                onPress={() => setShowConfirmPwd(!showConfirmPwd)}
+              >
+                <Ionicons 
+                  name={showConfirmPwd ? "eye-outline" : "eye-off-outline"} 
+                  size={24} 
+                  color="black" 
+                />
+              </TouchableOpacity>
+            </View>
+            
             {pwdError ? (
               <Text className="text-red-500 mt-1 text-sm font-Lexend">
                 {pwdError}

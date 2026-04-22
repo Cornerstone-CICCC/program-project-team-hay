@@ -12,10 +12,10 @@ type Props={
     onSaveHandler?:(place:PlaceOption)=>void,
     setNewLocation?:(place:Place)=>void,
     place?:{
-        place_name:string,
-        address:string,
-        latitude:number,
-        longitude:number,
+        place_name:string|null,
+        address:string|null,
+        latitude:number|null,
+        longitude:number|null,
         }
     type?:"new"|"poll"|"edit"
 }

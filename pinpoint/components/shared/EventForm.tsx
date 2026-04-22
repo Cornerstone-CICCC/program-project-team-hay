@@ -265,13 +265,13 @@ const EventForm = (props: Prop) => {
     try{
         const updates = {
           name: eventForm.name,
-          date: eventForm.date ? new Date(eventForm.date) : undefined,
-          place_name: eventForm.place?.place_name,
-          address: eventForm.place?.address,
+          date: eventForm.date ? new Date(eventForm.date) : null,
+          place_name: eventForm.place?.place_name??null,
+          address: eventForm.place?.address??null,
           latitude: eventForm.place?.latitude,
           longitude: eventForm.place?.longitude,
-          url: eventForm.place?.url,
-          imgKey: eventForm.place?.imgKey,
+          url: eventForm.place?.url??null,
+          imgKey: eventForm.place?.imgKey??null,
           members: eventForm.members,
         };
         console.log("send updates", updates)

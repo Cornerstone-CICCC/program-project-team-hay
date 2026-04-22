@@ -35,10 +35,10 @@ export interface EventDetail {
   place?: {
     place_name: string;
     address: string;
-    latitude: number;
-    longitude: number;
-    url?: string;
-    imgKey?: string;
+    latitude: number|null;
+    longitude: number|null;
+    url?: string|null;
+    imgKey?: string|null;
   };
   members: Member[];
   activePoll?: ActivePoll[];

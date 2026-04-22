@@ -103,14 +103,14 @@ type Action = {
   updateEventById: (
     eventId: string,
     updates: {
-      name?: string;
-      date?: Date;
-      place_name?: string;
-      address?: string;
-      latitude?: number;
-      longitude?: number;
-      url?: string;
-      imgKey?: string;
+      name?: string | null;
+      date?: Date | null;
+      place_name?: string | null;
+      address?: string | null;
+      latitude?: number | null;
+      longitude?: number| null;
+      url?: string | null;
+      imgKey?: string | null;
       members: {
         userId: string;
         isConfirmed?: boolean
@@ -506,14 +506,14 @@ export const useEventStore = create<Action>((set, get) => ({
   updateEventById: async (
     eventId: string,
     updates: {
-      name?: string;
-      date?: Date;
-      place_name?: string;
-      address?: string;
-      latitude?: number;
-      longitude?: number;
-      url?: string;
-      imgKey?: string;
+      name?: string| null;
+      date?: Date | null
+      place_name?: string| null;
+      address?: string| null;
+      latitude?: number| null;
+      longitude?: number| null;
+      url?: string| null;
+      imgKey?: string| null;
       members: {
         userId: string;
         isConfirmed?: boolean;
@@ -526,18 +526,21 @@ export const useEventStore = create<Action>((set, get) => ({
     if (!currentUser) throw new Error("Authentication required");
     const updatePayload: any = {};
 
-    if (updates.name !== undefined) updatePayload.name = updates.name;
-    if (updates.date !== undefined)
-      updatePayload.date = updates.date.toISOString(); 
-    if (updates.place_name !== undefined)
-      updatePayload.place_name = updates.place_name;
-    if (updates.address !== undefined) updatePayload.address = updates.address;
-    if (updates.latitude !== undefined)
-      updatePayload.latitude = updates.latitude;
-    if (updates.longitude !== undefined)
-      updatePayload.longitude = updates.longitude;
-    if (updates.url !== undefined) updatePayload.url = updates.url;
-    if (updates.imgKey !== undefined) updatePayload.imgKey = updates.imgKey;
+    const fields = ['name', 'date', 'place_name', 'address', 'latitude', 'longitude', 'url', 'imgKey']
+
+    fields.forEach(field => {
+      const value = (updates as any)[field]
+
+      if(value === null){
+        updatePayload[field] = null // delete the data
+      }else if (value !== undefined) {
+        if (field === 'date' && value instanceof Date) {
+          updatePayload.date = value.toISOString();
+        } else {
+          updatePayload[field] = value;
+        }
+      }
+    })
 
     let event;
 

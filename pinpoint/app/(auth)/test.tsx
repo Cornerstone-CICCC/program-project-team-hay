@@ -109,12 +109,11 @@ export default function TestFile() {
   // O
   const handleUpdateEventById = async () => {
     try {
-      await updateEventById("93", {"date": undefined, "members": [
+      await updateEventById("109", {"date": null, "members": [
         {"image": "https://viysxiqqbfaagoqaexsm.supabase.co/storage/v1/object/public/profiles/8d3c5225-56bf-40a3-8335-4b097de6ed97/profile.jpg", "isConfirmed": true, "name": "Ayaka M", "userId": "8d3c5225-56bf-40a3-8335-4b097de6ed97"},
         {"image": null, "isConfirmed": true, "name": "minji", "userId": "d1e8f352-24a6-4539-a081-8c10570978f7"}, 
         {"image": null, "isConfirmed": false, "name": "Yuna S", "userId": "a5eb7254-a330-4bd8-bd63-990320618e0b"}], 
-        "name": "Lunch", 
-        "address": " East 5th Avenue, Vancouver, BC, Canada", "imgKey": "AU_ZVEFOJSmcjN_60q8TnzzzJefywGp6lBQ3P2rCrz9Bmk5mE62g20kqjDfry1xg8v8BVvDuxDTU2_PWSYtE3vz5gxybdWsbkg9Py-nh66zQ9QFKXKHs_wBhR16-CpgTg10rPP6rU_J3aiweUAoWDTyaCy3Ir200-kWz48cdFaHH7EJffq9hh0mDSJYUcUVMSDU-0bqTnfoiE9c5Zz6I1X1fNYAIoO57ZE18eTWLUFuY70MF4Y6GF2suInnHwSuvoys9i4hFau4bZxkU3Zt6Et-iy9MLCPJImpAcf-T12JQKhq8", "latitude": 49.2663117, "longitude": -123.1044368, "place_name": "Tacofino Ocho", "url": "https://maps.google.com/?cid=15191679293781463648"});
+        });
     } catch (err) {
       console.log("Error create update event by id ", err);
     }

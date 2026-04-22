@@ -41,7 +41,7 @@ export default function AccountSetting() {
   const handleUpdate = async () => {
 
     if(!name || name.trim() === ""){
-      Alert.alert("Error", "Nmae is required")
+      Alert.alert("Error", "Name is required")
       
       if (user?.name) {
         setName(user.name);
@@ -249,6 +249,16 @@ export default function AccountSetting() {
       </View>}
 
       <View className="mt-5">
+         <TouchableOpacity
+            className="flex flex-row justify-center items-center gap-3 rounded-md py-4 shadow-sm bg-white mb-5"
+            onPress={() => router.push("/(auth)/test")}
+          >
+           
+            <Text className="font-LexendSemiBold text-lg">
+              Test File
+            </Text>
+          </TouchableOpacity>
+          
         <TouchableOpacity
           className="bg-[#FF7600] py-4 rounded-md flex items-center mb-10"
           onPress={handleUpdate}

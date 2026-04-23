@@ -68,13 +68,13 @@ const GoogleTextInput =({onSaveHandler,setNewLocation, type, place}:
                 alignItems:'center',
                 justifyContent:'center',
                 width:'100%',
-                marginHorizontal:10,
+                // marginHorizontal:5,
                 position:'relative',
-                shadowColor:'#d4d4d4'
+                shadowColor:'#d4d4d4',
             },
             textInput:{
                 color:'#ACACAC',
-                paddingHorizontal:25,
+                // paddingHorizontal:25,
                 fontSize:16,
                 fontWeight:'600',
                 marginTop:5,

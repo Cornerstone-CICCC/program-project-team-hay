@@ -1,7 +1,8 @@
 import { PollOption } from '@/app/(root)/event/[id]'
 import { Member } from '@/app/(root)/members/[id]'
-import { formatDateTime } from '@/libs/format'
+import { formatDate, formatDateTime, formatTime } from '@/libs/format'
 import { useMyEventStore } from '@/store/event.store'
+import { useAuthStore } from '@/store/functions/auth.store'
 import { useEventStore } from '@/store/functions/event.store'
 import { usePollStore } from '@/store/functions/poll.store'
 import { useVoteStore } from '@/store/functions/vote.store'
@@ -34,43 +35,59 @@ const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
     const [resutls, setResults] = useState<Result[]|null>(null)
     const {createVoteForOption} = useVoteStore()
     const {showPollResult,datePollResult,placePollResult}= useMyEventStore()
+    const {user} = useAuthStore()
 
     // If user has been voted showPollResult should be true
-    useEffect(()=>{
-        setResultShown(showPollResult)
-        if(showPollResult){
-
-            setResults(poll.type==="date"?datePollResult:placePollResult)
-        }
-    },[showPollResult])
-
     // useEffect(()=>{
-    //     let userId="user-1"
-    //     let myAnswer = false
-    //     let resultArr:Result[]=[]
-    //     poll.options.forEach(op=>{
-    //         if(op.votes){
-    //             const find = op.votes.find(vote=> vote.userId===userId)
-    //             if(find){
-    //                 const res = {
-    //                     poll_option_id:op.option_id,
-    //                     label:op.label,
-    //                     voteCount: op.votes.length
-    //                 }
-    //                 resultArr.push(res)
-                    
-    //                 myAnswer= true
-    //             }
-    //         }
-    //     })
+    //     setResultShown(showPollResult)
+    //     if(showPollResult){
 
-    //     // if user has been answered before, show results
-    //     if(myAnswer){
-    //         const sortResultArr = resultArr.sort((a,b)=> b.voteCount-a.voteCount)
-    //         setResults(sortResultArr)
-    //         setResultShown(true)
+    //         setResults(poll.type==="date"?datePollResult:placePollResult)
     //     }
-    // },[])
+    // },[showPollResult])
+
+    useEffect(()=>{
+        console.log("recived poll", poll)
+
+        let userHasVoted = false
+        const computed = poll.options
+        .filter(p=>p.votes)
+        .map(p=>({
+            poll_option_id:p.option_id,
+            label:p.label,
+            address:p.address,
+            latitude:p.latitude,
+            longitude:p.longitude,
+            imgKey:p.imgKey,
+            url:p.url,
+            voteCount:p.votes!.length
+        }))
+
+        for (const p of poll.options){
+            if(!p.votes) continue
+            for(const v of p.votes){
+                if(v.userId===user?.id){
+                    userHasVoted = true
+                    break
+                }
+            }
+            if(userHasVoted) break
+        }
+
+        if(userHasVoted){
+            setResults(computed.sort((a,b)=>a.voteCount-b.voteCount))
+            setResultShown(true)
+        }else{
+            setResults(null)
+            setResultShown(false)
+        }
+
+    }, [user, poll, members])
+
+    useEffect(()=>{
+        console.log("result", resutls)
+        console.log("resultShown", resultShown)
+    },[resutls, resultShown])
 
     const handleSubmit =async()=>{
         if(!selectedItem) return
@@ -130,7 +147,7 @@ const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
                     </View>
 
                     {/* poll options */}
-                    {!resultShown?
+                    {!resultShown&&
                     <>
                         <View
                         className='flex flex-col gap-6'>
@@ -195,17 +212,19 @@ const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
                                 Submit
                             </Text>
                        </TouchableOpacity>
-                    </>:resutls?
+                    </>}
+                    {resutls&&
                     <ResultPoll
                     poll_id={poll.id}
                     type={poll.type}
                     members={members}
                     results={resutls}
-                    />:
-                    <Text>
+                    />}
+                    {/* // :
+                     <Text>
                         Error
-                    </Text>
-                    }
+                     </Text>
+                     */}
 
                 </View>
             </View>
@@ -324,6 +343,28 @@ const ResultPoll = (props:ResultProps)=>{
         )
     }
 
+    const dateOutput=(label:string)=>(
+        <View>
+            <Text className='text-[16px] font-Lexend'>
+                {formatDate(new Date(label))}
+            </Text>
+            <Text className='font-LexendLight'>
+                {formatTime(new Date(label))}
+            </Text>
+        </View>
+    )
+
+    const placeOutput=(res:Result)=>(
+        <View className='w-[220px]'>
+            <Text className='text-[16px] font-Lexend'>
+                {res.label}
+            </Text>
+            {res.address&&<Text
+            className='font-LexendLight'>{res.address.split(',')[0]}</Text>}
+        </View>
+
+    )
+
     
     
     return (
@@ -331,14 +372,9 @@ const ResultPoll = (props:ResultProps)=>{
             {sortedResult.map(r=>(
                 <View
                 key={`result-op-${r.poll_option_id}`}
-                className='flex flex-row justify-between px-4 py-2'>
-                    <Text
-                    className='text-[18px] font-Lexend'>
-                        {props.type==="date"?`${formatDateTime(new Date(r.label))}`:
-                        `${r.label}`
-                        }
-                    </Text>
+                className='flex flex-row justify-between px-2 py-2'>
 
+                {props.type==="date"?dateOutput(r.label):placeOutput(r)}
                     <Text
                     className='text-[18px] font-Lexend'>
                         {r.voteCount} / {memberLen}

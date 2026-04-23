@@ -259,15 +259,20 @@ const OptionLists = <T extends PollQuestion>({
             />
             <View />
             {type === "date" ? (
-              <Text className="text-[1.2rem] w-[150px] font-Lexend">
+              <Text className="text-[1.2rem]  w-[195px] font-Lexend">
                 {formatDateTime(option as Date)}
               </Text>
             ) : (
               <View>
-                <View className="font-Lexend w-[150px]">
-                  <Text className="font-Lexend text-[1.2rem] mb-1">
-                    {(option as PlaceOption).placeNeme.split(",")[0]}
-                  </Text>
+                <View className="font-Lexend w-[195px]">
+                  <View className="mb-1">
+                    <Text className="font-Lexend text-[17px]">
+                      {(option as PlaceOption).placeNeme}
+                    </Text>
+                    <Text className="text-[12px]">
+                    {(option as PlaceOption).address.split(",")[0]}
+                    </Text>
+                  </View>
                 </View>
                 {(option as PlaceOption).url && (
                   // <Link
@@ -296,7 +301,10 @@ const OptionLists = <T extends PollQuestion>({
                 setOptions((prev) => prev.filter((p) => p !== option));
               }}
             >
-              <Text className="text-red-800 font-Lexend">Remove</Text>
+              {/* <Text className="text-red-800 font-Lexend">Remove</Text> */}
+              <View>
+                <Ionicons name="trash-outline" size={24} color="#991b1b" />
+              </View>
             </TouchableOpacity>
           </View>
         ))}
@@ -386,12 +394,8 @@ const PollForm = ({
     console.log(isAccordionOpen);
   }, [isAccordionOpen]);
 
-  if(isDateExist&&isPlaceExist){
-    return null
-  }
-
   return (
-    <View className="px-8 py-6 font-Lexend">
+    !( isDateExist && isPlaceExist) ? (<View className="px-8 py-6 font-Lexend">
       <View
         style={{
           boxShadow:
@@ -519,7 +523,7 @@ const PollForm = ({
           </Accordion.Expanded>
         </Accordion.Accordion>
       </View>
-    </View>
+    </View>):null
   );
 };
 

@@ -265,13 +265,13 @@ const EventForm = (props: Prop) => {
     try{
         const updates = {
           name: eventForm.name,
-          date: eventForm.date ? new Date(eventForm.date) : undefined,
-          place_name: eventForm.place?.place_name,
-          address: eventForm.place?.address,
-          latitude: eventForm.place?.latitude,
-          longitude: eventForm.place?.longitude,
-          url: eventForm.place?.url,
-          imgKey: eventForm.place?.imgKey,
+          date: eventForm.date ? new Date(eventForm.date) : null,
+          place_name: eventForm.place?.place_name??null,
+          address: eventForm.place?.address??null,
+          latitude: eventForm.place?.latitude??null,
+          longitude: eventForm.place?.longitude??null,
+          url: eventForm.place?.url??null,
+          imgKey: eventForm.place?.imgKey??null,
           members: eventForm.members,
         };
         console.log("send updates", updates)
@@ -325,13 +325,13 @@ const EventForm = (props: Prop) => {
         <View style={styles.locationInputBox}>
           <View>
             <EvilIcons
-              className="self-start"
+              className="self-start ps-2"
               name="location"
               size={26}
               color="#848484"
             />
           </View>
-          <View className="w-[80%] pe-4">
+          <View className="w-[80%] pe-2">
             {eventForm.place && eventForm.place.address === "" ? (
               <GoogleTextInput
                 type="new"
@@ -358,8 +358,8 @@ const EventForm = (props: Prop) => {
                 const undefinedPlace ={
                     place_name:"",
                     address: "",
-                    latitude: 0,
-                    longitude: 0,
+                    latitude: null,
+                    longitude: null,
                     url: undefined,
                     imgKey:  undefined,
                 }
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(130,130,130,0.7)",
     borderRadius: 10,
-    paddingHorizontal: 2,
+    paddingHorizontal: 10,
     paddingVertical: 2,
     height: 60,
     width: "100%",

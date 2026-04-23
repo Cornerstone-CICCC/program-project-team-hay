@@ -60,7 +60,7 @@ export default function FindPassword() {
             keyboardType="email-address"
             autoComplete="email"
             autoCapitalize="none"
-            className="border border-solid rounded-md text-lg font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
             value={email}
             onChangeText={setEmail}
           ></TextInput>

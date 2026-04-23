@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "../../store/functions/auth.store";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -20,25 +21,35 @@ export default function SignupScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPwd, setConfirmPwd] = useState<string>("");
+  const [newPwdErr, setNewPwdError] = useState<string>("")
   const [pwdError, setPwdError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showPwd, setShowPwd] = useState(true) 
+  const [showConfirmPwd, setShowConfirmPwd] = useState(true) 
 
   const signUp = useAuthStore((s) => s.signUp);
   const onGoogleSignIn = useAuthStore(s=>s.onGoogleSignIn)
 
 
   useEffect(() => {
-    if (!confirmPwd) {
-      setPwdError("");
-      return;
+    if(password && !validatePassword(password)) {
+      setNewPwdError("Password must be 8+ chars, with uppercase, number and symbol")
+    }else{
+      setNewPwdError("")
     }
 
-    if (confirmPwd !== password) {
+    if (confirmPwd && confirmPwd !== password) {
       setPwdError("Passwords do not match");
     } else {
       setPwdError("");
     }
   }, [password, confirmPwd]);
+
+  const validatePassword = (pw: string) => {
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!])[A-Za-z\d~`@#$%^&*()_\-+={[}\]|:;"'<,>.?/!]{8,}$/
+    return regex.test(pw)
+  }
 
   const handleConfirmPwd = (text: string) => {
     setConfirmPwd(text);
@@ -113,7 +124,7 @@ export default function SignupScreen() {
           <TextInput
             placeholder="Input your name"
             placeholderTextColor={"#BCBCBC"}
-            className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa] "
+            className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
             value={name}
             onChangeText={setName}
           ></TextInput>
@@ -127,7 +138,7 @@ export default function SignupScreen() {
             keyboardType="email-address"
             autoComplete="email"
             autoCapitalize="none"
-            className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+            className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
             value={email}
             onChangeText={setEmail}
           ></TextInput>
@@ -135,28 +146,57 @@ export default function SignupScreen() {
 
         <View className="flex mb-3">
           <Text className="text-base font-Lexend">Password</Text>
-          <TextInput
-            placeholder="Input your password"
-            placeholderTextColor={"#BCBCBC"}
-            autoComplete="password"
-            secureTextEntry
-            className="border border-solid rounded-md text-base font-Lexend py-4 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
-            value={password}
-            onChangeText={setPassword}
-          ></TextInput>
+          <View>
+            <TextInput
+              placeholder="Input your password"
+              placeholderTextColor={"#BCBCBC"}
+              autoComplete="password"
+              secureTextEntry= {showPwd}
+              className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+              value={password}
+              onChangeText={setPassword}
+            ></TextInput>
+            <TouchableOpacity
+              className="absolute top-6 right-3"
+              onPress={() => setShowPwd(!showPwd)}
+            >
+              <Ionicons 
+                name={showPwd ? "eye-outline" : "eye-off-outline"} 
+                size={24} 
+                color="black" 
+              />
+            </TouchableOpacity>
+          </View>
+          {newPwdErr ? (
+              <Text className="text-red-500 mt-1 text-sm font-Lexend">
+                {newPwdErr}
+              </Text>
+            ) : null}
         </View>
 
         <View className="flex mb-3">
           <Text className="text-base font-Lexend">Confirm Password</Text>
-          <TextInput
-            placeholder="Input confirm password"
-            placeholderTextColor={"#BCBCBC"}
-            autoComplete="password"
-            secureTextEntry
-            className={`border border-solid rounded-md text-base font-Lexend py-4 ps-3 mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]`}
-            value={confirmPwd}
-            onChangeText={handleConfirmPwd}
-          ></TextInput>
+          <View>
+            <TextInput
+              placeholder="Input confirm password"
+              placeholderTextColor={"#BCBCBC"}
+              autoComplete="password"
+              secureTextEntry={showConfirmPwd}
+              className="h-14 border border-solid rounded-md text-md font-Lexend py-2 ps-3 border-[#797979] mt-2 focus:border-[#1849D6] focus:bg-[#e9edfa]"
+              value={confirmPwd}
+              onChangeText={handleConfirmPwd}
+            ></TextInput>
+            <TouchableOpacity
+              className="absolute top-6 right-3"
+              onPress={() => setShowConfirmPwd(!showConfirmPwd)}
+            >
+              <Ionicons 
+                name={showConfirmPwd ? "eye-outline" : "eye-off-outline"} 
+                size={24} 
+                color="black" 
+              />
+            </TouchableOpacity>
+          </View>
           {pwdError ? (
             <Text className="text-red-500 mt-1 text-sm font-Lexend">
               {pwdError}
@@ -165,7 +205,7 @@ export default function SignupScreen() {
         </View>
 
         <TouchableOpacity
-          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6"
+          className="bg-[#FF7600] py-4 rounded-md flex items-center mb-6 mt-6"
           onPress={handleSignUp}
         >
           {isLoading ? (

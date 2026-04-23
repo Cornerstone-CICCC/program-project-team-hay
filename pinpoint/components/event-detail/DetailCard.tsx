@@ -6,6 +6,7 @@ import { useMyEventStore } from '@/store/event.store';
 import { useAuthStore } from '@/store/functions/auth.store';
 import { useEventStore } from '@/store/functions/event.store';
 import { useFriendStore } from '@/store/functions/friend.store';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -142,6 +143,22 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         )
     }
 
+    const confirmedIcon =(
+      <View
+      className='absolute right-0 bottom-0 w-[25px] aspect-square rounded-full bg-green-100 flex items-center justify-center'
+      >
+        <EvilIcons name="check" size={20} color="green" />
+      </View>
+    )
+
+    const pendingIncon =(
+      <View
+      className='absolute right-0 bottom-0 w-[25px] aspect-square rounded-full bg-red-100 flex items-center justify-center'
+      >
+        <EvilIcons name="question" size={20} color="red" />
+      </View>
+    )
+
 
   return (
     <View className="px-9 py-6 flex gap-8">
@@ -249,19 +266,6 @@ const DetailCard = ({event}:{event:EventDetail}) => {
           <View className="flex flex-row gap-1">
             {event.members.length > 3
               ? event.members.slice(0, 3).map((m) => (
-                  <View key={m.userId}>
-                    <Image
-                      className="w-[75px] aspect-square rounded-full"
-                      style={styles.picStyle}
-                      source={m.image ? { uri: m.image } : defalutImage.user}
-                      resizeMode="cover"
-                    />
-                    {/* <View
-                    className='w-[75px] aspect-square rounded-full bg-gray-400'
-                    /> */}
-                  </View>
-                ))
-              : event.members.map((m) => (
                   <TouchableOpacity
                     disabled={m.userId === user?.id}
                     onPress={() => handleDirectDmRoom(m)}
@@ -273,6 +277,23 @@ const DetailCard = ({event}:{event:EventDetail}) => {
                       source={m.image ? { uri: m.image } : defalutImage.user}
                       resizeMode="cover"
                     />
+                    {m.isConfirmed?confirmedIcon:pendingIncon}
+                  </TouchableOpacity>
+                ))
+              : event.members.map((m) => (
+                  <TouchableOpacity
+                    disabled={m.userId === user?.id}
+                    onPress={() => handleDirectDmRoom(m)}
+                    key={m.userId}
+                    className='relative'
+                  >
+                    <Image
+                      className="w-[75px] aspect-square rounded-full"
+                      style={styles.picStyle}
+                      source={m.image ? { uri: m.image } : defalutImage.user}
+                      resizeMode="cover"
+                    />
+                    {m.isConfirmed?confirmedIcon:pendingIncon}
                   </TouchableOpacity>
                 ))}
           </View>

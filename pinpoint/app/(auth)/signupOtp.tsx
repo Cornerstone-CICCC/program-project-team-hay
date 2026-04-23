@@ -60,7 +60,7 @@ export default function VerifySignupOtp() {
         <TouchableOpacity onPress={() => router.back()}>
           <AntDesign name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
-        <Text className="font-MontserratBold text-2xl"> Forgot Password</Text>
+        <Text className="font-MontserratBold text-2xl"> Sign Up</Text>
         <View />
       </View>
 

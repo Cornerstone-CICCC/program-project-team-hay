@@ -9,10 +9,10 @@ type Props={
     place?:{
         place_name:string,
         address:string,
-        latitude:number,
-        longitude:number
-        url?:string
-        imgKey?:string
+        latitude:number|null,
+        longitude:number|null
+        url?:string|null
+        imgKey?:string|null
     }
 }
 
@@ -105,7 +105,7 @@ const PlaceCard = ({place}:Props) => {
       }}
     //   pointerEvents='none'
       >
-            {Platform.OS !== 'web'&&
+            {Platform.OS !== 'web'&&(place.latitude&&place.longitude)&&
             <MapView
             provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
             className='w-full h-full rounded-2xl'

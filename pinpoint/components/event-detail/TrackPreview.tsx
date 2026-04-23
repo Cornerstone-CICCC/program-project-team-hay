@@ -104,6 +104,9 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
   const [isConfirmed, setIsComfirmed] = useState<boolean>(true)
   const {user} = useAuthStore()
 
+  const isTrackAvailable = useIsTrackAvailable(event.date??null)
+  console.log(isTrackAvailable)
+
     useEffect(()=>{
       const members = event.members
       const me = members.find(m=>m.userId===user?.id)
@@ -112,9 +115,8 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
     },[event, user])
 
   // if date-time and location is not defined then 
-  if(!event.date || !event.place){
+  if(!event.date || !event.place||!event.place.latitude ||!event.place.longitude){
     return (
-
     <View
     className='px-10 py-6'>
       <Text
@@ -134,8 +136,6 @@ const TrackPreview = ({event}:{event:EventDetail}) => {
     )
   }
 
-  const isTrackAvailable = useIsTrackAvailable(event.date)
-  console.log(isTrackAvailable)
 
 
   // //check if it is a hour before start time every minute

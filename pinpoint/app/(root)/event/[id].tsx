@@ -31,7 +31,7 @@ import { Member } from "../members/[id]";
 export interface EventDetail {
   id: string;
   name: string;
-  date?: string;
+  date?: string|null;
   place?: {
     place_name: string;
     address: string;
@@ -78,6 +78,7 @@ const EventDetail = () => {
   const [hasPermission, setHasPermission] = useState(false);
   const [eventDetail, setEventDetail] = useState<null | EventDetail>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isConfirmed, setIsComfirmed] = useState<boolean>(true)
 
   const { createMyLocationRowForEvent } = useLocationStore();
   const { fetchEventById } = useEventStore();
@@ -94,7 +95,6 @@ const EventDetail = () => {
         console.log("There is no event detail with this id");
         return;
       }
-      console.log("eventDetail",eventDetail)
 
       // check if the user has been voted for active poll and set results
       if (eventDetail.activePoll) {
@@ -141,6 +141,9 @@ const EventDetail = () => {
       }
 
       const members = eventDetail.members
+      const me = members.find(m=>m.id===user?.id)
+      const isConfirm = me?.isConfirmed ?? false
+      setIsComfirmed(isConfirm)
 
       setEventDetail({
         id: eventDetail.id,
@@ -165,6 +168,8 @@ const EventDetail = () => {
 
     fetchEventDetail();
   }, [id,toggleEventRender]);
+
+  useEffect(()=>{},[isConfirmed])
 
   useEffect(() => {
     const requestLocation = async () => {
@@ -256,7 +261,7 @@ const EventDetail = () => {
             </View>
             <DetailCard event={eventDetail} />
             {/* If the current date time is passed the event date -> not showing active poll and poll form */}
-            {eventDetail.activePoll &&
+            {isConfirmed&&eventDetail.activePoll &&
               ((eventDetail.date &&new Date(eventDetail.date) > new Date())||!eventDetail.date) &&
               eventDetail.activePoll.map((p) => (
                 <ActivePoll
@@ -265,7 +270,7 @@ const EventDetail = () => {
                   members={eventDetail.members}
                 />
               ))}
-            {!(eventDetail.date && new Date() > new Date(eventDetail.date)) && ( // if current date is over, then not show the poll Form
+            {isConfirmed&&!(eventDetail.date && new Date() > new Date(eventDetail.date)) && ( // if current date is over, then not show the poll Form
               <PollForm
                 id={id as string}
                 activePoll={eventDetail.activePoll ?? null}

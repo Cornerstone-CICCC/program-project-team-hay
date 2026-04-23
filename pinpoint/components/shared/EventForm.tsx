@@ -399,7 +399,7 @@ const EventForm = (props: Prop) => {
                 setIsTimeTBD(false);
             } else {
                 setIsTimeTBD(true);
-                setEventForm(prev => ({ ...prev, date: undefined }));
+                setEventForm(prev => ({ ...prev, date: null }));
             }
         }}
           >

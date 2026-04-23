@@ -13,6 +13,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import ChatListItem from "@/components/ChatListItem";
 import { useRouter } from "expo-router";
 import { useChatStore } from "@/store/functions/chat.store";
+import { useMyChatStore } from "@/store/chat.store";
+import { useEventStore } from "@/store/functions/event.store";
 
 type ChatType = "dm" | "group" | "past";
 
@@ -24,11 +26,13 @@ interface ChatRoom {
   last_message?: string,
   last_message_at?: string,
   unread_count?: number,
-  // num_member?: number,
+  num_member?: number,
 }
 
 const Chat = () => {
   const chat = useChatStore()
+  const myChat = useMyChatStore()
+  const eventMembers = useEventStore(s => s.getMemberListByEventId)
 
   const tabs: { label: string, value: ChatType }[] = [
     { label: 'DM', value: 'dm' },
@@ -41,6 +45,8 @@ const Chat = () => {
   const chatList = chat.rooms
   const [activeTab, setActiveTab] = useState<ChatType>('dm')
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [memberNum, setMemberNum] = useState<Record<string, number>>({})
+  const [isMemberLoading, setIsMemberLoading] = useState<boolean>(true)
 
   const fetchChats = async (tab: ChatType) => {
     setIsLoading(true)
@@ -62,10 +68,31 @@ const Chat = () => {
     }
   }, [activeTab])
 
+  useEffect(() => {
+    const getMember = async () => {
+      setIsMemberLoading(true)
+      const num: Record<string, number> = {}
+
+      await Promise.all(
+        (chatList ?? []).map(async (item) => {
+          if(item.type === 'group'){
+            const members = await eventMembers(item.room_id)
+            num[item.room_id] = members?.length ?? 0
+          }
+        })
+      )
+      setMemberNum(num)
+      setIsMemberLoading(false)
+    }
+    if(chatList?.length){
+      getMember()
+    }
+  }, [chatList])
+
   const filteredChats = (chatList ?? []).filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
-  
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.chatTab}>
@@ -113,7 +140,7 @@ const Chat = () => {
         )}
       </View>
       <View style={styles.chatList}>
-        {isLoading ? (
+        {isLoading || isMemberLoading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator size="small" color="#FF7600" />
           </View>
@@ -121,7 +148,14 @@ const Chat = () => {
           <Text style={styles.noData}>No chat yet</Text>
         ) : (
           filteredChats.map((item) => (
-            <ChatListItem key={item.room_id} data={item} />
+            <ChatListItem
+              key={item.room_id}
+              data={{
+                ...item,
+                unread_count: myChat.unreadCount[item.room_id] || 0,
+                num_member: item.type === 'group' ? memberNum[item.room_id] : undefined
+              }}
+            />
           ))
         )}
       </View>

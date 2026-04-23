@@ -47,7 +47,7 @@ const Home = () => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.ttl}>{user?.name}</Text>
-      <Text style={styles.subttl}>Your near future Hangout</Text>
+      <Text style={styles.subttl}>Your upcoming Hangouts</Text>
       <View style={styles.cardList}>
         {!hangoutList || hangoutList.length === 0 ? (
           <View style={styles.noCardItem}>

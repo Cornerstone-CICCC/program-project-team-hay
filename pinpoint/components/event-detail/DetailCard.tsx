@@ -262,7 +262,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         <Text className="font-MontserratSemiBold text-[20px] pb-6">
           Members
         </Text>
-        <View className=" flex flex-row gap-10 items-center">
+        <View className=" flex flex-row justify-between items-center">
           <View className="flex flex-row gap-1">
             {event.members.length > 3
               ? event.members.slice(0, 3).map((m) => (
@@ -299,7 +299,9 @@ const DetailCard = ({event}:{event:EventDetail}) => {
           </View>
 
           {/* {event.members.length > 3 && ( */}
-            <Link href={`/members/${event.id}`}>
+            <Link 
+            className='pe-2'
+            href={`/members/${event.id}`}>
               <Text>See More</Text>
             </Link>
           {/* )} */}

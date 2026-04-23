@@ -325,7 +325,7 @@ const EventForm = (props: Prop) => {
         <View style={styles.locationInputBox}>
           <View>
             <EvilIcons
-              className="self-start"
+              className="self-start ps-2"
               name="location"
               size={26}
               color="#848484"

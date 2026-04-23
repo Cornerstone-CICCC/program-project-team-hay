@@ -394,12 +394,8 @@ const PollForm = ({
     console.log(isAccordionOpen);
   }, [isAccordionOpen]);
 
-  if(isDateExist&&isPlaceExist){
-    return null
-  }
-
   return (
-    <View className="px-8 py-6 font-Lexend">
+    !( isDateExist && isPlaceExist) ? (<View className="px-8 py-6 font-Lexend">
       <View
         style={{
           boxShadow:
@@ -527,7 +523,7 @@ const PollForm = ({
           </Accordion.Expanded>
         </Accordion.Accordion>
       </View>
-    </View>
+    </View>):null
   );
 };
 

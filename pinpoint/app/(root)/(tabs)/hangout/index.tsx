@@ -1,5 +1,8 @@
 import HangoutCard from "@/components/HangoutCard";
+import { useEventListStore } from "@/store/functions/eventlist.store";
+import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -11,9 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Feather from "@expo/vector-icons/Feather";
-import { useEffect, useState } from "react";
-import { useEventListStore } from "@/store/functions/eventlist.store";
 
 interface EventOverview {
   event_id: string;
@@ -83,6 +83,15 @@ const Hangout = () => {
     setActiveTab(tab);
   };
   useEffect(() => {
+    const restData = {
+      invited: { events: [], lastCursor: null },
+      upcoming: { events: [], lastCursor: null },
+      today: { events: [], lastCursor: null },
+      tomorrow: { events: [], lastCursor: null },
+      week: { events: [], lastCursor: null },
+      past: { events: [], lastCursor: null },
+    }
+    setHangoutsByTab(restData)
     fetchEvents(activeTab);
   }, [activeTab]);
 
@@ -91,6 +100,7 @@ const Hangout = () => {
   );
 
   const loadMoreEvents = async (tab: EventFilter) => {
+    console.log("loading")
     if(isLoadingMore) return;
 
     const tabData = hangoutsByTab[tab]

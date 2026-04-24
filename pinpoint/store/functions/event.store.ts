@@ -72,7 +72,7 @@ interface TrackEventDetail {
   };
 }
 
-interface Member {
+export interface Member {
   userId: string;
   image: string;
   name: string;

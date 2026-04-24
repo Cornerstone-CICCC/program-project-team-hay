@@ -116,7 +116,13 @@ const Hangout = () => {
     setHangoutsByTab(prev => ({
       ...prev,
       [tab]: {
-        events: [...prev[tab].events, ...data.events],
+        // events: [...prev[tab].events, ...data.events],
+        events: [
+          ...prev[tab].events,
+          ...data.events.filter(
+            newItem => !prev[tab].events.some(e => e.event_id === newItem.event_id)
+          )
+        ],
         lastCursor: data.lastCursor ?? null,
       },
     }))

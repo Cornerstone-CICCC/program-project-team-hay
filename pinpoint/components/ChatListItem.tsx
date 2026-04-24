@@ -36,14 +36,20 @@ const ChatListItem = ({ data }: Props) => {
     router.push(`/chat/${data.room_id}`)
   }
 
-  const lastMsgDate = data.last_message_at ? data.last_message_at : null
-  const formattedDate = lastMsgDate ? (
-    moment.utc(data.last_message_at).tz(userTz).calendar(null, {
-      sameDay: 'HH:mm',
-      lastDay: '[Yesterday]',
-      sameElse: 'YYYY-MM-DD'
-    })
-  ) : ''
+  const formattedDate = (() => {
+    if(!data.last_message_at) return '';
+
+    const m = moment.utc(data.last_message_at).tz(userTz)
+    const now = moment().tz(userTz)
+    // today
+    if(m.isSame(now, 'day')){
+      return m.format('HH:mm')
+    }
+    if(m.isSame(now.clone().subtract(1, 'day'), 'day')){
+      return 'Yesterday'
+    }
+    return m.format('YYYY-MM-DD')
+  })()
   
   const [unreadCount, setUnreadCount] = useState<number>(0)
   useEffect(() => {

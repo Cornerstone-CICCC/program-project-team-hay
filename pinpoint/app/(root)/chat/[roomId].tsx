@@ -55,12 +55,18 @@ const Chatroom = () => {
       message
     })
     setMessage('')
+
+    //
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true })
+    }, 50)
   }
 
   // ui state
   const [chatMessages, setChatMessages] = useState<Message[]>([])
   const [hasMore, setHasMore] = useState<boolean>(true)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
+  const clearUnread = useMyChatStore(s => s.clearUnread)
 
   // for fetching user info (image)
   const fetchProfile = useAuthStore(s => s.fetchUserProfile);
@@ -95,7 +101,7 @@ const Chatroom = () => {
   }
   const getSenderName = (item: Message) => {
     const target = users[item.sender_id]
-    return target.name
+    return target?.name ?? ''
   }
 
   // for router
@@ -123,6 +129,33 @@ const Chatroom = () => {
       : false
 
 
+  // add date label
+  const addDateLabel = (msgs: Message[]) => {
+    const result: any[] = []
+    let lastDate = ''
+
+    msgs.forEach(msg => {
+      const dateLabel = moment.utc(msg.created_at).tz(userTz).format('YYYY-MM-DD')
+      if(dateLabel !== lastDate){
+        result.push({ type: 'separator', date: msg.created_at })
+        lastDate = dateLabel
+      }
+      result.push({ type: 'message', ...msg })
+    })
+    return result
+  }
+  const displayMessages = useMemo(() => {
+    return addDateLabel(chatMessages)
+  }, [chatMessages])
+
+  // clear unread_count
+  useEffect(() => {
+    if(room_id){
+      clearUnread(room_id)
+    }
+  }, [room_id])
+
+
   // formatted message
   const normalizeMessages = (msgs: Message[]) => {
     const unique = Array.from(
@@ -130,8 +163,8 @@ const Chatroom = () => {
     )
     return unique.sort(
       (a, b) =>
-        new Date(b.created_at).getTime() -
-        new Date(a.created_at).getTime()
+        new Date(a.created_at).getTime() -
+        new Date(b.created_at).getTime()
     )
   }
 
@@ -141,6 +174,12 @@ const Chatroom = () => {
     const data = await getAllMessages(room_id, type)
     if(data){
       setChatMessages(normalizeMessages(data))
+
+      //
+      // setTimeout(() => {
+      //   flatListRef.current?.scrollToEnd({ animated: false })
+      // }, 0)
+      //
     }
     subscribeRoom(room_id, type)
   }
@@ -152,7 +191,11 @@ const Chatroom = () => {
 
     setLoadingMore(true)
 
-    const oldest = chatMessages[chatMessages.length - 1]
+    //
+    const prevHeight = contentHeightRef.current
+
+    // const oldest = chatMessages[chatMessages.length - 1]
+    const oldest = chatMessages[0]
     console.log('🔥oldest Msg', oldest)
     const older = await getAllMessages(
       room_id,
@@ -164,9 +207,27 @@ const Chatroom = () => {
       setLoadingMore(false)
       return
     }
-    setChatMessages(prev => 
-      normalizeMessages([...prev, ...older])
-    )
+    // setChatMessages(prev => 
+    //   normalizeMessages([...prev, ...older])
+    // )
+
+    setChatMessages(prev => {
+      const updated = normalizeMessages([...prev, ...older])
+    //   setTimeout(() => {
+    //     if (isFirstLoadMore.current) {
+    //       isFirstLoadMore.current = false
+    //       return
+    //     }
+    //     const newHeight = contentHeightRef.current
+    //     const diff = newHeight - prevHeight
+
+    //     flatListRef.current?.scrollToOffset({
+    //       offset: diff,
+    //       animated: false
+    //     })
+    //   }, 0)
+      return updated
+    })
     setLoadingMore(false)
   }
 
@@ -179,18 +240,45 @@ const Chatroom = () => {
     }
   }, [room_id, type])
 
-  // foe new
+  // for new
   useEffect(() => {
     if(!room_id) return
     const unsub = useChatDetailStore.subscribe((state) => {
       const newMsgs = state.messages[room_id]
       if(!newMsgs) return
-      setChatMessages(prev => 
-        normalizeMessages([...prev, ...newMsgs])
-      )
+      // setChatMessages(prev => 
+      //   normalizeMessages([...prev, ...newMsgs])
+      // )
+      setChatMessages(prev => {
+        const updated = normalizeMessages([...prev, ...newMsgs])
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true })
+        }, 50)
+        return updated
+      })
     })
     return () => unsub()
   }, [room_id])
+
+
+  // 
+  const flatListRef = useRef<FlatList>(null)
+  const contentHeightRef = useRef(0)
+  const isFirstLoadMore = useRef(true)
+  const isInitialScrollDone = useRef(false)
+
+  useEffect(() => {
+    if (!chatMessages.length) return
+    if (isInitialScrollDone.current) return
+
+    const timer = setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: false })
+      isInitialScrollDone.current = true
+    }, 600)
+
+    return () => clearTimeout(timer)
+  }, [chatMessages])
+
 
   return (
     <KeyboardAvoidingView
@@ -211,19 +299,52 @@ const Chatroom = () => {
 
         <View style={styles.roomMain}>
           <FlatList
-            data={chatMessages}
-            inverted
+            data={displayMessages}
+            ref={flatListRef}
+            // inverted
             contentContainerStyle={{
               flexGrow: 1,
             }}
             keyboardShouldPersistTaps="handled"
-            onEndReached={() => {
-              if(!loadingMore && hasMore) loadMore()
+            // onEndReached={() => {
+            //   if(!loadingMore && hasMore) loadMore()
+            // }}
+            // onEndReachedThreshold={0.5}
+            onScroll={({ nativeEvent }) => {
+              if (nativeEvent.contentOffset.y < 30) {
+                if(!loadingMore && hasMore){
+                  loadMore()
+                }
+              }
             }}
-            onEndReachedThreshold={0.5}
+            scrollEventThrottle={16}
+            // onContentSizeChange={() => {
+            //   if (!isInitialScrollDone.current) {
+            //     flatListRef.current?.scrollToEnd({ animated: false })
+            //     isInitialScrollDone.current = true
+            //   }
+            // }}
+            maintainVisibleContentPosition={{
+              minIndexForVisible: 1
+            }}
             style={styles.msgWrap}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => item.type === 'separator' ? `sep-${index}` : item.id }
             renderItem={({item}) => {
+              if(item.type === 'separator'){
+                const label = (() => {
+                  const m = moment.utc(item.date).tz(userTz)
+                  const now = moment().tz(userTz)
+                  if(m.isSame(now, 'day')) return 'Today'
+                  if(m.isSame(now.clone().subtract(1, 'day'), 'day')) return 'Yesterday'
+                  return m.format('YYYY-MM-DD')
+                })()
+
+                return (
+                  <View style={styles.labelWrap}>
+                    <Text style={styles.labelDate}>{label}</Text>
+                  </View>
+                )
+              }
               const isMine = item.sender_id === userId
 
               const msgDate = item.created_at
@@ -233,7 +354,7 @@ const Chatroom = () => {
                 <View style={isMine ? styles.msgTo : styles.msgFrom}>
                   {!isMine && <Image source={getImageSource(item)} style={styles.msgImg} resizeMode="cover" />}
                   <View style={isMine ? styles.msgToTxtWrap : styles.msgFromTxtWrap}>
-                    {type === 'group' && !isMine && <Text>{getSenderName(item)}</Text>}
+                    {type === 'group' && !isMine && getSenderName(item) && (<Text style={styles.msgName}>{getSenderName(item)}</Text>)}
                     <Text style={isMine ? styles.msgToTxt : styles.msgFromTxt}>{item.message}</Text>
                     <Text style={styles.msgTime} className={isMine ? 'text-right' : ''}>{formattedDate}</Text>
                   </View>
@@ -344,6 +465,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderBottomRightRadius: 0,
   },
+  msgName: {
+    fontFamily: "Lexend-Regular",
+    fontSize: 12,
+    color: '#092568',
+    marginBottom: 3
+  },
   roomBottom: {
     position: "absolute",
     bottom: 0,
@@ -392,5 +519,21 @@ const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  },
+  labelWrap: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  labelDate: {
+    fontFamily: "Lexend-Regular",
+    fontSize: 13,
+    textAlign: 'center',
+    backgroundColor: '#FFA90033', // 33 20% 4d 30%
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 12,
+    paddingInline: 20,
+    paddingBlock: 2,
+    borderRadius: 4,
   },
 });

@@ -60,9 +60,13 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    chat.subscribeChatList(activeTab)
-    fetchChats(activeTab)
+    chat.unsubscribeChatList()
 
+    fetchChats(activeTab)
+    if (activeTab !== "past") {
+      chat.subscribeChatList(activeTab)
+    }
+    
     return () => {
       chat.unsubscribeChatList()
     }
@@ -89,7 +93,10 @@ const Chat = () => {
     }
   }, [chatList])
 
-  const filteredChats = (chatList ?? []).filter(item => 
+  const uniqueChats = Array.from(
+    new Map((chatList ?? []).map(item => [item.room_id, item])).values()
+  )
+  const filteredChats = uniqueChats.filter(item => 
     item.name.toLowerCase().includes(keyword.toLowerCase())
   )
 

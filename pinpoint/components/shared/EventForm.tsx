@@ -102,7 +102,7 @@ const EventForm = (props: Prop) => {
     setMembers(event.members);
     setEventForm({
       name: event.name,
-      date: event.date ?? new Date().toString(),
+      date: event.date ??null,
       place: event.place ?? undefined,
       members: event.members,
     });
@@ -115,6 +115,9 @@ const EventForm = (props: Prop) => {
     }
 
   },[eventForm])
+
+  useEffect(()=>{ console.log("update eventForm in eventform",eventForm.date)},[isTimeTBD])
+
   // update members to eventForm
   useEffect(() => {
     // when the member is one, which is yourself, and store update is done on the above useEffect dep user
@@ -136,7 +139,7 @@ const EventForm = (props: Prop) => {
   const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
     // if (Platform.OS === 'android') setShowDatePicker(false);  // auto-close on Android
     if (event.type === "set" && selected) {
-      const updated = eventForm?.date ? new Date(eventForm.date) : new Date();
+      const updated = eventForm?.date ? new Date(eventForm.date) : nextWeek;
       updated.setFullYear(selected.getFullYear());
       updated.setMonth(selected.getMonth());
       updated.setDate(selected.getDate());
@@ -156,7 +159,7 @@ const EventForm = (props: Prop) => {
 
   const onTimeChange = (event: DateTimePickerEvent, selected?: Date) => {
     if (event.type === "set" && selected) {
-      const updated = eventForm?.date ? new Date(eventForm.date) : new Date();
+      const updated = eventForm?.date ? new Date(eventForm.date) : nextWeek;
       updated.setHours(selected.getHours());
       updated.setMinutes(selected.getMinutes());
       setEventForm((prev) => ({
@@ -218,7 +221,7 @@ const EventForm = (props: Prop) => {
     setMembers([]);
     setEventForm({
       name: "",
-      date: new Date().toString(),
+      date: nextWeek.toString(),
       place: {
         place_name: "",
         address: "",
@@ -239,7 +242,7 @@ const EventForm = (props: Prop) => {
   };
 
   const updateEvent = async () => {
-    console.log("update", eventForm);
+    console.log("update eventForm.date", eventForm.date);
 
     if (!props.eventDetail) {
       console.log("no event id found")

@@ -237,7 +237,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
           <FontAwesome6 name="location-dot" size={30} color="#092568" />
         </View>
         {event.place?.address || event.place?.place_name ? (
-          <View className="flex gap-1">
+          <View className="flex gap-1 w-[90%]">
             <Text className="font-LexendMedium text-[20px] w-[90%]">
               {event.place.place_name ?? "TBD"}
             </Text>

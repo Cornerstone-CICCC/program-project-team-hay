@@ -8,6 +8,7 @@ import { useFriendStore } from "@/store/functions/friend.store";
 import { useLocationStore } from "@/store/functions/location.store";
 import { useMyLocationStore } from "@/store/location.store";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from '@expo/vector-icons/Feather';
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -179,25 +180,9 @@ const TrackingMAP = () => {
         // let subscriber: Location.LocationSubscription
         let interval:number
 
-        // //start
-        // const startTrackingMe = async()=>{
-        //     subscriber = await Location.watchPositionAsync(
-        //         {
-        //             timeInterval:5000,
-        //             distanceInterval:10
-        //         },
-        //         (location)=>{
-        //             setUserLocation({
-        //                 latitude:location.coords.latitude,
-        //                 longitude:location.coords.longitude
-        //             })
-        //         }
-        //     )
-        // }
-
         const startTrackingOthers = ()=>{
             fetchMembersLocation()
-            interval = setInterval(fetchMembersLocation, 5000)
+            interval = setInterval(fetchMembersLocation, 3000)
         }
 
         // startTrackingMe()
@@ -385,8 +370,10 @@ const TrackingMAP = () => {
           </View>
 
           {selectedMember?.userId !== user?.id && (
-            <TouchableOpacity onPress={handleMessage}>
-              <Text>Message</Text>
+            <TouchableOpacity 
+            className="my-auto"
+            onPress={handleMessage}>
+              <Feather name="mail" size={20} color="#FF7600" />
             </TouchableOpacity>
           )}
         </View>

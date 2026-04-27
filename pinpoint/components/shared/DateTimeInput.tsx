@@ -36,6 +36,12 @@ const DateTimeInput = ({
         setDateAndroid(new Date(eventForm.date))
 
     },[])
+
+    useEffect(()=>{
+        if(!eventForm) return
+        console.log("eventForm.date in dateInput", eventForm?.date)
+
+    },[eventForm,isTimeTBD])
   return (
             <View 
         className={`flex flex-row items-center w-full ${(type&&type!=="poll")&&"px-2 gap-8"} ${Platform.OS ==="ios"&& "justify-between"}`}

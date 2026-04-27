@@ -169,8 +169,6 @@ const EventDetail = () => {
     fetchEventDetail();
   }, [id,toggleEventRender]);
 
-  useEffect(()=>{},[isConfirmed])
-
   useEffect(() => {
     const requestLocation = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();

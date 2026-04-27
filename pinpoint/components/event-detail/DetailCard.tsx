@@ -20,7 +20,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
     const {user} = useAuthStore()
     const {createDmRoom,checkIfWeAreFriend} = useFriendStore()
     const {acceptEvent,declineEvent} = useEventStore()
-    const {setSelectedEvent} = useMyEventStore()
+    const {setSelectedEvent,setToggleEventRender} = useMyEventStore()
     let dateTime
     let day
     let month 
@@ -106,6 +106,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         return
       }
       // update isConfirmed status in backend
+      setToggleEventRender()
       setIsComfirmed(true)
     }
 
@@ -241,7 +242,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
             <Text className="font-LexendMedium text-[20px] w-[90%]">
               {event.place.place_name ?? "TBD"}
             </Text>
-            <Text className="text-[#747688] text-lg w-[100%] text-wrap">
+            <Text className="text-[#747688] text-lg w-[90%] text-wrap">
               {event.place.address}
             </Text>
           </View>

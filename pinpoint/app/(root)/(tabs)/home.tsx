@@ -55,7 +55,11 @@ const Home = () => {
           </View>
         ) : (
           hangoutList.map((item) => (
-            <HangoutCard key={item.event_id} data={item} />
+            // <HangoutCard key={item.event_id} data={item} />
+            <HangoutCard key={item.event_id} data={{
+              ...item,
+              status: 'confirmed',
+            }} />
           ))
         )}
       </View>

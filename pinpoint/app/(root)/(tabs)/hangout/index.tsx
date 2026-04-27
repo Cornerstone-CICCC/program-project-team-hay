@@ -1,6 +1,7 @@
 import HangoutCard from "@/components/HangoutCard";
 import { useEventListStore } from "@/store/functions/eventlist.store";
 import Feather from "@expo/vector-icons/Feather";
+import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -20,6 +21,8 @@ interface EventOverview {
   name: string;
   date?: string;
   address?: string;
+  isConfirmed?: boolean;
+  status: 'check' | 'missed' | 'confirmed';
 }
 type EventFilter = 'invited' | "upcoming" | "today" | "tomorrow" | "week" | "past";
 type TabState = {
@@ -61,16 +64,37 @@ const Hangout = () => {
     setIsLoading(true)
 
     const data = await event.getEventList(tab)
-    
     if(!data) {
       setIsLoading(false)
       return
     }
 
+    const sortEvents = data.events.map((e) => {
+      const now = dayjs()
+      const eventDate = e.date ? dayjs(e.date) : null
+      const isConfirmed = tab === 'invited' ? false : true
+      let status: 'check' | 'missed' | 'confirmed' = 'check'
+      if(isConfirmed){
+        status = 'confirmed'
+      } else if (eventDate && eventDate.isBefore(now, 'day')){
+        status = 'missed'
+      } else {
+        status = 'check'
+      }
+
+      return {
+        ...e,
+        isConfirmed,
+        status
+      }
+    }) 
+
     setHangoutsByTab((prev) => ({
       ...prev,
       [tab]: {
-        events: data.events,
+        ...prev[tab],
+        // events: data.events,
+        events: sortEvents,
         lastCursor: data.lastCursor ?? null,
       },
     }));
@@ -95,7 +119,14 @@ const Hangout = () => {
     fetchEvents(activeTab);
   }, [activeTab]);
 
-  const filteredHangouts = hangoutsByTab[activeTab].events.filter((item) =>
+  const filteredHangouts = hangoutsByTab[activeTab].events.filter((item) => {
+    if(item.status !== 'missed') return true
+    if(!item.date) return true
+    const eventDate = dayjs(item.date)
+    const now = dayjs()
+    return now.isBefore(eventDate.add(2, 'day'), 'day')
+  })
+  .filter((item) => 
     item.name.toLowerCase().includes(keyword.toLowerCase()),
   );
 
@@ -113,13 +144,33 @@ const Hangout = () => {
       return;
     }
 
+    const sortEvents = data.events.map((e) => {
+      const now = dayjs()
+      const eventDate = e.date ? dayjs(e.date) : null
+      const isConfirmed = tab === 'invited' ? false : true
+      let status: 'check' | 'missed' | 'confirmed' = 'check'
+      if(isConfirmed){
+        status = 'confirmed'
+      } else if (eventDate && eventDate.isBefore(now, 'day')){
+        status = 'missed'
+      } else {
+        status = 'check'
+      }
+
+      return {
+        ...e,
+        isConfirmed,
+        status
+      }
+    }) 
+
     setHangoutsByTab(prev => ({
       ...prev,
       [tab]: {
         // events: [...prev[tab].events, ...data.events],
         events: [
           ...prev[tab].events,
-          ...data.events.filter(
+          ...sortEvents.filter(
             newItem => !prev[tab].events.some(e => e.event_id === newItem.event_id)
           )
         ],

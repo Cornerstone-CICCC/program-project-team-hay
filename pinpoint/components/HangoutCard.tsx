@@ -8,7 +8,8 @@ type Hangout = {
   event_id: string,
   name: string,
   date?: string,
-  address?: string
+  address?: string,
+  status: 'check' | 'missed' | 'confirmed';
 }
 type Props = {
   data: Hangout
@@ -37,6 +38,16 @@ const HangoutCard = ({ data }: Props) => {
   return (
     <TouchableOpacity onPress={goToEventDetail}>
       <View style={styles.cardItem}>
+        {data.status !== 'confirmed' && (
+          data.status === 'missed' ? (
+            <>
+              <View style={styles.cardItemOff}></View>
+              <Text style={styles.eventMissed}>Missed</Text>
+            </>
+          ) : (
+            <Text style={styles.eventAction}>Check it!</Text>
+          )
+        )}
         <View style={styles.cardImgWrap}>
           <Image source={
             fetchEventBgImage(data.name)
@@ -73,6 +84,46 @@ const styles = StyleSheet.create({
     boxShadow: '5px 10px 20px #3333334c',
     overflow: 'hidden',
     marginBottom: 20,
+    position: 'relative',
+  },
+  cardItemOff: {
+    borderRadius: 18,
+    backgroundColor: '#33333380',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 6,
+    width: '120%',
+    height: '120%',
+  },
+  eventMissed: {
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 20,
+    left: 0,
+    zIndex: 7,
+    fontFamily: 'Lexend-Regular',
+    fontSize: 15,
+    // color: 'rgba(255, 54, 54, 1)',
+    color: '#7c7c7c',
+    paddingInline: 10,
+    paddingBlock: 6,
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+  eventAction: {
+    backgroundColor: '#FF7600',
+    position: 'absolute',
+    top: 20,
+    left: 0,
+    zIndex: 7,
+    fontFamily: 'Lexend-Regular',
+    fontSize: 15,
+    color: '#fff',
+    paddingInline: 10,
+    paddingBlock: 6,
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
   },
   cardImgWrap: {
     height: 131,

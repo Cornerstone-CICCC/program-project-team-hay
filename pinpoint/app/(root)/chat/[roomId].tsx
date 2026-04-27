@@ -301,6 +301,7 @@ const Chatroom = () => {
           <FlatList
             data={displayMessages}
             ref={flatListRef}
+            keyboardDismissMode="interactive"
             // inverted
             contentContainerStyle={{
               flexGrow: 1,

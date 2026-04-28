@@ -4,6 +4,7 @@ import { useAuthStore } from "@/store/functions/auth.store";
 import { useHomeStore } from "@/store/functions/home.store";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,15 +32,21 @@ const Home = () => {
 
   const [hangoutList, setHangoutList] = useState<EventOverview[] | null>([]);
   const [recentFriendList, setRecentFriendList] = useState<Friend[] | null>([]);
+  const [isLoadingHangouts, setIsLoadingHangouts] = useState<boolean>(true)
+  const [isLoadingFriends, setIsLoadingFriends] = useState<boolean>(true)
 
   useEffect(() => {
     if (!userId) return;
 
     const fetchData = async () => {
+      setIsLoadingHangouts(true)
+      setIsLoadingFriends(true)
       const hangouts = await home.getHomeEventList();
-      const friends = await home.getRecentFriends();
       setHangoutList(hangouts);
+      setIsLoadingHangouts(false)
+      const friends = await home.getRecentFriends();
       setRecentFriendList(friends);
+      setIsLoadingFriends(false)
     };
     fetchData();
   }, [userId]);
@@ -49,7 +56,12 @@ const Home = () => {
       <Text style={styles.ttl}>{user?.name}</Text>
       <Text style={styles.subttl}>Your upcoming Hangouts</Text>
       <View style={styles.cardList}>
-        {!hangoutList || hangoutList.length === 0 ? (
+      {isLoadingHangouts ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size="small" color="#FF7600" />
+        </View>
+      ) : (
+        !hangoutList || hangoutList.length === 0 ? (
           <View style={styles.noCardItem}>
             <Text style={styles.noCardTxt}>No hangouts yet</Text>
           </View>
@@ -61,16 +73,23 @@ const Home = () => {
               status: 'confirmed',
             }} />
           ))
-        )}
+        )
+      )}
       </View>
       <Text style={styles.subttl}>Current contacted friends</Text>
       <View style={styles.friendList}>
-        {!recentFriendList || recentFriendList.length === 0 ? (
-          <Text style={styles.noFriend}>No recent contacts</Text>
+        {isLoadingFriends ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="small" color="#FF7600" />
+          </View>
         ) : (
-          recentFriendList.map((item) => (
-            <CurrentFriendCard key={item.friend_id} data={item} />
-          ))
+          !recentFriendList || recentFriendList.length === 0 ? (
+            <Text style={styles.noFriend}>No recent contacts</Text>
+          ) : (
+            recentFriendList.map((item) => (
+              <CurrentFriendCard key={item.friend_id} data={item} />
+            ))
+          )
         )}
       </View>
     </ScrollView>
@@ -80,6 +99,12 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
+  loadingBox: {
+    marginTop: 30,
+    marginBottom: 50,
+    justifyContent: 'center',
+    flex: 1
+  },
   container: {
     paddingHorizontal: 20,
     paddingTop: 76,

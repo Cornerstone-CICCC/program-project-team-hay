@@ -76,7 +76,7 @@ const Hangout = () => {
       let status: 'check' | 'missed' | 'confirmed' = 'check'
       if(isConfirmed){
         status = 'confirmed'
-      } else if (eventDate && eventDate.isBefore(now, 'day')){
+      } else if (eventDate && eventDate.isBefore(now)){
         status = 'missed'
       } else {
         status = 'check'
@@ -124,6 +124,7 @@ const Hangout = () => {
     if(!item.date) return true
     const eventDate = dayjs(item.date)
     const now = dayjs()
+    console.log("🔥🔥", item)
     return now.isBefore(eventDate.add(2, 'day'), 'day')
   })
   .filter((item) => 

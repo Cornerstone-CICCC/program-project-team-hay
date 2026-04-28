@@ -242,7 +242,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
             <Text className="font-LexendMedium text-[20px] w-[90%]">
               {event.place.place_name ?? "TBD"}
             </Text>
-            <Text className="text-[#747688] text-lg w-[90%] text-wrap">
+            <Text className="text-[#747688] font-Lexend text-lg w-[90%] text-wrap">
               {event.place.address}
             </Text>
           </View>

@@ -7,7 +7,7 @@ type FeatherIcon = React.ComponentProps<typeof Feather>['name']
 const TabIcon =({ name, focused, label, createBtn = false }: { name: FeatherIcon, focused: boolean, label: string, createBtn?: boolean }) => {
 
   return (
-    <View className='pb-4' style={{ minWidth: 54 }}>
+    <View className='pb-4' style={{ minWidth: 60 }}>
       <View
         style={{
           alignItems: 'center',

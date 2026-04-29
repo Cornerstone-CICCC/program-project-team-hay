@@ -125,7 +125,7 @@ const Chatroom = () => {
     type === 'group'
       ? (event?.date
         ? moment().isAfter(moment(event.date).endOf('day'))
-        : true)
+        : false)
       : false
 
 

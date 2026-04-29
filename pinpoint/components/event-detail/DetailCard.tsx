@@ -213,7 +213,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
             <Text className="font-LexendMedium text-[20px]">
               {day} {month}, {year}
             </Text>
-            <Text className="text-[#747688] text-lg">
+            <Text className="text-[#747688] font-Lexend text-lg">
               {wod}, {hour! < 10 ? `0${hour}` : hour}:
               {mins! < 10 ? `0${mins}` : mins}
             </Text>

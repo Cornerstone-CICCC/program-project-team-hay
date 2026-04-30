@@ -1,10 +1,15 @@
-import { supabase } from "../../libs/supabase/client";
 import { create } from "zustand";
+import { supabase } from "../../libs/supabase/client";
 import { useAuthStore } from "./auth.store";
 
 type Result = {
   poll_option_id: string;
   label: string;
+  address?:string;
+  latitude?:number;
+  longitude?:number;
+  imgKey?:string;
+  url?:string;
   voteCount: number; // the number of votes for the poll_option_id
 };
 
@@ -44,7 +49,7 @@ export const useVoteStore = create<Action>((set, get) => ({
 
       const { data: options, error: selectOpsErr } = await supabase
         .from("poll_option")
-        .select("id, label")
+        .select("*")
         .eq("poll_id", poll_id);
 
       if (selectOpsErr || !options) {
@@ -62,7 +67,7 @@ export const useVoteStore = create<Action>((set, get) => ({
         console.error("Error selecting results: ", selectResErr);
         return null;
       }
-
+      console.log("voteResult", voteResult)
       const counts = voteResult.reduce((acc: Record<string, number>, curr) => {
         const id = String(curr.poll_option_id);
         acc[id] = (acc[id] || 0) + 1;
@@ -72,6 +77,11 @@ export const useVoteStore = create<Action>((set, get) => ({
       const result: Result[] = options.map((o) => ({
         poll_option_id: o.id,
         label: o.label,
+        address:o.address?? undefined,
+        latitude:o.latitude ?? undefined,
+        longitude:o.longitude?? undefined,
+        imgKey:o.imgKey?? undefined,
+        url:o.url??undefined,
         voteCount: counts[o.id] || 0,
       }));
 

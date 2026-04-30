@@ -62,6 +62,7 @@ const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
             url:p.url,
             voteCount:p.votes!.length
         }))
+        console.log("computed in Active poll", computed)
 
         for (const p of poll.options){
             if(!p.votes) continue
@@ -101,15 +102,17 @@ const ActivePoll = ({poll,members}:{poll:Props,members:Member[]}) => {
             return
         }
 
+        console.log("res in active poll", res)
+
         // setting result
-        const newResults= res.map((o)=>({
-             poll_option_id:o.poll_option_id,
-             label:o.label,
-             voteCount:o.voteCount,
-        }))
+        // const newResults= res.map((o)=>({
+        //      poll_option_id:o.poll_option_id,
+        //      label:o.label,
+        //      voteCount:o.voteCount,
+        // }))
 
         //set it to resutls
-        setResults(newResults)
+        setResults(res)
         //add
         
         setResultShown(true)
@@ -284,6 +287,8 @@ const ResultPoll = (props:ResultProps)=>{
     const handleUpdate = async()=>{
         const eventId=id as string
         const winner = sortedResult[0]
+        console.log("sortedResult", sortedResult)
+        console.log("winner", winner)
         const winner_option_id = winner.poll_option_id
         const type = props.type
         let updates;

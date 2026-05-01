@@ -42,7 +42,10 @@ const DetailCard = ({event}:{event:EventDetail}) => {
     
     // set initial confirm state
     useEffect(()=>{
+      if(!event) return
+      console.log("recived event data", event)
       const members = event.members
+      console.log("members in detail", members)
       const me = members.find(m=>m.userId===user?.id)
       console.log("me",me)
       const isConfirm = me?.isConfirmed ?? false

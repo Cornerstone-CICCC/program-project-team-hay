@@ -215,7 +215,7 @@ const DetailCard = ({event}:{event:EventDetail}) => {
         {event.date ? (
           <View className="flex gap-1">
             <Text className="font-LexendMedium text-[20px]">
-              {day} {month}, {year}
+              {day&&day<10?`0${day}`:day} {month}, {year}
             </Text>
             <Text className="text-[#747688] font-Lexend text-lg">
               {wod}, {hour! < 10 ? `0${hour}` : hour}:

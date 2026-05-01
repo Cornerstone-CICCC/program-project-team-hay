@@ -1,0 +1,460 @@
+import { defalutImage } from "@/constants";
+import { useIsTrackAvailable } from "@/hooks/useIsTrackAvailable";
+import { calculateRegion } from "@/libs/map";
+import { useMyChatStore } from "@/store/chat.store";
+import { useAuthStore } from "@/store/functions/auth.store";
+import { useEventStore } from "@/store/functions/event.store";
+import { useFriendStore } from "@/store/functions/friend.store";
+import { useLocationStore } from "@/store/functions/location.store";
+import { useMyLocationStore } from "@/store/location.store";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from '@expo/vector-icons/Feather';
+import * as Location from "expo-location";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import MapView, {
+  Marker,
+  PROVIDER_DEFAULT,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
+
+export interface MarkerData {
+  latitude: number;
+  longitude: number;
+  id?: string;
+  userId: string;
+  name: string;
+  image: string;
+  friend_id?: string;
+}
+
+export interface TrackEventDetail {
+  id: string; //event id
+  name: string;
+  date: string;
+  place: {
+    place_name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    url?: string;
+    imgKey?: string;
+  };
+}
+
+const TrackingMAP = () => {
+  const { id } = useLocalSearchParams();
+  const { setUserLocation, userLatitude, userLongitude } = useMyLocationStore();
+  const [event, setEvent] = useState<TrackEventDetail | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{
+    duration: number;
+    distance: number;
+  } | null>(null);
+  const [markers, setMarkers] = useState<MarkerData[]>([]);
+  const isTrackAvailable = useIsTrackAvailable(event?.date ?? null);
+  const [selectedMember, setSelectedMember] = useState<MarkerData | null>(null);
+  const [available, setAvailable] = useState(false);
+
+  const { fetchLocationDetailByID } = useEventStore();
+  const currentChat = useMyChatStore(s => s.setCurrentRoom)
+  const {createDmRoom} = useFriendStore()
+  const { updateMyLocation, getAllMembersLocation } = useLocationStore();
+  const { user } = useAuthStore();
+
+  const [region, setRegion] = useState<{
+    latitude: number;
+    longitude: number;
+    latitudeDelta: number;
+    longitudeDelta: number;
+  }>({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+
+  if (Platform.OS === "web") {
+    return router.back();
+  }
+
+  const fetchMembersLocation = async () => {
+    if (!id) {
+      console.log("No id found");
+      return;
+    }
+
+    const details = await getAllMembersLocation(id as string);
+
+    console.log("details",details)
+
+    if (!details) {
+      console.log("There is no data for members location");
+      return;
+    }
+
+    // set Markers
+    setMarkers(details);
+  };
+
+    //Geting destination latitude and logitude and set it to place and initial region
+    //Setting markers on map 
+    useEffect(()=>{
+        // make sure the user allow us to locate
+        const requestLocation = async()=>{
+            let {status} = await Location.requestForegroundPermissionsAsync()
+            if(status!=='granted'){
+            return
+            }
+    
+            let location =await Location.getCurrentPositionAsync()
+            setUserLocation({
+            latitude:location.coords.latitude,
+            longitude:location.coords.longitude,
+            })
+        }      
+        requestLocation()
+
+        if(!id||!userLatitude || !userLongitude) return
+        console.log(id)
+
+        // Fetch event data with location
+        const fetchDestinationDetail = async()=>{
+            const data = await fetchLocationDetailByID(id as string)
+
+            if(!data){
+                console.log("No event location detail")
+                return
+            }
+            console.log("location",data.place)
+            // fetch location and set to setEvent
+            setEvent(data)
+            // calculate initial Region for map
+            const initialRegion = calculateRegion({
+                userLatitude,
+                userLongitude,
+                destinationLatitude: data.place.latitude,
+                destinationLongitude: data.place.longitude
+            })
+
+            console.log("initial region", initialRegion)
+
+            setRegion(initialRegion)
+        }
+
+        fetchDestinationDetail()
+
+        // // check if the time is track available if not redirect back
+        // const isTrackAvailable = useIsTrackAvailable(data.date)
+        if(!isTrackAvailable){
+            console.log("Cannot track right now")
+        }else{
+            setAvailable(true)
+        }
+
+        // updating my location to backend
+        const userLocation ={
+            event_id: id as string,
+            latitude: userLatitude,
+            longitude: userLongitude
+        }
+        updateMyLocation(userLocation)
+
+        fetchMembersLocation()
+
+    },[id, userLatitude, userLongitude, isTrackAvailable])
+
+   //fetching all people's location every 30s after isTrackavailable until everyone arrives or user close
+    useEffect(()=>{
+
+        if(!event || !available) return
+
+        // let subscriber: Location.LocationSubscription
+        let interval:number
+
+        const startTrackingOthers = ()=>{
+            fetchMembersLocation()
+            interval = setInterval(fetchMembersLocation, 3000)
+        }
+
+        // startTrackingMe()
+        startTrackingOthers()
+
+        return ()=>{
+            // subscriber?.remove()
+            clearInterval(interval)
+        }
+    },[isTrackAvailable, event, available])
+
+    useEffect(()=>{
+        console.log("routeInfo", routeInfo)
+        console.log("selectedMember", selectedMember)
+    },[routeInfo, selectedMember])
+
+    const handleMessage= async()=>{
+        let friend_id;
+
+        if(!selectedMember){
+          console.log("no member selected")
+          return
+        }
+
+        if(selectedMember.friend_id===user?.id){
+          console.log("You cannot message yourself")
+          return
+        }
+    
+        // if selected member does not have friend_id
+        if(!selectedMember.friend_id){
+            // create friend by sending userId and friend_userId
+            if(!selectedMember) return
+
+            const data = await createDmRoom(selectedMember.userId)
+    
+            if(!data){
+              console.log("Error getting new dm room id")
+              return
+            }
+    
+          friend_id = data.friend_id;
+            
+        }else{
+          friend_id = selectedMember.friend_id
+        }
+        currentChat({
+          room_id: friend_id,
+          type: 'dm',
+          name: selectedMember.name
+        })
+        router.push(`/chat/${friend_id}` as any)
+    }
+
+  return (
+    <View className="relative w-full">
+      <View className="absolute z-20 w-full flex flex-row justify-between items-center px-4 pt-20 pb-3 bg-[rgba(266,266,266,0.7)]">
+        <TouchableOpacity
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <AntDesign name="arrow-left" size={30} color="black" />
+        </TouchableOpacity>
+
+        {isTrackAvailable && (
+          <TouchableOpacity
+            className="bg-[#FF7600] rounded-md"
+            onPress={() => setAvailable((prev) => !prev)}
+          >
+            <Text className="text-white text-[18px] font-LexendSemiBold px-4 py-2">
+              {available ? "Stop Tracking" : "Resume Tracking"}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {!available && (
+        <View className="absolute top-0 w-full h-full bg-black/70 z-10">
+          <Text
+            style={{
+              color: "white",
+              textAlign: "center",
+              top: "50%",
+              fontSize: 20,
+            }}
+          >
+            Tracking Pause
+          </Text>
+        </View>
+      )}
+      <MapView
+        provider={
+          Platform.OS === "android" ? PROVIDER_GOOGLE : PROVIDER_DEFAULT
+        }
+        style={styles.map}
+        className="w-full h-full rounded-2xl"
+        tintColor="black"
+        mapType="standard"
+        showsPointsOfInterest={false}
+        region={region}
+        showsUserLocation={true}
+        userInterfaceStyle="light"
+        onPress={() => {
+          setRouteInfo(null);
+          setSelectedMember(null);
+        }}
+      >
+        {/* Members markers */}
+        {markers.map((marker) => (
+          <Marker
+            key={`marker-${marker.userId}`}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
+            title={marker.name}
+            onPress={(e) => {
+              e.stopPropagation();
+              setSelectedMember(marker);
+            }}
+            anchor={{ x: 0.5, y: 1 }}
+          >
+            <View style={styles.markerContainer}>
+              {/* Avatar bubble */}
+              <View style={styles.avatarRing}>
+                <Image
+                  source={
+                    marker.image ? { uri: marker.image } : defalutImage.user
+                  }
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              </View>
+              {/* Teardrop pointer */}
+              <View style={styles.markerPointer} />
+            </View>
+          </Marker>
+        ))}
+        {event && event.place.latitude && event.place.longitude && (
+          <>
+            <Marker
+              key="destination"
+              coordinate={{
+                latitude: event.place.latitude,
+                longitude: event.place.longitude,
+              }}
+              title="destination"
+            />
+
+            {/* direction line */}
+            {selectedMember && (
+              <MapViewDirections
+                origin={{
+                  latitude: selectedMember.latitude,
+                  longitude: selectedMember.longitude,
+                }}
+                destination={{
+                  latitude: event.place.latitude,
+                  longitude: event.place.longitude,
+                }}
+                apikey={process.env.EXPO_PUBLIC_GOOGLE_API_KEY!}
+                strokeColor="#0286ff"
+                strokeWidth={4}
+                mode="TRANSIT"
+                onReady={(result) => {
+                  setRouteInfo({
+                    duration: Math.ceil(result.duration),
+                    distance: result.distance,
+                  });
+                }}
+                onError={(err) => console.warn("Directions error:", err)}
+              />
+            )}
+          </>
+        )}
+      </MapView>
+      {selectedMember && routeInfo && (
+        <View style={styles.etaBox}>
+          <View>
+            <Text style={styles.etaTime}>{routeInfo.duration} min</Text>
+            <Text style={styles.etaDist}>
+              {routeInfo.distance.toFixed(1)} km
+            </Text>
+          </View>
+
+          {selectedMember?.userId !== user?.id && (
+            <TouchableOpacity 
+            className="my-auto"
+            onPress={handleMessage}>
+              <Feather name="mail" size={20} color="#FF7600" />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+    </View>
+  );
+};
+
+export default TrackingMAP;
+
+const AVATAR_SIZE = 40;
+
+const styles = StyleSheet.create({
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  markerContainer: {
+    alignItems: "center",
+  },
+  avatarRing: {
+    width: AVATAR_SIZE + 6,
+    height: AVATAR_SIZE + 6,
+    borderRadius: (AVATAR_SIZE + 6) / 2,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    overflow: "hidden",
+    // Shadow (iOS)
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    // Shadow (Android)
+    elevation: 8,
+    backgroundColor: "#fff",
+  },
+  avatarImage: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+  },
+  markerPointer: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderTopWidth: 10,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "#FFFFFF",
+    marginTop: -1, // tuck flush under the ring
+    // drop shadow on the pointer too
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  etaBox: {
+    position: "absolute",
+    bottom: 24,
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 12,
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  etaTime: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0286ff",
+  },
+  etaDist: {
+    fontSize: 17,
+    fontWeight: "500",
+    color: "#666",
+  },
+});

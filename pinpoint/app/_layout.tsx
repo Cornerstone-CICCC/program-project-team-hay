@@ -1,13 +1,15 @@
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Text, TextInput } from "react-native";
+import { LogBox, Text, TextInput } from "react-native";
 
 (Text as any).defaultProps = (Text as any).defaultProps || {};
 (Text as any).defaultProps.style = { fontFamily: "Lexend-Regular" };
 
 (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
 (TextInput as any).defaultProps.style = { fontFamily: "Lexend-Regular" };
+
+LogBox.ignoreAllLogs(true)
 
 export default function RootLayout() {
   const router = useRouter();

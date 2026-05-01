@@ -87,12 +87,31 @@ const EventDetail = () => {
   useEffect(() => {
     console.log(user);
     if (!id || !user) return;
-    //Fetching event detail from id
-    const fetchEventDetail = async () => {
-      const eventDetail = await fetchEventById(id as string);
 
-      if (!eventDetail) {
-        console.log("There is no event detail with this id");
+    const fetchEventDetail = async () => {
+      let eventDetail = null;
+      let attempts = 0;
+      const maxAttempts = 5;
+
+      // Retry if members is empty
+      while (attempts < maxAttempts) {
+        eventDetail = await fetchEventById(id as string);
+        console.log("eventDetail in [id]", eventDetail);
+        attempts++;
+
+        if (!eventDetail) {
+          console.log("There is no event detail with this id");
+          return;
+        }
+
+        if (eventDetail.members.length > 0) break;
+
+        console.log(`Members empty, retrying... (${attempts}/${maxAttempts})`);
+        await new Promise((resolve) => setTimeout(resolve, 300)); // wait 500ms before retry
+      }
+
+      if (!eventDetail || eventDetail.members.length === 0) {
+        console.log("Could not fetch members after max attempts");
         return;
       }
 
@@ -140,10 +159,10 @@ const EventDetail = () => {
         });
       }
 
-      const members = eventDetail.members
-      const me = members.find(m=>m.id===user?.id)
-      const isConfirm = me?.isConfirmed ?? false
-      setIsComfirmed(isConfirm)
+      const members = eventDetail.members;
+      const me = members.find((m) => m.id === user?.id);
+      const isConfirm = me?.isConfirmed ?? false;
+      setIsComfirmed(isConfirm);
 
       setEventDetail({
         id: eventDetail.id,
@@ -154,12 +173,10 @@ const EventDetail = () => {
           userId: mem.id,
           name: mem.name,
           image: mem.image,
-          isConfirmed:mem.isConfirmed
+          isConfirmed: mem.isConfirmed,
         })),
         activePoll: eventDetail.activePoll,
       });
-
-      
 
       const bgImage = fetchEventBgImage(eventDetail.name);
       setBgImg(bgImage);
@@ -167,7 +184,7 @@ const EventDetail = () => {
     };
 
     fetchEventDetail();
-  }, [id,toggleEventRender]);
+  }, [id, toggleEventRender]);
 
   useEffect(() => {
     const requestLocation = async () => {
